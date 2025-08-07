@@ -21,6 +21,8 @@ import 'details/ladelund.dart';
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
+  String get desc => 'Map';
+
   @override
   State<MapScreen> createState() => _MapScreenState();
 }

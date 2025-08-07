@@ -6,7 +6,7 @@ import '../features/map/map_screen.dart';
 import '../features/news/news_screen.dart';
 import '../features/favorites/favorites_screen.dart';
 import '../features/profiles/profile_screen.dart';
-import 'custom_appbar.dart';
+import 'custom_appbar_with_logo.dart';
 import 'bottom_navigation.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -87,7 +87,7 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
-      appBar: CustomAppBar(context: context),
+      appBar: CustomAppBarWithLogo(context: context),
       endDrawer: CustomDrawer(
         navigateToHome: navigateToHome,
         navigateToDatabase: navigateToDatabase,
