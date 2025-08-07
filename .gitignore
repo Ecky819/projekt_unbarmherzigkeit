@@ -58,8 +58,3 @@ firebase.json
 GoogleService-Info.plist
 storage.rules
 .firebaserc
-
-# Notes
-notes.dnn
-strukture.dnn
-additional_assets/
