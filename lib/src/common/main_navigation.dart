@@ -19,6 +19,9 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   List<Map<String, dynamic>> _screens = [];
+  List<int> _navigationHistory = [
+    0,
+  ]; // History der besuchten Seiten, startet mit Home
 
   @override
   void initState() {
@@ -27,7 +30,13 @@ class _MainNavigationState extends State<MainNavigation> {
 
   void navigateTo(String desc) {
     int index = _screens.indexWhere((screen) => screen['title'] == desc);
-    if (index != -1) {
+    if (index != -1 && index != _selectedIndex) {
+      // Füge aktuellen Index zur History hinzu, falls er nicht bereits der letzte ist
+      if (_navigationHistory.isEmpty ||
+          _navigationHistory.last != _selectedIndex) {
+        _navigationHistory.add(_selectedIndex);
+      }
+
       setState(() {
         _selectedIndex = index;
       });
@@ -36,9 +45,17 @@ class _MainNavigationState extends State<MainNavigation> {
 
   // Funktion für den Zurück-Button
   void goBack() {
-    if (_selectedIndex > 0) {
+    if (_navigationHistory.isNotEmpty) {
+      // Gehe zum vorherigen Bildschirm in der History
+      int previousIndex = _navigationHistory.removeLast();
       setState(() {
-        _selectedIndex = _selectedIndex - 1;
+        _selectedIndex = previousIndex;
+      });
+    } else {
+      // Fallback: Gehe zur Home-Seite
+      setState(() {
+        _selectedIndex = 0;
+        _navigationHistory.clear(); // Clear history when going to home
       });
     }
   }
@@ -87,7 +104,14 @@ class _MainNavigationState extends State<MainNavigation> {
         onBackPressed: goBack, // Zurück-Callback hinzugefügt
       ),
       endDrawer: CustomDrawer(
-        navigateTo: navigateTo, // Korrigiert: direkter Aufruf der Funktion
+        navigateTo: (desc) {
+          // Füge aktuellen Index zur History hinzu, bevor wir über Drawer navigieren
+          if (_navigationHistory.isEmpty ||
+              _navigationHistory.last != _selectedIndex) {
+            _navigationHistory.add(_selectedIndex);
+          }
+          navigateTo(desc);
+        },
         navigateToDatabase: navigateToDatabase,
         navigateToNews: navigateToNews,
       ),
@@ -95,6 +119,13 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: CustomNavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
+          // Füge aktuellen Index zur History hinzu, bevor wir navigieren
+          if (_selectedIndex != index &&
+              (_navigationHistory.isEmpty ||
+                  _navigationHistory.last != _selectedIndex)) {
+            _navigationHistory.add(_selectedIndex);
+          }
+
           setState(() {
             _selectedIndex = index;
           });
