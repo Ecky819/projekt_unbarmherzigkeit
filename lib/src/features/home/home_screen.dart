@@ -5,15 +5,18 @@ import '../../common/quicklink_card.dart';
 //import 'map_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  final VoidCallback navigateToTimeline;
-  final VoidCallback navigateToMap;
+  final Function(String) navigateTo;
+  /*final VoidCallback navigateToTimeline;
+  final VoidCallback navigateToMap;*/
   final VoidCallback navigateToNews;
   final VoidCallback navigateToDatabase;
 
   const HomeScreen({
     super.key,
+    required this.navigateTo,
+    /*
     required this.navigateToTimeline,
-    required this.navigateToMap,
+    required this.navigateToMap,*/
     required this.navigateToNews,
     required this.navigateToDatabase,
   });
@@ -57,7 +60,7 @@ class HomeScreen extends StatelessWidget {
                     text:
                         'Hier finden sie alle historischen Ereignisse in Griechenland von 1941 bis 1945.',
                     imagePath: 'assets/icons/more_info.png',
-                    onTap: navigateToTimeline,
+                    onTap: () => navigateTo('Timeline'),
                   ),
                 ),
                 SizedBox(
@@ -67,7 +70,7 @@ class HomeScreen extends StatelessWidget {
                     text:
                         'Hier finden sie unsere Karte auf der alle Lagerstandorte verzeichnet sind.',
                     imagePath: 'assets/icons/more_info.png',
-                    onTap: navigateToMap,
+                    onTap: () => navigateTo('Karte'),
                   ),
                 ),
               ],

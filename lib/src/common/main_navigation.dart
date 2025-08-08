@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../features/home/home_screen.dart';
-import '../features/database/database_screen.dart';
-import '../features/timeline/timeline_screen.dart';
-import '../features/map/map_screen.dart';
-import '../features/news/news_screen.dart';
-import '../features/favorites/favorites_screen.dart';
-import '../features/profiles/profile_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/home/home_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/database/database_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/timeline/timeline_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/map/map_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/news/news_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/favorites/favorites_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/profiles/profile_screen.dart';
 import 'custom_appbar.dart';
 import 'bottom_navigation.dart';
 
@@ -18,54 +18,29 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-
-  late final List<Widget> _pages;
+  List<Map<String, dynamic>> _screens = [];
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      HomeScreen(
-        navigateToTimeline: navigateToTimeline,
-        navigateToMap: navigateToMap,
-        navigateToNews: navigateToNews,
-        navigateToDatabase: navigateToDatabase,
-      ),
-      const TimelineScreen(),
-      const MapScreen(),
-      const FavoriteScreen(),
-      const ProfileScreen(),
-    ];
   }
 
-  void navigateToHome() {
-    setState(() {
-      _selectedIndex = 0;
-    });
+  void navigateTo(String desc) {
+    int index = _screens.indexWhere((screen) => screen['title'] == desc);
+    if (index != -1) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
-  void navigateToTimeline() {
-    setState(() {
-      _selectedIndex = 1;
-    });
-  }
-
-  void navigateToMap() {
-    setState(() {
-      _selectedIndex = 2;
-    });
-  }
-
-  void navigateToFavorites() {
-    setState(() {
-      _selectedIndex = 3;
-    });
-  }
-
-  void navigateToProfile() {
-    setState(() {
-      _selectedIndex = 4;
-    });
+  // Funktion für den Zurück-Button
+  void goBack() {
+    if (_selectedIndex > 0) {
+      setState(() {
+        _selectedIndex = _selectedIndex - 1;
+      });
+    }
   }
 
   // News Navigation unabhängig vom BottomNavigationBar
@@ -85,19 +60,38 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> screens = [
+      {
+        'screen': HomeScreen(
+          navigateTo: (desc) => navigateTo(desc),
+          navigateToNews: () => navigateToNews,
+          navigateToDatabase: () => navigateToDatabase,
+        ),
+        'title': 'Home',
+      },
+      {'screen': const TimelineScreen(), 'title': 'Timeline'},
+      {'screen': const MapScreen(), 'title': 'Karte'},
+      {'screen': const FavoriteScreen(), 'title': 'Favoriten'},
+      {'screen': const ProfileScreen(), 'title': 'Profil'},
+    ];
+    _screens = screens;
+
     return Scaffold(
       backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
-      appBar: CustomAppBar(context: context),
+      appBar: CustomAppBar(
+        context: context,
+        pageIndex: _selectedIndex,
+        title: screens[_selectedIndex]['title'],
+        navigateTo: navigateTo,
+        nav: _screens.map((screen) => screen['screen']).toList(),
+        onBackPressed: goBack, // Zurück-Callback hinzugefügt
+      ),
       endDrawer: CustomDrawer(
-        navigateToHome: navigateToHome,
+        navigateTo: navigateTo, // Korrigiert: direkter Aufruf der Funktion
         navigateToDatabase: navigateToDatabase,
         navigateToNews: navigateToNews,
-        navigateToTimeline: navigateToTimeline,
-        navigateToMap: navigateToMap,
-        navigateToFavorites: navigateToFavorites,
-        navigateToProfile: navigateToProfile,
       ),
-      body: _pages[_selectedIndex],
+      body: screens[_selectedIndex]['screen'],
       bottomNavigationBar: CustomNavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {

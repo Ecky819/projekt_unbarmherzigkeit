@@ -4,16 +4,20 @@ import '../theme/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final BuildContext context;
-  final VoidCallback? navigateToTimeline;
+  final void Function(String) navigateTo;
+  final VoidCallback? onBackPressed; // Neue Callback-Funktion
   final int pageIndex;
   final String title;
+  final List<dynamic> nav;
 
   const CustomAppBar({
     super.key,
     required this.context,
     required this.pageIndex,
     this.title = "",
-    this.navigateToTimeline,
+    required this.navigateTo,
+    required this.nav,
+    this.onBackPressed, // Optional callback
   });
 
   @override
@@ -24,8 +28,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         backgroundColor: const Color.fromRGBO(40, 58, 73, 1.0),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
-        centerTitle: false,
+        centerTitle: pageIndex == 0 ? false : true,
         titleSpacing: 0,
+        leading: (pageIndex > 0
+            ? IconButton(
+                onPressed: () {
+                  // Verwende den callback falls vorhanden, sonst standard Navigator.pop()
+                  if (onBackPressed != null) {
+                    onBackPressed!();
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
+                icon: Image.asset('assets/icons/back_button.png'),
+              )
+            : null),
+
         title: (pageIndex == 0
             ? const Padding(
                 padding: EdgeInsets.all(0.0),
@@ -52,21 +70,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class CustomDrawer extends StatelessWidget {
-  final VoidCallback navigateToTimeline;
-  final VoidCallback navigateToMap;
-  final VoidCallback navigateToHome;
-  final VoidCallback navigateToFavorites;
-  final VoidCallback navigateToProfile;
+  final void Function(String) navigateTo;
   final VoidCallback navigateToDatabase;
   final VoidCallback navigateToNews;
 
   const CustomDrawer({
     super.key,
-    required this.navigateToTimeline,
-    required this.navigateToMap,
-    required this.navigateToHome,
-    required this.navigateToFavorites,
-    required this.navigateToProfile,
+    required this.navigateTo,
     required this.navigateToDatabase,
     required this.navigateToNews,
   });
@@ -115,7 +125,7 @@ class CustomDrawer extends StatelessWidget {
                     text: 'Home',
                     onTap: () {
                       Navigator.pop(context);
-                      navigateToHome();
+                      navigateTo('Home');
                     },
                   ),
                   _drawerButton(
@@ -143,7 +153,7 @@ class CustomDrawer extends StatelessWidget {
                     iconAsset: 'assets/icons/timeline_icon.png',
                     onTap: () {
                       Navigator.pop(context);
-                      navigateToTimeline();
+                      navigateTo('Timeline');
                     },
                   ),
                   _drawerButton(
@@ -152,7 +162,7 @@ class CustomDrawer extends StatelessWidget {
                     text: 'Karte',
                     onTap: () {
                       Navigator.pop(context);
-                      navigateToMap();
+                      navigateTo('Karte');
                     },
                   ),
                   _drawerButton(
@@ -161,7 +171,7 @@ class CustomDrawer extends StatelessWidget {
                     text: 'Favoriten',
                     onTap: () {
                       Navigator.pop(context);
-                      navigateToFavorites();
+                      navigateTo('Favoriten');
                     },
                   ),
                   _drawerButton(
@@ -170,10 +180,9 @@ class CustomDrawer extends StatelessWidget {
                     text: 'Profil',
                     onTap: () {
                       Navigator.pop(context);
-                      navigateToProfile();
+                      navigateTo('Profil');
                     },
                   ),
-                  // Weitere Buttons...
                 ],
               ),
             ),
