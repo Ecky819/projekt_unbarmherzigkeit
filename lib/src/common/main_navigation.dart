@@ -81,8 +81,10 @@ class _MainNavigationState extends State<MainNavigation> {
       {
         'screen': HomeScreen(
           navigateTo: (desc) => navigateTo(desc),
-          navigateToNews: () => navigateToNews,
-          navigateToDatabase: () => navigateToDatabase,
+          navigateToNews:
+              navigateToNews, // Geändert: Entfernte die Pfeil-Funktion
+          navigateToDatabase:
+              navigateToDatabase, // Geändert: Entfernte die Pfeil-Funktion
         ),
         'title': 'Home',
       },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../features/news/news_screen.dart';
 
 class NewsCard extends StatelessWidget {
   final String title;
@@ -45,7 +46,12 @@ class NewsCard extends StatelessWidget {
               elevation: 4,
               borderRadius: BorderRadius.circular(4),
               child: InkWell(
-                onTap: navigateToNews,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NewsScreen()),
+                  );
+                },
                 child: Image.asset(
                   'assets/icons/more_info.png',
                   width: 76,
