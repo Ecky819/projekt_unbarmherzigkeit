@@ -34,11 +34,14 @@ class HomeScreen extends StatelessWidget {
                   NewsCard(
                     title: '80 Jahre Kriegsende in Athen',
                     imagePath: 'assets/images/athen_home.jpg',
+                    articleId: 'article1', // Hinzugefügt: ID für Athen-Artikel
                     navigateToNews: navigateToNews,
                   ),
                   NewsCard(
                     title: '80 Jahre Kriegsende in Thessalonikki',
                     imagePath: 'assets/images/thessaloniki_home.jpg',
+                    articleId:
+                        'article2', // Hinzugefügt: ID für Thessaloniki-Artikel
                     navigateToNews: navigateToNews,
                   ),
                 ],

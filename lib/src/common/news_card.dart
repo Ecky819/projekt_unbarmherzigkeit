@@ -4,13 +4,15 @@ import '../features/news/news_screen.dart';
 class NewsCard extends StatelessWidget {
   final String title;
   final String imagePath;
-  final VoidCallback navigateToNews;
+  final String articleId; // Neue Parameter für Artikel-Identifikation
+  final VoidCallback? navigateToNews; // Optional, für Rückwärtskompatibilität
 
   const NewsCard({
     super.key,
     required this.title,
     required this.imagePath,
-    required this.navigateToNews,
+    required this.articleId,
+    this.navigateToNews,
   });
 
   @override
@@ -47,9 +49,14 @@ class NewsCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               child: InkWell(
                 onTap: () {
+                  // Navigation mit Artikel-ID
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const NewsScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => NewsScreen(
+                        initialArticleId: articleId, // Übergabe der Artikel-ID
+                      ),
+                    ),
                   );
                 },
                 child: Image.asset(
