@@ -37,6 +37,11 @@ flutter_native_splash:
 flutter:
   uses-material-design: true
   assets:
+    - assets/images/athen_home.jpg
+    - assets/images/thessaloniki_home.jpg
     - assets/images/
+    - assets/images/victims/
+    - assets/images/camps/
+    - assets/images/commanders/
     - assets/logos/
     - assets/icons/

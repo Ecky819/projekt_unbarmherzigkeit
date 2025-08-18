@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
+import 'registration_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _obscurePassword = true;
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE9E5DD), // Beige Hintergrundfarbe
+      backgroundColor: const Color(0xFFE9E5DD),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -31,24 +45,30 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // E-Mail Feld
             TextField(
               decoration: InputDecoration(
-                labelText: 'Email',
+                labelText: 'Benutzername',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              keyboardType: TextInputType.emailAddress,
+              keyboardType: TextInputType.text,
             ),
             const SizedBox(height: 16),
 
-            // Passwort Feld
+            // Passwort
             TextField(
-              obscureText: true,
+              obscureText: _obscurePassword,
               decoration: InputDecoration(
                 labelText: 'Password',
-                suffixIcon: const Icon(Icons.visibility_outlined),
+                suffixIcon: IconButton(
+                  onPressed: _togglePasswordVisibility,
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -56,11 +76,12 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Einloggen Button
+            // Einloggen
             SizedBox(
               height: 48,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  elevation: 4,
                   backgroundColor: const Color(0xFF283A49),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -88,7 +109,14 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 const Text('Noch kein Konto?'),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegistrationScreen(),
+                      ),
+                    );
+                  },
                   child: const Text('Jetzt registrieren'),
                 ),
               ],
@@ -98,7 +126,6 @@ class ProfileScreen extends StatelessWidget {
             const Center(child: Text('Oder anmelden mit:')),
             const SizedBox(height: 16),
 
-            // Social Media Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

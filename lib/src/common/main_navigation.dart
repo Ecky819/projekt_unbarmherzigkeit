@@ -6,11 +6,16 @@ import 'package:projekt_unbarmherzigkeit/src/features/map/map_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/news/news_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/favorites/favorites_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/profiles/profile_screen.dart';
+// NEU: Repository Import
+import '../data/databaseRepository.dart';
 import 'custom_appbar.dart';
 import 'bottom_navigation.dart';
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  // NEU: Repository als Parameter
+  final DatabaseRepository? repository;
+
+  const MainNavigation({super.key, this.repository});
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -64,7 +69,11 @@ class _MainNavigationState extends State<MainNavigation> {
   void navigateToDatabase() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const DatabaseScreen()),
+      MaterialPageRoute(
+        builder: (context) => DatabaseScreen(
+          repository: widget.repository, // NEU: Repository übergeben
+        ),
+      ),
     );
   }
 
@@ -81,10 +90,8 @@ class _MainNavigationState extends State<MainNavigation> {
       {
         'screen': HomeScreen(
           navigateTo: (desc) => navigateTo(desc),
-          navigateToNews:
-              navigateToNews, // Geändert: Entfernte die Pfeil-Funktion
-          navigateToDatabase:
-              navigateToDatabase, // Geändert: Entfernte die Pfeil-Funktion
+          navigateToNews: navigateToNews,
+          navigateToDatabase: navigateToDatabase,
         ),
         'title': 'Home',
       },
@@ -103,7 +110,7 @@ class _MainNavigationState extends State<MainNavigation> {
         title: screens[_selectedIndex]['title'],
         navigateTo: navigateTo,
         nav: _screens.map((screen) => screen['screen']).toList(),
-        onBackPressed: goBack, // Zurück-Callback hinzugefügt
+        onBackPressed: goBack,
       ),
       endDrawer: CustomDrawer(
         navigateTo: (desc) {

@@ -28,7 +28,7 @@ class NewsCard extends StatelessWidget {
             child: Material(
               elevation: 4,
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(imagePath, width: 180, fit: BoxFit.cover),
+              child: Image.asset(imagePath, cacheWidth: 180, fit: BoxFit.cover),
             ),
           ),
           ListTile(
@@ -61,8 +61,8 @@ class NewsCard extends StatelessWidget {
                 },
                 child: Image.asset(
                   'assets/icons/more_info.png',
-                  width: 76,
-                  height: 26,
+                  cacheWidth: 76,
+                  cacheHeight: 26,
                 ),
               ),
             ),
