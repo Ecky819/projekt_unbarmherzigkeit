@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'registration_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/auth_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,130 +10,362 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _obscurePassword = true;
+  final AuthService _authService = AuthService();
+  User? _currentUser;
 
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscurePassword = !_obscurePassword;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = _authService.currentUser;
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Abmelden'),
+          content: const Text('Möchten Sie sich wirklich abmelden?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Abmelden'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await _authService.logout();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sie wurden erfolgreich abgemeldet.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Aktualisiere den State nach dem Logout
+          setState(() {
+            _currentUser = null;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Fehler beim Abmelden: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Konto löschen'),
+          content: const Text(
+            'Sind Sie sicher, dass Sie Ihr Konto löschen möchten? '
+            'Diese Aktion kann nicht rückgängig gemacht werden.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Löschen'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await _currentUser?.delete();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ihr Konto wurde erfolgreich gelöscht.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Fehler beim Löschen des Kontos: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE9E5DD),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Willkommen zurück',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF283A49),
-                decoration: TextDecoration.underline,
+            const SizedBox(height: 40),
+
+            // Profilheader
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Profilbild
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF283A49),
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      size: 40,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // E-Mail
+                  Text(
+                    _currentUser?.email ?? 'Unbekannt',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF283A49),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Verifizierungsstatus
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _currentUser?.emailVerified == true
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _currentUser?.emailVerified == true
+                            ? Colors.green
+                            : Colors.orange,
+                      ),
+                    ),
+                    child: Text(
+                      _currentUser?.emailVerified == true
+                          ? 'E-Mail verifiziert'
+                          : 'E-Mail nicht verifiziert',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _currentUser?.emailVerified == true
+                            ? Colors.green[700]
+                            : Colors.orange[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Melden Sie sich an, um fortzufahren',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Color(0xFF283A49)),
-            ),
+
             const SizedBox(height: 24),
 
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Benutzername',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              keyboardType: TextInputType.text,
-            ),
-            const SizedBox(height: 16),
-
-            // Passwort
-            TextField(
-              obscureText: _obscurePassword,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                suffixIcon: IconButton(
-                  onPressed: _togglePasswordVisibility,
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
+            // Kontoeinstellungen
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-
-            // Einloggen
-            SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  elevation: 4,
-                  backgroundColor: const Color(0xFF283A49),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () {},
-                child: const Text('Einloggen', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-            Center(
-              child: TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'Passwort vergessen?',
-                  style: TextStyle(decoration: TextDecoration.underline),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Noch kein Konto?'),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegistrationScreen(),
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Kontoeinstellungen',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF283A49),
+                        ),
                       ),
-                    );
-                  },
-                  child: const Text('Jetzt registrieren'),
-                ),
-              ],
+                    ),
+                  ),
+
+                  // E-Mail verifizieren (falls nicht verifiziert)
+                  if (_currentUser?.emailVerified != true)
+                    _buildProfileOption(
+                      icon: Icons.mark_email_read,
+                      title: 'E-Mail verifizieren',
+                      subtitle: 'Bestätigen Sie Ihre E-Mail-Adresse',
+                      onTap: () async {
+                        try {
+                          await _currentUser?.sendEmailVerification();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Verifizierungs-E-Mail wurde gesendet.',
+                                ),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Fehler: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    ),
+
+                  // Passwort ändern
+                  _buildProfileOption(
+                    icon: Icons.lock_outline,
+                    title: 'Passwort ändern',
+                    subtitle: 'E-Mail zum Zurücksetzen senden',
+                    onTap: () async {
+                      try {
+                        await _authService.sendPasswordResetEmail(
+                          _currentUser!.email!,
+                        );
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'E-Mail zum Zurücksetzen wurde gesendet.',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Fehler: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
+
+                  // Konto-Informationen
+                  _buildProfileOption(
+                    icon: Icons.info_outline,
+                    title: 'Konto-Informationen',
+                    subtitle:
+                        'Erstellt: ${_formatDate(_currentUser?.metadata.creationTime)}',
+                    onTap: () {
+                      _showAccountInfo();
+                    },
+                  ),
+                ],
+              ),
             ),
 
-            const SizedBox(height: 16),
-            const Center(child: Text('Oder anmelden mit:')),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _socialLoginButton('assets/icons/google_icon.png'),
-                _socialLoginButton('assets/icons/apple_icon.png'),
-                _socialLoginButton('assets/icons/facebook_icon.png'),
-              ],
+            // Aktionen
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Aktionen',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF283A49),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Abmelden
+                  _buildProfileOption(
+                    icon: Icons.logout,
+                    title: 'Abmelden',
+                    subtitle: 'Von diesem Gerät abmelden',
+                    onTap: _logout,
+                  ),
+
+                  // Konto löschen
+                  _buildProfileOption(
+                    icon: Icons.delete_forever,
+                    title: 'Konto löschen',
+                    subtitle: 'Konto dauerhaft löschen',
+                    onTap: _deleteAccount,
+                    isDestructive: true,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -140,27 +373,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _socialLoginButton(String assetPath) {
+  Widget _buildProfileOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
     return InkWell(
-      onTap: () {},
-      child: Container(
-        height: 50,
-        width: 50,
-        decoration: BoxDecoration(
-          color: Color(0xFFF3EFE7),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isDestructive
+                    ? Colors.red.withOpacity(0.1)
+                    : const Color(0xFF283A49).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                icon,
+                color: isDestructive
+                    ? Colors.red[700]
+                    : const Color(0xFF283A49),
+                size: 20,
+              ),
             ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: isDestructive
+                          ? Colors.red[700]
+                          : const Color(0xFF283A49),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey[400]),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset(assetPath),
-        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Unbekannt';
+    return '${date.day}.${date.month}.${date.year}';
+  }
+
+  void _showAccountInfo() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Konto-Informationen'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoRow('E-Mail:', _currentUser?.email ?? 'Unbekannt'),
+              _buildInfoRow('User ID:', _currentUser?.uid ?? 'Unbekannt'),
+              _buildInfoRow(
+                'Erstellt:',
+                _formatDate(_currentUser?.metadata.creationTime),
+              ),
+              _buildInfoRow(
+                'Letzter Login:',
+                _formatDate(_currentUser?.metadata.lastSignInTime),
+              ),
+              _buildInfoRow(
+                'E-Mail verifiziert:',
+                _currentUser?.emailVerified == true ? 'Ja' : 'Nein',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Schließen'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(child: Text(value)),
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -9,25 +10,70 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _authService.register(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Glückwunsch, Sie haben sich erfolgreich registriert!',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Zurück zum Login Screen
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFE9E5DD,
-      ), // Beige Hintergrundfarbe wie im ProfileScreen
+      backgroundColor: const Color(0xFFE9E5DD),
       appBar: AppBar(
         title: const Text('Registrierung'),
         backgroundColor: const Color(0xFF283A49),
@@ -61,6 +107,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
               // Benutzername
               TextFormField(
+                controller: _usernameController,
                 decoration: InputDecoration(
                   labelText: 'Benutzername',
                   hintText: 'max.mustermann',
@@ -75,6 +122,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
               // E-Mail
               TextFormField(
+                controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'E-Mail-Adresse',
@@ -157,28 +205,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Glückwunsch, Sie haben sich erfolgreich registriert!',
+                  onPressed: _isLoading ? null : _register,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
                           ),
-                          backgroundColor: Colors.green,
+                        )
+                      : const Text(
+                          'Registrieren',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
-                      );
-                      _formKey.currentState!.reset();
-                      _passwordController.clear();
-                      _confirmPasswordController.clear();
-
-                      // Nach erfolgreicher Registrierung zurück zum Login
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text(
-                    'Registrieren',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
                 ),
               ),
 

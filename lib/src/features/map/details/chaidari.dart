@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../auth/auth_guard.dart'; // Adjust the import path as needed
+import '../../database/database_screen.dart'; // Import your actual database screen
 //  import '../../theme/app_colors.dart';
 
 class DetailScreen3 extends StatelessWidget {
@@ -20,8 +22,18 @@ class DetailScreen3 extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      // Aktion für den "Lagerliste" Button
-                      print('Lagerliste Button gedrückt');
+                      // Navigate to database with authentication check
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AuthGuard(
+                            redirectMessage:
+                                'Sie müssen sich anmelden, um auf die Datenbank zugreifen zu können.',
+                            child:
+                                const DatabaseScreen(), // Your actual database screen
+                          ),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromRGBO(
@@ -42,35 +54,7 @@ class DetailScreen3 extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      'Lagerliste',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Aktion für den "Biografien" Button
-                      print('Biografien Button gedrückt');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromRGBO(
-                        40,
-                        58,
-                        73,
-                        1.0,
-                      ), // Hintergrundfarbe
-                      foregroundColor: Colors.white, // Textfarbe
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          8.0,
-                        ), // Abgerundete Ecken
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text(
-                      'Biografien',
+                      'Datenbank',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
@@ -142,7 +126,7 @@ class DetailScreen3 extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Unter den Inhaftierten befanden sich zahlreiche prominente Persönlichkeiten, darunter: Lela Karagianni: Widerstandskämpferin und Gründerin der Untergrundorganisation „Bouboulina“,'
+                'Unter den Inhaftierten befanden sich zahlreiche prominente Persönlichkeiten, darunter: Lela Karagianni: Widerstandskämpferin und Gründerin der Untergrundorganisation „Bouboulina",'
                 'wurde am 8. September 1944 hingerichtet.([Wikipedia – Die freie Enzyklopädie][8])Marcel Nadjari: Griechischer Jude, der nach Auschwitz deportiert wurde und dort dem Sonderkommando angehörte.'
                 '([Wikipedia – Die freie Enzyklopädie][9]) Rena Dor: Schauspielerin, die in Block 15 inhaftiert war.([Academia][6]) Nikos Skalkottas: Komponist, der ebenfalls zu den Gefangenen zählte.([Academia][6])',
                 style: TextStyle(fontSize: 16),

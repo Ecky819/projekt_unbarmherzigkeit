@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'configs/firebase_options.dart'; // Wird von flutterfire configure generiert
 import 'src/features/splash/splash_screen.dart';
 import 'src/common/main_navigation.dart';
 import 'src/theme/app_theme.dart';
@@ -7,14 +9,16 @@ import 'src/data/data_initialization.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Firebase initialisieren
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MyApp());
 }
 
 Future<void> initialization(BuildContext? context) async {
-  // Hier können Sie Initialisierungen vornehmen, z.B. für Firebase oder andere Dienste
-  await Future.delayed(
-    const Duration(seconds: 3),
-  ); // await Firebase.initializeApp();
+  // Firebase ist bereits in main() initialisiert
+  await Future.delayed(const Duration(seconds: 3));
 }
 
 class MyApp extends StatelessWidget {
@@ -29,7 +33,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/main': (context) => FutureBuilder<MockDatabaseRepository>(
-          // NEU: Repository beim App-Start initialisieren
           future: initializeMockData(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -38,6 +41,7 @@ class MyApp extends StatelessWidget {
                 body: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    
                     children: [
                       CircularProgressIndicator(),
                       SizedBox(height: 16),
@@ -64,7 +68,6 @@ class MyApp extends StatelessWidget {
               );
             }
 
-            // NEU: MainNavigation mit Repository übergeben
             return MainNavigation(repository: snapshot.data);
           },
         ),
