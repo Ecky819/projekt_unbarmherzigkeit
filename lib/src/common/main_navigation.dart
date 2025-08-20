@@ -10,6 +10,9 @@ import 'package:projekt_unbarmherzigkeit/src/features/profiles/login_screen.dart
 import 'package:projekt_unbarmherzigkeit/src/features/profiles/profile_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/admin/admin_dashboard_screen.dart';
 import '../data/databaseRepository.dart';
+import '../data/FirebaseRepository.dart';
+import '../data/data_initialization.dart';
+import '../services/migration_service.dart';
 import '../services/auth_service.dart';
 import 'custom_appbar.dart';
 import 'bottom_navigation.dart';
@@ -29,24 +32,34 @@ class _MainNavigationState extends State<MainNavigation> {
   List<int> _navigationHistory = [0];
   final AuthService _authService = AuthService();
 
+  // Repository management
+  DatabaseRepository? _currentRepository;
+  bool _isLoadingRepository = false;
+
   @override
   void initState() {
     super.initState();
+    _currentRepository = widget.repository;
     _initializeScreens();
 
-    // Zusätzlicher Listener für Auth-State-Changes
-    _authService.authStateChanges.listen((user) {
+    // Auth-State-Listener mit Repository-Reload
+    _authService.authStateChanges.listen((user) async {
       if (mounted) {
+        print('Auth state changed: ${user?.email}');
+
         // Bei Logout: Navigation zum Home-Screen zurücksetzen
         if (user == null && _selectedIndex == 4) {
           setState(() {
-            _selectedIndex = 0; // Zurück zum Home-Screen
+            _selectedIndex = 0;
             _navigationHistory.clear();
             _navigationHistory.add(0);
           });
         }
 
-        // Delay um sicherzustellen, dass Auth-State vollständig aktualisiert ist
+        // Repository neu laden wenn Auth-State sich ändert
+        await _reloadRepositoryOnAuthChange();
+
+        // UI nach Auth-State-Change aktualisieren
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             setState(() {
@@ -56,6 +69,61 @@ class _MainNavigationState extends State<MainNavigation> {
         });
       }
     });
+  }
+
+  // NEUE METHODE: Repository bei Auth-Änderungen neu laden
+  Future<void> _reloadRepositoryOnAuthChange() async {
+    if (_isLoadingRepository)
+      return; // Verhindere mehrfache gleichzeitige Ladungen
+
+    setState(() {
+      _isLoadingRepository = true;
+    });
+
+    try {
+      print('Reloading repository due to auth state change...');
+
+      // Lade Repository neu
+      final newRepository = await _initializeRepository();
+
+      if (mounted) {
+        setState(() {
+          _currentRepository = newRepository;
+          _isLoadingRepository = false;
+        });
+        print('Repository successfully reloaded');
+      }
+    } catch (e) {
+      print('Error reloading repository: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingRepository = false;
+        });
+      }
+    }
+  }
+
+  // Repository-Initialisierung (aus main.dart extrahiert)
+  Future<DatabaseRepository> _initializeRepository() async {
+    try {
+      // Versuche Firebase Repository zu verwenden
+      final firebaseRepo = FirebaseRepository();
+      final migrationService = MigrationService();
+
+      // Prüfe ob Daten bereits migriert wurden
+      if (!await migrationService.isDataMigrated()) {
+        // Migriere Mock-Daten zu Firestore
+        await migrationService.migrateMockDataToFirestore();
+      }
+
+      return firebaseRepo;
+    } catch (e) {
+      print('Firebase Repository konnte nicht initialisiert werden: $e');
+      print('Verwende Mock Repository als Fallback');
+
+      // Fallback zu Mock Repository
+      return await initializeMockData();
+    }
   }
 
   void _initializeScreens() {
@@ -100,15 +168,20 @@ class _MainNavigationState extends State<MainNavigation> {
   // Auth-geschützte Navigation zur Datenbank
   void navigateToDatabase() {
     if (_authService.isLoggedIn) {
-      if (widget.repository != null) {
+      if (_currentRepository != null) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DatabaseScreen(repository: widget.repository),
+            builder: (context) =>
+                DatabaseScreen(repository: _currentRepository),
           ),
         );
       } else {
-        _showErrorSnackBar('Repository nicht verfügbar');
+        _showErrorSnackBar(
+          'Repository nicht verfügbar. Laden Sie die App neu.',
+        );
+        // Versuche Repository neu zu laden
+        _reloadRepositoryOnAuthChange();
       }
     } else {
       _navigateToLogin(
@@ -125,7 +198,7 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  // KORRIGIERTE Admin Dashboard Navigation
+  // Admin Dashboard Navigation mit Repository-Check
   void navigateToAdminDashboard() {
     print('Admin Dashboard Navigation aufgerufen');
     print('User logged in: ${_authService.isLoggedIn}');
@@ -146,8 +219,10 @@ class _MainNavigationState extends State<MainNavigation> {
       return;
     }
 
-    if (widget.repository == null) {
-      _showErrorSnackBar('Repository nicht verfügbar');
+    if (_currentRepository == null) {
+      _showErrorSnackBar('Repository nicht verfügbar. Laden Sie die App neu.');
+      // Versuche Repository neu zu laden
+      _reloadRepositoryOnAuthChange();
       return;
     }
 
@@ -157,7 +232,7 @@ class _MainNavigationState extends State<MainNavigation> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            AdminDashboardScreen(repository: widget.repository!),
+            AdminDashboardScreen(repository: _currentRepository!),
       ),
     ).then((_) {
       // Optional: Refresh nach Rückkehr vom Admin Dashboard
@@ -264,6 +339,8 @@ class _MainNavigationState extends State<MainNavigation> {
             Text('Admin-E-Mail: ${status['adminEmail']}'),
             Text('Berechtigung: ${status['hasPermission']}'),
             Text('Rolle: ${_authService.getUserRole()}'),
+            Text('Repository geladen: ${_currentRepository != null}'),
+            Text('Repository loading: $_isLoadingRepository'),
             const SizedBox(height: 16),
             const Text('Firebase User:'),
             Text('UID: ${_authService.currentUser?.uid ?? 'Keine'}'),
@@ -279,6 +356,14 @@ class _MainNavigationState extends State<MainNavigation> {
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                 child: const Text('Test Admin Dashboard'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _reloadRepositoryOnAuthChange();
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                child: const Text('Repository neu laden'),
               ),
             ],
           ],
@@ -375,7 +460,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
         // DEBUG: Ausgabe des aktuellen Auth-Status
         print(
-          'StreamBuilder Build - User: ${snapshot.data?.email}, Admin: $isAdmin',
+          'StreamBuilder Build - User: ${snapshot.data?.email}, Admin: $isAdmin, Repository: ${_currentRepository != null}',
         );
 
         // Screens basierend auf Auth-Status definieren
@@ -394,9 +479,7 @@ class _MainNavigationState extends State<MainNavigation> {
           {
             // Dynamischer Profil Screen basierend auf Auth Status
             'screen': isLoggedIn ? const ProfileScreen() : const LoginScreen(),
-            'title': isLoggedIn
-                ? 'Profil'
-                : 'Anmelden', // KORRIGIERT: Dynamischer Titel
+            'title': isLoggedIn ? 'Profil' : 'Anmelden',
           },
         ];
 
@@ -407,15 +490,51 @@ class _MainNavigationState extends State<MainNavigation> {
           _selectedIndex = 0;
         }
 
-        // KORRIGIERT: Dynamischen Titel verwenden
+        // Dynamischen Titel verwenden
         final currentTitle = _getScreenTitle(_selectedIndex, isLoggedIn);
+
+        // Repository Loading Overlay
+        Widget body = IndexedStack(
+          index: _selectedIndex,
+          children: screens
+              .map((screen) => screen['screen'] as Widget)
+              .toList(),
+        );
+
+        if (_isLoadingRepository) {
+          body = Stack(
+            children: [
+              body,
+              Container(
+                color: Colors.black54,
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: Colors.white),
+                      SizedBox(height: 16),
+                      Text(
+                        'Datenbank wird neu geladen...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontFamily: 'SFPro',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
 
         return Scaffold(
           backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
           appBar: CustomAppBar(
             context: context,
             pageIndex: _selectedIndex,
-            title: currentTitle, // KORRIGIERT: Verwende dynamischen Titel
+            title: currentTitle,
             navigateTo: navigateTo,
             nav: _screens.map((screen) => screen['screen']).toList(),
             onBackPressed: _navigationHistory.isNotEmpty ? goBack : null,
@@ -431,16 +550,9 @@ class _MainNavigationState extends State<MainNavigation> {
             },
             navigateToDatabase: navigateToDatabase,
             navigateToNews: navigateToNews,
-            // KORRIGIERT: Admin Dashboard Callback wird immer übergeben,
-            // aber im Drawer wird geprüft ob Admin
             navigateToAdminDashboard: navigateToAdminDashboard,
           ),
-          body: IndexedStack(
-            index: _selectedIndex,
-            children: screens
-                .map((screen) => screen['screen'] as Widget)
-                .toList(),
-          ),
+          body: body,
           bottomNavigationBar: CustomNavigationBar(
             selectedIndex: _selectedIndex,
             onDestinationSelected: (index) {
@@ -472,13 +584,17 @@ class _MainNavigationState extends State<MainNavigation> {
 
     return FloatingActionButton.small(
       onPressed: _showAdminDebugInfo,
-      backgroundColor: isAdmin
-          ? Colors.orange
-          : (isLoggedIn ? Colors.blue : Colors.grey),
+      backgroundColor: _isLoadingRepository
+          ? Colors.purple
+          : (isAdmin
+                ? Colors.orange
+                : (isLoggedIn ? Colors.blue : Colors.grey)),
       child: Icon(
-        isAdmin
-            ? Icons.admin_panel_settings
-            : (isLoggedIn ? Icons.person : Icons.person_off),
+        _isLoadingRepository
+            ? Icons.refresh
+            : (isAdmin
+                  ? Icons.admin_panel_settings
+                  : (isLoggedIn ? Icons.person : Icons.person_off)),
         color: Colors.white,
         size: 16,
       ),

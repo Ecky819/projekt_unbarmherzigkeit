@@ -133,7 +133,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       foregroundColor: Colors.white,
       elevation: 2,
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight + 60),
+        preferredSize: const Size.fromHeight(kToolbarHeight + 65),
         child: Column(
           children: [
             TabBar(
@@ -148,19 +148,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               ),
               tabs: [
                 Tab(
-                  icon: const Icon(Icons.person),
+                  icon: const Icon(Icons.person, size: 22),
+                  iconMargin: const EdgeInsets.only(bottom: 4),
                   text: 'Opfer (${_victims.length})',
                 ),
                 Tab(
-                  icon: const Icon(Icons.location_city),
+                  icon: const Icon(Icons.location_city, size: 22),
+                  iconMargin: const EdgeInsets.only(bottom: 4),
                   text: 'Lager (${_camps.length})',
                 ),
                 Tab(
-                  icon: const Icon(Icons.military_tech),
+                  icon: const Icon(Icons.military_tech, size: 22),
+                  iconMargin: const EdgeInsets.only(bottom: 4),
                   text: 'Kommandanten (${_commanders.length})',
                 ),
               ],
             ),
+
             Container(
               color: const Color(0xFF283A49),
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -287,7 +291,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withOpacity(0.1),
+                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.person, color: Color(0xFF283A49)),
@@ -358,7 +362,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withOpacity(0.1),
+                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -431,7 +435,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withOpacity(0.1),
+                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
