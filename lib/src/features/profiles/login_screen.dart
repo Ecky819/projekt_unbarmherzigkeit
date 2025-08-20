@@ -17,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -58,6 +59,42 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isGoogleLoading = true;
+    });
+
+    try {
+      final result = await _authService.signInWithGoogle();
+
+      if (result != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erfolgreich mit Google angemeldet!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Zurück zur vorherigen Seite oder zur Hauptseite
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Anmeldung fehlgeschlagen: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGoogleLoading = false;
         });
       }
     }
@@ -242,52 +279,157 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
 
-              const SizedBox(height: 16),
-              const Center(child: Text('Oder anmelden mit:')),
+              const SizedBox(height: 24),
+
+              // Trennlinie mit "oder"
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'oder',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Google Sign-In Button
+              SizedBox(
+                height: 48,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    elevation: 2,
+                    backgroundColor: Color(0xFFF3EFE7),
+                    foregroundColor: Colors.black87,
+                    side: BorderSide(color: Colors.grey[300]!),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: (_isGoogleLoading || _isLoading)
+                      ? null
+                      : _signInWithGoogle,
+                  icon: _isGoogleLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Image.asset(
+                          'assets/icons/google_icon.png',
+                          height: 24,
+                          width: 24,
+                        ),
+                  label: Text(
+                    _isGoogleLoading
+                        ? 'Anmeldung läuft...'
+                        : 'Mit Google anmelden',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 16),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              // Andere Social Login Buttons (nur als Platzhalter)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _socialLoginButton('assets/icons/google_icon.png'),
-                  _socialLoginButton('assets/icons/apple_icon.png'),
-                  _socialLoginButton('assets/icons/facebook_icon.png'),
+                  // Apple Sign-In Button
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 2,
+                        backgroundColor: Color(0xFFF3EFE7),
+                        foregroundColor: Colors.black87,
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Apple Login noch nicht implementiert',
+                            ),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      },
+                      icon: Image.asset(
+                        'assets/icons/apple_icon.png',
+                        height: 24,
+                        width: 24,
+                      ),
+                      label: const Text(
+                        'Mit Apple anmelden',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Facebook Sign-In Button
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 2,
+                        backgroundColor: Color(0xFFF3EFE7),
+                        foregroundColor: Colors.black87,
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Facebook Login noch nicht implementiert',
+                            ),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      },
+                      icon: Image.asset(
+                        'assets/icons/facebook_icon.png',
+                        height: 24,
+                        width: 24,
+                      ),
+                      label: const Text(
+                        'Mit Facebook anmelden',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _socialLoginButton(String assetPath) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Social Login noch nicht implementiert'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      },
-      child: Container(
-        height: 50,
-        width: 50,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF3EFE7),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset(assetPath),
         ),
       ),
     );

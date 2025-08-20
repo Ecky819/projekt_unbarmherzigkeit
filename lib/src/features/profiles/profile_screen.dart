@@ -19,6 +19,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _currentUser = _authService.currentUser;
   }
 
+  String get _userDisplayName {
+    if (_currentUser?.displayName != null &&
+        _currentUser!.displayName!.isNotEmpty) {
+      return _currentUser!.displayName!;
+    }
+    return _currentUser?.email?.split('@').first ?? 'Unbekannt';
+  }
+
+  Widget _buildProfileImage() {
+    if (_currentUser?.photoURL != null && _currentUser!.photoURL!.isNotEmpty) {
+      return Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40),
+          border: Border.all(color: const Color(0xFF283A49), width: 2),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(38),
+          child: Image.network(
+            _currentUser!.photoURL!,
+            width: 80,
+            height: 80,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF283A49),
+                  borderRadius: BorderRadius.circular(38),
+                ),
+                child: const Icon(Icons.person, size: 40, color: Colors.white),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        color: const Color(0xFF283A49),
+        borderRadius: BorderRadius.circular(40),
+      ),
+      child: const Icon(Icons.person, size: 40, color: Colors.white),
+    );
+  }
+
+  Widget _buildProviderBadge() {
+    if (_authService.isGoogleUser) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blue),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/icons/google_icon.png', width: 16, height: 16),
+            const SizedBox(width: 4),
+            const Text(
+              'Google',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.blue,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey),
+      ),
+      child: const Text(
+        'E-Mail',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
   Future<void> _logout() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -145,61 +241,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   // Profilbild
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF283A49),
-                      borderRadius: BorderRadius.circular(40),
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Colors.white,
-                    ),
-                  ),
+                  _buildProfileImage(),
                   const SizedBox(height: 16),
 
-                  // E-Mail
+                  // Name/E-Mail
                   Text(
-                    _currentUser?.email ?? 'Unbekannt',
+                    _userDisplayName,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF283A49),
                     ),
                   ),
-                  const SizedBox(height: 8),
 
-                  // Verifizierungsstatus
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                  if (_currentUser?.email != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      _currentUser!.email!,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
-                    decoration: BoxDecoration(
-                      color: _currentUser?.emailVerified == true
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _currentUser?.emailVerified == true
-                            ? Colors.green
-                            : Colors.orange,
+                  ],
+
+                  const SizedBox(height: 12),
+
+                  // Provider und Verifizierungsstatus
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildProviderBadge(),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _currentUser?.emailVerified == true
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _currentUser?.emailVerified == true
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                        ),
+                        child: Text(
+                          _currentUser?.emailVerified == true
+                              ? 'Verifiziert'
+                              : 'Nicht verifiziert',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _currentUser?.emailVerified == true
+                                ? Colors.green[700]
+                                : Colors.orange[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      _currentUser?.emailVerified == true
-                          ? 'E-Mail verifiziert'
-                          : 'E-Mail nicht verifiziert',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _currentUser?.emailVerified == true
-                            ? Colors.green[700]
-                            : Colors.orange[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -237,8 +337,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
 
-                  // E-Mail verifizieren (falls nicht verifiziert)
-                  if (_currentUser?.emailVerified != true)
+                  // E-Mail verifizieren (nur für nicht-Google User und nicht verifizierte)
+                  if (!_authService.isGoogleUser &&
+                      _currentUser?.emailVerified != true)
                     _buildProfileOption(
                       icon: Icons.mark_email_read,
                       title: 'E-Mail verifizieren',
@@ -269,38 +370,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
 
-                  // Passwort ändern
-                  _buildProfileOption(
-                    icon: Icons.lock_outline,
-                    title: 'Passwort ändern',
-                    subtitle: 'E-Mail zum Zurücksetzen senden',
-                    onTap: () async {
-                      try {
-                        await _authService.sendPasswordResetEmail(
-                          _currentUser!.email!,
-                        );
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'E-Mail zum Zurücksetzen wurde gesendet.',
+                  // Passwort ändern (nur für E-Mail-User)
+                  if (!_authService.isGoogleUser)
+                    _buildProfileOption(
+                      icon: Icons.lock_outline,
+                      title: 'Passwort ändern',
+                      subtitle: 'E-Mail zum Zurücksetzen senden',
+                      onTap: () async {
+                        try {
+                          await _authService.sendPasswordResetEmail(
+                            _currentUser!.email!,
+                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'E-Mail zum Zurücksetzen wurde gesendet.',
+                                ),
+                                backgroundColor: Colors.green,
                               ),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Fehler: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         }
-                      } catch (e) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Fehler: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    },
-                  ),
+                      },
+                    ),
 
                   // Konto-Informationen
                   _buildProfileOption(
@@ -447,8 +549,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_currentUser?.displayName != null)
+                _buildInfoRow('Name:', _currentUser!.displayName!),
               _buildInfoRow('E-Mail:', _currentUser?.email ?? 'Unbekannt'),
               _buildInfoRow('User ID:', _currentUser?.uid ?? 'Unbekannt'),
+              _buildInfoRow(
+                'Anbieter:',
+                _authService.isGoogleUser ? 'Google' : 'E-Mail',
+              ),
               _buildInfoRow(
                 'Erstellt:',
                 _formatDate(_currentUser?.metadata.creationTime),
