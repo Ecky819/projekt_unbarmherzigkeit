@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/profile.dart';
+import '../../common/favorite_button.dart';
 
 class DetailScreen extends StatelessWidget {
   final dynamic item;
@@ -15,6 +16,28 @@ class DetailScreen extends StatelessWidget {
       return '${item.surname}, ${item.name}';
     }
     return 'Details';
+  }
+
+  String _getItemId() {
+    if (item is Victim) {
+      return item.victim_id.toString();
+    } else if (item is ConcentrationCamp) {
+      return item.camp_id.toString();
+    } else if (item is Commander) {
+      return item.commander_id.toString();
+    }
+    return '0';
+  }
+
+  String _getItemType() {
+    if (item is Victim) {
+      return 'victim';
+    } else if (item is ConcentrationCamp) {
+      return 'camp';
+    } else if (item is Commander) {
+      return 'commander';
+    }
+    return 'unknown';
   }
 
   IconData _getIcon() {
@@ -179,7 +202,7 @@ class DetailScreen extends StatelessWidget {
               Icon(
                 _getIcon(),
                 size: 64,
-                color: _getIconColor().withValues(alpha: 0.5),
+                color: _getIconColor().withOpacity(0.5),
               ),
               const SizedBox(height: 8),
               Text(
@@ -281,10 +304,24 @@ class DetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(_getTitle()),
+        backgroundColor: const Color(0xFF283A49),
+        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          // Favoriten-Button in der AppBar
+          FavoriteButton(
+            itemId: _getItemId(),
+            itemType: _getItemType(),
+            itemTitle: _getTitle(),
+            size: 28.0,
+            favoriteColor: Colors.red[400],
+            notFavoriteColor: Colors.white70,
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -296,9 +333,21 @@ class DetailScreen extends StatelessWidget {
               _buildImageWithCaption(),
               const SizedBox(height: 24),
 
-              // Header mit Icon und Titel
+              // Header mit Icon, Titel und Favorit-Button
               Container(
                 margin: const EdgeInsets.only(bottom: 24),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Row(
                   children: [
                     Icon(_getIcon(), size: 48, color: _getIconColor()),
@@ -326,14 +375,48 @@ class DetailScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                    // Großer Favoriten-Button im Header
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: FavoriteButton(
+                        itemId: _getItemId(),
+                        itemType: _getItemType(),
+                        itemTitle: _getTitle(),
+                        size: 32.0,
+                        favoriteColor: Colors.red,
+                        notFavoriteColor: Colors.grey[500],
+                      ),
+                    ),
                   ],
                 ),
               ),
 
               // Details basierend auf Typ
-              if (item is Victim) ..._buildVictimDetails(),
-              if (item is ConcentrationCamp) ..._buildCampDetails(),
-              if (item is Commander) ..._buildCommanderDetails(),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (item is Victim) ..._buildVictimDetails(),
+                    if (item is ConcentrationCamp) ..._buildCampDetails(),
+                    if (item is Commander) ..._buildCommanderDetails(),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

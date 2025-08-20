@@ -463,7 +463,7 @@ class _MainNavigationState extends State<MainNavigation> {
           'StreamBuilder Build - User: ${snapshot.data?.email}, Admin: $isAdmin, Repository: ${_currentRepository != null}',
         );
 
-        // Screens basierend auf Auth-Status definieren
+        // Screens basierend auf Auth-Status definieren - HIER IST DIE WICHTIGE ÄNDERUNG
         List<Map<String, dynamic>> screens = [
           {
             'screen': HomeScreen(
@@ -475,7 +475,11 @@ class _MainNavigationState extends State<MainNavigation> {
           },
           {'screen': const TimelineScreen(), 'title': 'Timeline'},
           {'screen': const MapScreen(), 'title': 'Karte'},
-          {'screen': const FavoriteScreen(), 'title': 'Favoriten'},
+          {
+            // WICHTIGE ÄNDERUNG: Repository an FavoriteScreen weitergeben
+            'screen': FavoriteScreen(repository: _currentRepository),
+            'title': 'Favoriten',
+          },
           {
             // Dynamischer Profil Screen basierend auf Auth Status
             'screen': isLoggedIn ? const ProfileScreen() : const LoginScreen(),
@@ -583,6 +587,7 @@ class _MainNavigationState extends State<MainNavigation> {
     if (!debugMode) return null;
 
     return FloatingActionButton.small(
+      heroTag: "debug_fab", // Eindeutiger Hero-Tag hinzugefügt
       onPressed: _showAdminDebugInfo,
       backgroundColor: _isLoadingRepository
           ? Colors.purple

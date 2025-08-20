@@ -3,6 +3,7 @@ import '../../data/profile.dart';
 import '../../data/databaseRepository.dart';
 import '../../data/MockDatabaseRepository.dart';
 import '../../common/custom_appbar.dart';
+import '../../common/favorite_button.dart';
 import 'detail_screen.dart';
 
 class DatabaseScreen extends StatefulWidget {
@@ -232,6 +233,39 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
     });
   }
 
+  String _getItemId(dynamic item) {
+    if (item is Victim) {
+      return item.victim_id.toString();
+    } else if (item is ConcentrationCamp) {
+      return item.camp_id.toString();
+    } else if (item is Commander) {
+      return item.commander_id.toString();
+    }
+    return '0';
+  }
+
+  String _getItemType(dynamic item) {
+    if (item is Victim) {
+      return 'victim';
+    } else if (item is ConcentrationCamp) {
+      return 'camp';
+    } else if (item is Commander) {
+      return 'commander';
+    }
+    return 'unknown';
+  }
+
+  String _getItemTitle(dynamic item) {
+    if (item is Victim) {
+      return '${item.surname}, ${item.name}';
+    } else if (item is ConcentrationCamp) {
+      return item.name;
+    } else if (item is Commander) {
+      return '${item.surname}, ${item.name}';
+    }
+    return 'Unbekannt';
+  }
+
   Widget _buildSearchField({
     required String label,
     required String hint,
@@ -295,7 +329,17 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                   'Geboren: ${item.birth!.day}.${item.birth!.month}.${item.birth!.year}',
                 )
               : const Text('Geburtsdatum unbekannt'),
-          trailing: const Icon(Icons.chevron_right, size: 20),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FavoriteIconButton(
+                itemId: _getItemId(item),
+                itemType: _getItemType(item),
+                itemTitle: _getItemTitle(item),
+              ),
+              const Icon(Icons.chevron_right, size: 20),
+            ],
+          ),
           onTap: () => _navigateToDetailPage(item),
         ),
       );
@@ -306,7 +350,17 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
           leading: const Icon(Icons.location_city, color: Colors.black54),
           title: Text(item.name),
           subtitle: Text(item.type.isNotEmpty ? item.type : 'Typ unbekannt'),
-          trailing: const Icon(Icons.chevron_right, size: 20),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FavoriteIconButton(
+                itemId: _getItemId(item),
+                itemType: _getItemType(item),
+                itemTitle: _getItemTitle(item),
+              ),
+              const Icon(Icons.chevron_right, size: 20),
+            ],
+          ),
           onTap: () => _navigateToDetailPage(item),
         ),
       );
@@ -321,7 +375,17 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                   'Geboren: ${item.birth!.day}.${item.birth!.month}.${item.birth!.year}',
                 )
               : const Text('Geburtsdatum unbekannt'),
-          trailing: const Icon(Icons.chevron_right, size: 20),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FavoriteIconButton(
+                itemId: _getItemId(item),
+                itemType: _getItemType(item),
+                itemTitle: _getItemTitle(item),
+              ),
+              const Icon(Icons.chevron_right, size: 20),
+            ],
+          ),
           onTap: () => _navigateToDetailPage(item),
         ),
       );
@@ -504,7 +568,8 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                         'Ort: Findet hauptsächlich Lager und deren Standorte\n'
                         'Name: Findet hauptsächlich Opfer und Personen\n'
                         'Jahr: Durchsucht alle Jahresangaben\n'
-                        'Ereignis: Findet Lagertypen, Schicksale, etc.',
+                        'Ereignis: Findet Lagertypen, Schicksale, etc.\n\n'
+                        'Tipp: Verwenden Sie das ♡ Symbol um Einträge zu favorisieren!',
                         style: TextStyle(
                           fontSize: 14,
                           fontFamily: 'SFPro',
@@ -518,14 +583,38 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                         // Ergebnisanzahl anzeigen
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: Text(
-                            '${_searchResults.length} Ergebnis${_searchResults.length != 1 ? 'se' : ''} gefunden',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: 'SFPro',
-                              color: Color.fromARGB(255, 101, 101, 101),
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${_searchResults.length} Ergebnis${_searchResults.length != 1 ? 'se' : ''} gefunden',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: 'SFPro',
+                                  color: Color.fromARGB(255, 101, 101, 101),
+                                ),
+                              ),
+                              if (_searchResults.isNotEmpty)
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.favorite_border,
+                                      size: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Zum Favorisieren',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontFamily: 'SFPro',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
                           ),
                         ),
                         // Ergebnisliste
