@@ -35,9 +35,9 @@ class VictimImpl extends Victim {
     DateTime? env_date,
     required String c_camp,
     required String fate,
-    String? imagePath, // Neuer Parameter
-    String? imageDescription, // Bildbeschreibung
-    String? imageSource, // Quellenangabe
+    String? imagePath,
+    String? imageDescription,
+    String? imageSource,
   }) {
     this.victim_id = victim_id;
     this.surname = surname;
@@ -54,7 +54,7 @@ class VictimImpl extends Victim {
     this.env_date = env_date;
     this.c_camp = c_camp;
     this.fate = fate;
-    this.imagePath = imagePath; // Neues Feld setzen
+    this.imagePath = imagePath;
     this.imageDescription = imageDescription;
     this.imageSource = imageSource;
   }
@@ -71,9 +71,9 @@ class ConcentrationCampImpl extends ConcentrationCamp {
     DateTime? liberation_date,
     required String type,
     required String commander,
-    String? imagePath, // Neuer Parameter
-    String? imageDescription, // Bildbeschreibung
-    String? imageSource, // Quellenangabe
+    String? imagePath,
+    String? imageDescription,
+    String? imageSource,
   }) {
     this.camp_id = camp_id;
     this.name = name;
@@ -84,7 +84,7 @@ class ConcentrationCampImpl extends ConcentrationCamp {
     this.liberation_date = liberation_date;
     this.type = type;
     this.commander = commander;
-    this.imagePath = imagePath; // Neues Feld setzen
+    this.imagePath = imagePath;
     this.imageDescription = imageDescription;
     this.imageSource = imageSource;
   }
@@ -101,9 +101,9 @@ class CommanderImpl extends Commander {
     DateTime? death,
     String? deathplace,
     required String description,
-    String? imagePath, // Neuer Parameter
-    String? imageDescription, // Bildbeschreibung
-    String? imageSource, // Quellenangabe
+    String? imagePath,
+    String? imageDescription,
+    String? imageSource,
   }) {
     this.commander_id = commander_id;
     this.name = name;
@@ -114,384 +114,304 @@ class CommanderImpl extends Commander {
     this.death = death;
     this.deathplace = deathplace;
     this.description = description;
-    this.imagePath = imagePath; // Neues Feld setzen
+    this.imagePath = imagePath;
     this.imageDescription = imageDescription;
     this.imageSource = imageSource;
   }
 }
 
-// Beispiel für Dateninitialisierung mit Bildpfaden
+/// Dateninitialisierung - NUR für Mock-Repository verwenden
+///
+/// WICHTIG: Diese Funktion sollte NUR für Tests und Development verwendet werden.
+/// In der Produktion werden alle Daten über das Admin Dashboard verwaltet.
+///
+/// Die Migration zu Firestore ist bereits erfolgt und das Admin-System ist aktiv.
 Future<MockDatabaseRepository> initializeMockData() async {
   final repository = MockDatabaseRepository();
 
-  // Beispiel-Opfer mit Bildpfaden hinzufügen
+  print('╔════════════════════════════════════════════════════════════════╗');
+  print('║                        WARNUNG                                 ║');
+  print('╠════════════════════════════════════════════════════════════════╣');
+  print('║ initializeMockData() wird nur für Tests verwendet.            ║');
+  print('║ Produktive Daten werden über das Admin Dashboard verwaltet.   ║');
+  print('║ Migration zu Firestore ist bereits abgeschlossen.             ║');
+  print('╚════════════════════════════════════════════════════════════════╝');
+
+  // Nur minimale Test-Daten für Mock-Repository erstellen
+  await _createMinimalTestData(repository);
+
+  return repository;
+}
+
+/// Erstellt minimale Test-Daten für das Mock-Repository
+/// Diese Daten sind nur für Entwicklung und Tests gedacht
+Future<void> _createMinimalTestData(MockDatabaseRepository repository) async {
+  print('Erstelle minimale Test-Daten für Mock-Repository...');
+
+  // Ein Test-Opfer
   await repository.createVictim(
     VictimImpl(
       victim_id: 1,
-      surname: 'Müller',
-      name: 'Anna',
-      birth: DateTime(1920, 3, 15),
-      birthplace: 'Berlin',
-      death: DateTime(1943, 8, 20),
-      deathplace: 'Auschwitz',
-      nationality: 'Deutsch',
-      religion: 'Jüdisch',
-      occupation: 'Lehrerin',
+      surname: 'Test',
+      name: 'Opfer',
+      birth: DateTime(1920, 1, 1),
+      birthplace: 'Test-Stadt',
+      death: DateTime(1944, 1, 1),
+      deathplace: 'Test-Lager',
+      nationality: 'Test-Nationalität',
+      religion: 'Test-Religion',
+      occupation: 'Test-Beruf',
       death_certificate: true,
-      c_camp: 'Auschwitz',
-      fate: 'Deportiert und ermordet',
-      imagePath: 'assets/images/victims/anna_mueller.jpg',
-      imageDescription:
-          'Porträtfoto von Anna Müller aus dem Jahr 1939, aufgenommen in Berlin.',
-      imageSource: 'Privatarchiv Familie Müller, Berlin',
+      c_camp: 'Test-Lager',
+      fate: 'Test-Schicksal',
+      imagePath: 'assets/images/victims/test.jpg',
+      imageDescription: 'Test-Bildbeschreibung',
+      imageSource: 'Test-Bildquelle',
     ),
   );
 
-  await repository.createVictim(
-    VictimImpl(
-      victim_id: 3,
-      surname: 'Nowak',
-      name: 'Jan',
-      birth: DateTime(1918, 7, 22),
-      birthplace: 'Warschau',
-      death: DateTime(1942, 11, 15),
-      deathplace: 'Mauthausen',
-      nationality: 'Polnisch',
-      religion: 'Katholisch',
-      occupation: 'Arbeiter',
-      death_certificate: true,
-      c_camp: 'Mauthausen',
-      fate: 'Politischer Häftling',
-    ),
-  );
-
-  await repository.createVictim(
-    VictimImpl(
-      victim_id: 4,
-      surname: 'Agapitos',
-      name: 'Euthymios',
-      prisoner_number: 33006,
-      birth: DateTime(1900, 01, 01),
-      birthplace: 'Agia Euthymia',
-      death: DateTime(1945, 03, 02),
-      deathplace: 'Neuengamme',
-      nationality: 'Griechisch',
-      religion: 'orthodox',
-      occupation: 'Gutsbesitzer',
-      death_certificate: true,
-      c_camp: 'Neuengamme',
-      fate: 'offizielle Todesursache: Lungentuberkolose',
-      imagePath: 'assets/images/victims/greek_default.jpg',
-      imageDescription: 'Platzhalterbild',
-      imageSource: 'Marco Eggert mit ChatGPT, Stockelsdorf',
-    ),
-  );
-
-  await repository.createVictim(
-    VictimImpl(
-      victim_id: 5,
-      surname: 'Anastasiades',
-      name: 'Gregoire',
-      prisoner_number: 44532,
-      birth: DateTime(1898, 12, 23),
-      birthplace: '',
-      death: DateTime(1944, 12, 14),
-      deathplace: 'Neuengamme',
-      nationality: 'Griechisch',
-      religion: 'orthodox',
-      occupation: '',
-      death_certificate: false,
-      c_camp: '',
-      fate: 'offizielle Todesursache: Lungentuberkolose',
-      imagePath: 'assets/images/victims/greek_default.jpg',
-      imageDescription: 'Platzhalterbild',
-      imageSource: 'Marco Eggert mit ChatGPT, Stockelsdorf',
-    ),
-  );
-
-  await repository.createVictim(
-    VictimImpl(
-      victim_id: 6,
-      surname: 'Andreu',
-      name: 'Georg',
-      prisoner_number: null,
-      birth: null,
-      birthplace: '',
-      death: DateTime(1945, 02, 23),
-      deathplace: 'Neuengamme',
-      nationality: 'Griechisch',
-      religion: 'orthodox',
-      occupation: '',
-      death_certificate: true,
-      c_camp: '',
-      fate: '',
-      imagePath: 'assets/images/victims/greek_default.jpg',
-      imageDescription: 'Platzhalterbild',
-      imageSource: 'Marco Eggert mit ChatGPT, Stockelsdorf',
-    ),
-  );
-
-  await repository.createVictim(
-    VictimImpl(
-      victim_id: 7,
-      surname: 'Awramides',
-      name: 'Georgius',
-      prisoner_number: null,
-      birth: null,
-      birthplace: '',
-      death: DateTime(1945, 01, 07),
-      deathplace: 'Neuengamme',
-      nationality: 'Griechisch',
-      religion: 'orthodox',
-      occupation: '',
-      death_certificate: true,
-      c_camp: '',
-      fate: '',
-      imagePath: 'assets/images/victims/greek_default.jpg',
-      imageDescription: 'Platzhalterbild',
-      imageSource: 'Marco Eggert mit ChatGPT, Stockelsdorf',
-    ),
-  );
-
-  await repository.createVictim(
-    VictimImpl(
-      victim_id: 8,
-      surname: 'Barsukas',
-      name: 'Johann',
-      prisoner_number: null,
-      birth: DateTime(1918, 06, 30),
-      birthplace: 'Athen',
-      death: DateTime(1945, 02, 28),
-      deathplace: 'Außenlager Bremen-Farge',
-      nationality: 'Griechisch',
-      religion: 'orthodox',
-      occupation: 'Offizier',
-      death_certificate: true,
-      env_date: null,
-      c_camp: 'Neuengamme',
-      fate:
-          'offizielle Todesursache: Herz- Kreislaufschwäche; Wohnort: Lamia; Vater: Gerassimos Barsukas, Mutter Maragarita geborene Malawasi',
-      imagePath: 'assets/images/victims/greek_default.jpg',
-      imageDescription: 'Platzhalterbild',
-      imageSource: 'Marco Eggert mit ChatGPT, Stockelsdorf',
-    ),
-  );
-  await repository.createVictim(
-    VictimImpl(
-      victim_id: 9,
-      surname: 'Bolijanitis',
-      name: 'Lassarus',
-      prisoner_number: 32466,
-      birth: DateTime(1920),
-      birthplace: '',
-      death: DateTime(1945, 01, 10),
-      deathplace: 'Außenlager Bremen-Farge',
-      nationality: 'Griechisch',
-      religion: 'orthodox',
-      occupation: 'Bauer',
-      death_certificate: true,
-      env_date: DateTime(1944, 06, 30),
-      c_camp: 'Neuengamme',
-      fate:
-          'offizielle Todesursache: Herzmuskelschwäche bei Pleuropneumonie und Cholecystilis; Persönlicher Besitz: eine weisse Uhr mit weisser Kette',
-      imagePath: 'assets/images/victims/greek_default.jpg',
-      imageDescription: 'Platzhalterbild',
-      imageSource: 'Marco Eggert mit ChatGPT, Stockelsdorf',
-    ),
-  );
-
-  await repository.createVictim(
-    VictimImpl(
-      victim_id: 10,
-      surname: 'Bulikian',
-      name: 'Vartivar',
-      prisoner_number: null,
-      birth: null,
-      birthplace: 'Kaukasus',
-      death: DateTime(1945, 01, 09),
-      deathplace: 'Neuengamme',
-      nationality: 'Griechisch',
-      religion: 'orthodox',
-      occupation: '',
-      death_certificate: true,
-      c_camp: 'Neuengamme',
-      fate: '',
-      imagePath: 'assets/images/victims/greek_default.jpg',
-      imageDescription: 'Platzhalterbild',
-      imageSource: 'Marco Eggert mit ChatGPT, Stockelsdorf',
-    ),
-  );
-  // Beispiel-Konzentrationslager hinzufügen
+  // Ein Test-Lager
   await repository.createConcentrationCamp(
     ConcentrationCampImpl(
       camp_id: 1,
-      name: 'Auschwitz-Birkenau',
-      location: 'Oświęcim',
-      country: 'Polen',
-      description: 'Größtes deutsches Vernichtungs- und Konzentrationslager',
-      date_opened: DateTime(1940, 5, 20),
-      liberation_date: DateTime(1945, 1, 27),
-      type: 'Vernichtungslager',
-      commander: 'Rudolf Höß',
-      imagePath: 'assets/images/camps/haupttor_auschwitz.webp',
-      imageDescription:
-          'Das Haupttor von Auschwitz I mit der zynischen Aufschrift "Arbeit macht frei", fotografiert nach der Befreiung 1945.',
-      imageSource: 'Staatliches Museum Auschwitz-Birkenau',
+      name: 'Test-Lager',
+      location: 'Test-Ort',
+      country: 'Test-Land',
+      description: 'Test-Beschreibung für Entwicklungszwecke',
+      date_opened: DateTime(1940, 1, 1),
+      liberation_date: DateTime(1945, 1, 1),
+      type: 'Test-Typ',
+      commander: 'Test-Kommandant',
+      imagePath: 'assets/images/camps/test.jpg',
+      imageDescription: 'Test-Bildbeschreibung',
+      imageSource: 'Test-Bildquelle',
     ),
   );
 
-  await repository.createConcentrationCamp(
-    ConcentrationCampImpl(
-      camp_id: 2,
-      name: 'Treblinka',
-      location: 'Treblinka',
-      country: 'Polen',
-      description: 'Vernichtungslager in der Nähe von Warschau',
-      date_opened: DateTime(1942, 7, 23),
-      liberation_date: DateTime(1943, 10, 19),
-      type: 'Vernichtungslager',
-      commander: 'Irmfried Eberl',
-    ),
-  );
-
-  await repository.createConcentrationCamp(
-    ConcentrationCampImpl(
-      camp_id: 3,
-      name: 'Mauthausen',
-      location: 'Mauthausen',
-      country: 'Österreich',
-      description: 'Konzentrationslager in Oberösterreich',
-      date_opened: DateTime(1938, 8, 8),
-      liberation_date: DateTime(1945, 5, 5),
-      type: 'Konzentrationslager',
-      commander: 'Franz Ziereis',
-    ),
-  );
-
-  await repository.createConcentrationCamp(
-    ConcentrationCampImpl(
-      camp_id: 4,
-      name: 'Bergen-Belsen',
-      location: 'Bergen',
-      country: 'Deutschland',
-      description: 'Konzentrationslager in Niedersachsen',
-      date_opened: DateTime(1943, 4, 1),
-      liberation_date: DateTime(1945, 4, 15),
-      type: 'Konzentrationslager',
-      commander: 'Josef Kramer',
-    ),
-  );
-
-  await repository.createConcentrationCamp(
-    ConcentrationCampImpl(
-      camp_id: 5,
-      name: 'Neuengamme',
-      location: 'Neuengamme',
-      country: 'Deutschland',
-      description: 'Konzentrationslager in Hamburg',
-      date_opened: DateTime(1938, 12, 12),
-      liberation_date: DateTime(1945, 5, 2),
-      type: 'Konzentrationslager',
-      commander: 'Max Pauly',
-      imagePath: 'assets/images/camps/KZ_Neuengamme_-_Luftbild_-_1945.jpg',
-      imageDescription:
-          'Luftbild, aufgenommen im April 1945 durch die Royal Air Force.',
-      imageSource: 'KZ-Gedenkstätte Neuengamme',
-    ),
-  );
-
-  await repository.createConcentrationCamp(
-    ConcentrationCampImpl(
-      camp_id: 6,
-      name: 'Bremen-Farge',
-      location: 'Bremen-Farge',
-      country: 'Deutschland',
-      description:
-          'Arbeitslager in Bremen für den U-Bootbunker Valentin; Ab 7. April wurde das Außenlager Bremen-Farge zu einer wichtigen Durchgangsstation bei der Räumung der Außenlager des KZ Neuengamme im nordwestdeutschen Raum. Häftlinge aus den anderen Bremer Außenlagern Schützenhof, Blumenthal und Osterort, aus Meppen und aus Wilhelmshaven wurden zunächst nach Farge überstellt, sodass sich dort bis zu 5000 Häftlinge befanden. Am 10. April wurde das Lager geräumt. Eine erste Gruppe von Häftlingen musste direkt zum Auffanglager Sandbostel marschieren. Die kranken Häftlinge wurden in einen Zug verladen, dessen Ziel vermutlich Bergen-Belsen war. Er erreichte das Lager jedoch nicht und endete nach einer Woche Fahrt im Raum zwischen Bremen und Hamburg in Bremervörde. Von hier aus wurden die Häftlinge, die den Transport überlebt hatten, nach Sandbostel gebracht. Ein weiterer Teil der Häftlinge erreichte nach einem dreitägigen Marsch Bremervörde, wo die Männer in Viehwaggons verladen und über Winsen/Luhe ins Stammlager Neuengamme zurückgebracht wurden.',
-      date_opened: DateTime(1943, 10, 01),
-      liberation_date: DateTime(1945, 4, 10),
-      type: 'Außenlager von Neuengamme',
-      commander: 'Ulrich Wahl',
-      imagePath:
-          'assets/images/camps/Bundesarchiv_Bild_185-12-10,_Bremen,_U-Bootbunker__Valentin_,_Bau.jpg',
-    ),
-  );
-
-  // Beispiel-Kommandanten mit Bildpfaden
+  // Ein Test-Kommandant
   await repository.createCommander(
     CommanderImpl(
       commander_id: 1,
-      name: 'Rudolf Franz Ferdinand',
-      surname: 'Höß',
-      rank: 'SS-Obersturmbannführer',
-      birth: DateTime(1901, 11, 25),
-      birthplace: 'Baden-Baden',
-      death: DateTime(1947, 4, 16),
-      deathplace: 'Auschwitz (hingerichtet)',
-      description: 'Kommandant von Auschwitz von 1940 bis 1943',
-      imagePath: 'assets/images/commanders/rudolf_hoess.jpg',
-      imageDescription: 'Rudolf Höß, fotografiert während seines Prozesses',
-      imageSource: 'Bundesarchiv, Bild 183-R99621',
+      name: 'Test',
+      surname: 'Kommandant',
+      rank: 'Test-Rang',
+      birth: DateTime(1900, 1, 1),
+      birthplace: 'Test-Geburtsort',
+      death: DateTime(1946, 1, 1),
+      deathplace: 'Test-Sterbeort',
+      description: 'Test-Beschreibung für Entwicklungszwecke',
+      imagePath: 'assets/images/commanders/test.jpg',
+      imageDescription: 'Test-Bildbeschreibung',
+      imageSource: 'Test-Bildquelle',
     ),
   );
 
-  await repository.createCommander(
-    CommanderImpl(
-      commander_id: 2,
-      name: 'Franz',
-      surname: 'Ziereis',
-      rank: 'SS-Standartenführer',
-      birth: DateTime(1905, 8, 13),
-      birthplace: 'München',
-      death: DateTime(1945, 5, 23),
-      deathplace: 'Mauthausen',
-      description: 'Kommandant von Mauthausen von 1939 bis 1945',
-    ),
-  );
+  print('✓ Minimale Test-Daten erstellt (1 Opfer, 1 Lager, 1 Kommandant)');
+}
 
-  await repository.createCommander(
-    CommanderImpl(
-      commander_id: 3,
-      name: 'Josef',
-      surname: 'Kramer',
-      rank: 'SS-Hauptsturmführer',
-      birth: DateTime(1906, 11, 10),
-      birthplace: 'München',
-      death: DateTime(1945, 12, 13),
-      deathplace: 'Hameln (hingerichtet)',
-      description: 'Kommandant verschiedener Lager, zuletzt Bergen-Belsen',
-    ),
-  );
+/// Factory-Methoden für einfache Erstellung von Objekten
 
-  await repository.createCommander(
-    CommanderImpl(
-      commander_id: 4,
-      name: 'Max',
-      surname: 'Pauly',
-      rank: 'SS-Standartenführer',
-      birth: DateTime(1906, 06, 1),
-      birthplace: 'Wesselburen',
-      death: DateTime(1946, 10, 8),
-      deathplace: 'Hameln (hingerichtet)',
-      description:
-          'Kommandant verschiedener Lager, ab 1942 Kommandant in Neuengamme',
-      imagePath: 'assets/images/commanders/max_pauly.jpg',
-      imageDescription:
-          'Max Pauly in SS-Uniform, Aufnahme aus den Prozessakten der Nürnberger Nachfolgeprozesse, 1946.',
-      imageSource: 'National Archives, Washington D.C.',
-    ),
+/// Erstellt ein neues Victim-Objekt mit den gegebenen Parametern
+VictimImpl createVictim({
+  required int victimId,
+  required String surname,
+  required String name,
+  int? prisonerNumber,
+  DateTime? birth,
+  String? birthplace,
+  DateTime? death,
+  String? deathplace,
+  required String nationality,
+  required String religion,
+  required String occupation,
+  bool deathCertificate = false,
+  DateTime? envDate,
+  required String cCamp,
+  required String fate,
+  String? imagePath,
+  String? imageDescription,
+  String? imageSource,
+}) {
+  return VictimImpl(
+    victim_id: victimId,
+    surname: surname,
+    name: name,
+    prisoner_number: prisonerNumber,
+    birth: birth,
+    birthplace: birthplace,
+    death: death,
+    deathplace: deathplace,
+    nationality: nationality,
+    religion: religion,
+    occupation: occupation,
+    death_certificate: deathCertificate,
+    env_date: envDate,
+    c_camp: cCamp,
+    fate: fate,
+    imagePath: imagePath,
+    imageDescription: imageDescription,
+    imageSource: imageSource,
   );
+}
 
-  // Beispiel-Benutzerprofile hinzufügen
-  await repository.createUserProfile(
-    UserProfileImpl(
-      id: 1,
-      name: 'Max',
-      surname: 'Mustermann',
-      email: 'max@example.com',
-      password: 'password123',
-    ),
+/// Erstellt ein neues ConcentrationCamp-Objekt mit den gegebenen Parametern
+ConcentrationCampImpl createConcentrationCamp({
+  required int campId,
+  required String name,
+  required String location,
+  required String country,
+  required String description,
+  DateTime? dateOpened,
+  DateTime? liberationDate,
+  required String type,
+  required String commander,
+  String? imagePath,
+  String? imageDescription,
+  String? imageSource,
+}) {
+  return ConcentrationCampImpl(
+    camp_id: campId,
+    name: name,
+    location: location,
+    country: country,
+    description: description,
+    date_opened: dateOpened,
+    liberation_date: liberationDate,
+    type: type,
+    commander: commander,
+    imagePath: imagePath,
+    imageDescription: imageDescription,
+    imageSource: imageSource,
   );
+}
 
-  return repository;
+/// Erstellt ein neues Commander-Objekt mit den gegebenen Parametern
+CommanderImpl createCommander({
+  required int commanderId,
+  required String name,
+  required String surname,
+  required String rank,
+  DateTime? birth,
+  String? birthplace,
+  DateTime? death,
+  String? deathplace,
+  required String description,
+  String? imagePath,
+  String? imageDescription,
+  String? imageSource,
+}) {
+  return CommanderImpl(
+    commander_id: commanderId,
+    name: name,
+    surname: surname,
+    rank: rank,
+    birth: birth,
+    birthplace: birthplace,
+    death: death,
+    deathplace: deathplace,
+    description: description,
+    imagePath: imagePath,
+    imageDescription: imageDescription,
+    imageSource: imageSource,
+  );
+}
+
+/// Utility-Funktionen für Admin-Dashboard
+
+/// Validiert Victim-Daten vor dem Speichern
+String? validateVictimData(VictimImpl victim) {
+  if (victim.surname.trim().isEmpty) return 'Nachname ist erforderlich';
+  if (victim.name.trim().isEmpty) return 'Vorname ist erforderlich';
+  if (victim.nationality.trim().isEmpty) return 'Nationalität ist erforderlich';
+  if (victim.religion.trim().isEmpty) return 'Religion ist erforderlich';
+  if (victim.occupation.trim().isEmpty) return 'Beruf ist erforderlich';
+  if (victim.c_camp.trim().isEmpty)
+    return 'Konzentrationslager ist erforderlich';
+  if (victim.fate.trim().isEmpty) return 'Schicksal ist erforderlich';
+
+  // Datum-Validierung
+  if (victim.birth != null && victim.death != null) {
+    if (victim.birth!.isAfter(victim.death!)) {
+      return 'Geburtsdatum kann nicht nach Sterbedatum liegen';
+    }
+  }
+
+  return null; // Alle Validierungen bestanden
+}
+
+/// Validiert ConcentrationCamp-Daten vor dem Speichern
+String? validateCampData(ConcentrationCampImpl camp) {
+  if (camp.name.trim().isEmpty) return 'Name ist erforderlich';
+  if (camp.location.trim().isEmpty) return 'Ort ist erforderlich';
+  if (camp.country.trim().isEmpty) return 'Land ist erforderlich';
+  if (camp.description.trim().isEmpty) return 'Beschreibung ist erforderlich';
+  if (camp.type.trim().isEmpty) return 'Typ ist erforderlich';
+  if (camp.commander.trim().isEmpty) return 'Kommandant ist erforderlich';
+
+  // Datum-Validierung
+  if (camp.date_opened != null && camp.liberation_date != null) {
+    if (camp.date_opened!.isAfter(camp.liberation_date!)) {
+      return 'Eröffnungsdatum kann nicht nach Befreiungsdatum liegen';
+    }
+  }
+
+  return null; // Alle Validierungen bestanden
+}
+
+/// Validiert Commander-Daten vor dem Speichern
+String? validateCommanderData(CommanderImpl commander) {
+  if (commander.name.trim().isEmpty) return 'Vorname ist erforderlich';
+  if (commander.surname.trim().isEmpty) return 'Nachname ist erforderlich';
+  if (commander.rank.trim().isEmpty) return 'Rang ist erforderlich';
+  if (commander.description.trim().isEmpty)
+    return 'Beschreibung ist erforderlich';
+
+  // Datum-Validierung
+  if (commander.birth != null && commander.death != null) {
+    if (commander.birth!.isAfter(commander.death!)) {
+      return 'Geburtsdatum kann nicht nach Sterbedatum liegen';
+    }
+  }
+
+  return null; // Alle Validierungen bestanden
+}
+
+/// Formatiert ein Datum für die Anzeige
+String formatDateForDisplay(DateTime? date) {
+  if (date == null) return 'Unbekannt';
+  return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+}
+
+/// Berechnet das Alter zum Zeitpunkt des Todes oder heute
+int? calculateAge(DateTime? birth, DateTime? death) {
+  if (birth == null) return null;
+
+  final endDate = death ?? DateTime.now();
+  int age = endDate.year - birth.year;
+
+  if (endDate.month < birth.month ||
+      (endDate.month == birth.month && endDate.day < birth.day)) {
+    age--;
+  }
+
+  return age;
+}
+
+/// Generiert eine Zusammenfassung für ein Opfer
+String generateVictimSummary(VictimImpl victim) {
+  final age = calculateAge(victim.birth, victim.death);
+  final ageText = age != null ? ' (${age} Jahre)' : '';
+
+  return '${victim.surname}, ${victim.name}$ageText - ${victim.nationality}, ${victim.religion}, ${victim.occupation}';
+}
+
+/// Debug-Informationen für Entwicklung
+void printDebugInfo() {
+  print('\n🔧 DEBUG INFORMATIONEN:');
+  print('- Data Initialization ist für Mock-Repository konfiguriert');
+  print('- Produktive Daten werden über Admin Dashboard verwaltet');
+  print('- Firestore Repository ist der primäre Datenspeicher');
+  print('- Migration wurde bereits durchgeführt');
+  print('- Admin User: marcoeggert73@gmail.com');
+  print('');
 }

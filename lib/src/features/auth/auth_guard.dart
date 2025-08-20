@@ -73,35 +73,54 @@ class LoginScreenWithMessage extends StatelessWidget {
         backgroundColor: const Color(0xFF283A49),
         foregroundColor: Colors.white,
       ),
-      body: Column(
-        children: [
-          // Info Message
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.orange),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          // LÖSUNG: ScrollView hinzugefügt
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight:
+                  MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top -
+                  kToolbarHeight,
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, color: Colors.orange),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    message,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  // Info Message
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, color: Colors.orange),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            message,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+
+                  // Login Screen Content - SCROLLABLE
+                  const Expanded(child: _LoginScreenBody()),
+                ],
+              ),
             ),
           ),
-
-          // Login Screen Content - OHNE AppBar
-          const Expanded(child: _LoginScreenBody()),
-        ],
+        ),
       ),
     );
   }
@@ -240,7 +259,8 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
+      // ZUSÄTZLICHE ScrollView für den Login-Body
       padding: const EdgeInsets.all(24.0),
       child: Form(
         key: _formKey,
@@ -248,6 +268,9 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Responsive Spacing
+            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+
             const Text(
               'Willkommen zurück',
               textAlign: TextAlign.center,
@@ -273,9 +296,12 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
               decoration: InputDecoration(
                 labelText: 'E-Mail-Adresse',
                 hintText: 'max.mustermann@example.com',
+                prefixIcon: const Icon(Icons.email_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
+                filled: true,
+                fillColor: Colors.white,
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -297,6 +323,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
               decoration: InputDecoration(
                 labelText: 'Passwort',
                 hintText: 'Geben Sie Ihr Passwort ein',
+                prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
                   onPressed: _togglePasswordVisibility,
                   icon: Icon(
@@ -308,6 +335,8 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
+                filled: true,
+                fillColor: Colors.white,
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -343,7 +372,11 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                       )
                     : const Text(
                         'Einloggen',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
               ),
             ),
@@ -354,7 +387,10 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                 onPressed: _forgotPassword,
                 child: const Text(
                   'Passwort vergessen?',
-                  style: TextStyle(decoration: TextDecoration.underline),
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    color: Color(0xFF283A49),
+                  ),
                 ),
               ),
             ),
@@ -363,7 +399,10 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Noch kein Konto?'),
+                const Text(
+                  'Noch kein Konto?',
+                  style: TextStyle(color: Color(0xFF283A49)),
+                ),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -373,7 +412,13 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                       ),
                     );
                   },
-                  child: const Text('Jetzt registrieren'),
+                  child: const Text(
+                    'Jetzt registrieren',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF283A49),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -429,6 +474,9 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                         'assets/icons/google_icon.png',
                         height: 24,
                         width: 24,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.login, color: Colors.blue);
+                        },
                       ),
                 label: Text(
                   _isGoogleLoading
@@ -444,50 +492,95 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
 
             const SizedBox(height: 16),
 
-            // Andere Social Login Buttons (nur als Platzhalter)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Alternative Login Buttons - KOMPAKTER
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _socialLoginButton('assets/icons/apple_icon.png', 'Apple'),
-                _socialLoginButton(
-                  'assets/icons/facebook_icon.png',
-                  'Facebook',
+                // Apple Sign-In Button
+                SizedBox(
+                  height: 44, // Etwas kleiner für bessere Platznutzung
+                  child: ElevatedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      side: BorderSide(color: Colors.grey[300]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Apple Login noch nicht implementiert'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    },
+                    icon: Image.asset(
+                      'assets/icons/apple_icon.png',
+                      height: 20,
+                      width: 20,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.apple, color: Colors.black);
+                      },
+                    ),
+                    label: const Text(
+                      'Mit Apple anmelden',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Facebook Sign-In Button
+                SizedBox(
+                  height: 44,
+                  child: ElevatedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      side: BorderSide(color: Colors.grey[300]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Facebook Login noch nicht implementiert',
+                          ),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    },
+                    icon: Image.asset(
+                      'assets/icons/facebook_icon.png',
+                      height: 20,
+                      width: 20,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.facebook, color: Colors.blue);
+                      },
+                    ),
+                    label: const Text(
+                      'Mit Facebook anmelden',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _socialLoginButton(String assetPath, String provider) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$provider Login noch nicht implementiert'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      },
-      child: Container(
-        height: 50,
-        width: 50,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF3EFE7),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
+            // Bottom Spacing für bessere ScrollView-Erfahrung
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
           ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset(assetPath),
         ),
       ),
     );

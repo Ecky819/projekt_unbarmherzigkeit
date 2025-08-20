@@ -8,6 +8,7 @@ import 'package:projekt_unbarmherzigkeit/src/features/news/news_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/favorites/favorites_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/profiles/login_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/profiles/profile_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/admin/admin_dashboard_screen.dart';
 import '../data/databaseRepository.dart';
 import '../services/auth_service.dart';
 import 'custom_appbar.dart';
@@ -31,22 +32,49 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   void initState() {
     super.initState();
+    _initializeScreens();
+
+    // Zusätzlicher Listener für Auth-State-Changes
+    _authService.authStateChanges.listen((user) {
+      if (mounted) {
+        // Bei Logout: Navigation zum Home-Screen zurücksetzen
+        if (user == null && _selectedIndex == 4) {
+          setState(() {
+            _selectedIndex = 0; // Zurück zum Home-Screen
+            _navigationHistory.clear();
+            _navigationHistory.add(0);
+          });
+        }
+
+        // Delay um sicherzustellen, dass Auth-State vollständig aktualisiert ist
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            setState(() {
+              // Force refresh der UI nach Auth-State-Change
+            });
+          }
+        });
+      }
+    });
   }
 
+  void _initializeScreens() {
+    // Basis-Screens werden dynamisch basierend auf Auth-Status erstellt
+    // Diese Methode wird bei Auth-State-Änderungen aufgerufen
+  }
+
+  // Navigation zu spezifischen Screens
   void navigateTo(String desc) {
     int index = _screens.indexWhere((screen) => screen['title'] == desc);
     if (index != -1 && index != _selectedIndex) {
-      if (_navigationHistory.isEmpty ||
-          _navigationHistory.last != _selectedIndex) {
-        _navigationHistory.add(_selectedIndex);
-      }
-
+      _addToHistory();
       setState(() {
         _selectedIndex = index;
       });
     }
   }
 
+  // Zurück-Navigation
   void goBack() {
     if (_navigationHistory.isNotEmpty) {
       int previousIndex = _navigationHistory.removeLast();
@@ -61,24 +89,35 @@ class _MainNavigationState extends State<MainNavigation> {
     }
   }
 
+  // Hilfsmethode für Navigation History
+  void _addToHistory() {
+    if (_navigationHistory.isEmpty ||
+        _navigationHistory.last != _selectedIndex) {
+      _navigationHistory.add(_selectedIndex);
+    }
+  }
+
   // Auth-geschützte Navigation zur Datenbank
   void navigateToDatabase() {
     if (_authService.isLoggedIn) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DatabaseScreen(repository: widget.repository),
-        ),
-      );
+      if (widget.repository != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DatabaseScreen(repository: widget.repository),
+          ),
+        );
+      } else {
+        _showErrorSnackBar('Repository nicht verfügbar');
+      }
     } else {
-      // Zeige Login Screen wenn nicht eingeloggt
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      _navigateToLogin(
+        'Sie müssen sich anmelden, um auf die Datenbank zugreifen zu können.',
       );
     }
   }
 
+  // News Navigation
   void navigateToNews() {
     Navigator.push(
       context,
@@ -86,27 +125,192 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
+  // KORRIGIERTE Admin Dashboard Navigation
+  void navigateToAdminDashboard() {
+    print('Admin Dashboard Navigation aufgerufen');
+    print('User logged in: ${_authService.isLoggedIn}');
+    print('User email: ${_authService.currentUser?.email}');
+    print('Is admin: ${_authService.isAdmin}');
+
+    if (!_authService.isLoggedIn) {
+      _navigateToLogin(
+        'Sie müssen sich anmelden, um auf das Admin-Dashboard zugreifen zu können.',
+      );
+      return;
+    }
+
+    if (!_authService.isAdmin) {
+      _showErrorSnackBar(
+        'Sie haben keine Admin-Berechtigung für diese Funktion.',
+      );
+      return;
+    }
+
+    if (widget.repository == null) {
+      _showErrorSnackBar('Repository nicht verfügbar');
+      return;
+    }
+
+    // Erfolgreiche Navigation zum Admin Dashboard
+    print('Navigiere zum Admin Dashboard...');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AdminDashboardScreen(repository: widget.repository!),
+      ),
+    ).then((_) {
+      // Optional: Refresh nach Rückkehr vom Admin Dashboard
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
   // Auth-basierte Profil-Navigation
   void navigateToProfile() {
     if (_authService.isLoggedIn) {
       // Zeige Profil Screen für eingeloggte User
-      if (_navigationHistory.isEmpty ||
-          _navigationHistory.last != _selectedIndex) {
-        _navigationHistory.add(_selectedIndex);
-      }
+      _addToHistory();
       setState(() {
         _selectedIndex = 4; // Index für Profile Screen
       });
     } else {
-      // Zeige Login Screen für nicht eingeloggte User
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      ).then((_) {
-        // Aktualisiere UI nach potenziellem Login
-        setState(() {});
-      });
+      // Für nicht eingeloggte User: Zeige Login Screen über Navigation
+      _navigateToLogin(
+        'Melden Sie sich an, um auf Ihr Profil zugreifen zu können.',
+      );
     }
+  }
+
+  // Helper: Navigation zum Login
+  void _navigateToLogin(String message) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    ).then((_) {
+      // UI nach potenziellem Login aktualisieren
+      if (mounted) {
+        // Zusätzliche Verzögerung für Auth-State-Update
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (mounted) {
+            setState(() {
+              print(
+                'UI nach Login aktualisiert - Admin status: ${_authService.isAdmin}',
+              );
+            });
+          }
+        });
+      }
+    });
+
+    // Optional: Nachricht anzeigen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    });
+  }
+
+  // Helper: Fehler-SnackBar
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  // Helper: Erfolg-SnackBar
+  // ignore: unused_element
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // Debug: Admin-Status anzeigen
+  void _showAdminDebugInfo() {
+    if (!mounted) return;
+
+    final status = _authService.getAdminStatus();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Admin-Status Debug'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Eingeloggt: ${status['isLoggedIn']}'),
+            Text('Admin: ${status['isAdmin']}'),
+            Text('E-Mail: ${status['userEmail'] ?? 'Keine'}'),
+            Text('Admin-E-Mail: ${status['adminEmail']}'),
+            Text('Berechtigung: ${status['hasPermission']}'),
+            Text('Rolle: ${_authService.getUserRole()}'),
+            const SizedBox(height: 16),
+            const Text('Firebase User:'),
+            Text('UID: ${_authService.currentUser?.uid ?? 'Keine'}'),
+            Text(
+              'Email verified: ${_authService.currentUser?.emailVerified ?? false}',
+            ),
+            const SizedBox(height: 16),
+            if (status['isAdmin'] == true) ...[
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  navigateToAdminDashboard();
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                child: const Text('Test Admin Dashboard'),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {}); // Force refresh
+            },
+            child: const Text('Refresh UI'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Hilfsmethode: Screen-Titel basierend auf Auth-Status ermitteln
+  String _getScreenTitle(int index, bool isLoggedIn) {
+    const List<String> baseTitles = ['Home', 'Timeline', 'Karte', 'Favoriten'];
+
+    if (index < baseTitles.length) {
+      return baseTitles[index];
+    } else if (index == 4) {
+      return isLoggedIn ? 'Profil' : 'Anmelden';
+    }
+
+    return 'Unknown';
   }
 
   @override
@@ -114,12 +318,71 @@ class _MainNavigationState extends State<MainNavigation> {
     return StreamBuilder<User?>(
       stream: _authService.authStateChanges,
       builder: (context, snapshot) {
-        final isLoggedIn = snapshot.data != null;
+        // Loading State
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Color.fromRGBO(233, 229, 221, 1.0),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Color(0xFF283A49)),
+                  SizedBox(height: 16),
+                  Text(
+                    'Lade Navigation...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: 'SFPro',
+                      color: Color(0xFF283A49),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
+        // Error State
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Fehler beim Laden der Navigation: ${snapshot.error}',
+                    style: const TextStyle(fontSize: 16, fontFamily: 'SFPro'),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {}); // Neustart versuchen
+                    },
+                    child: const Text('Erneut versuchen'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final isLoggedIn = snapshot.data != null;
+        final isAdmin = _authService.isAdmin;
+
+        // DEBUG: Ausgabe des aktuellen Auth-Status
+        print(
+          'StreamBuilder Build - User: ${snapshot.data?.email}, Admin: $isAdmin',
+        );
+
+        // Screens basierend auf Auth-Status definieren
         List<Map<String, dynamic>> screens = [
           {
             'screen': HomeScreen(
-              navigateTo: (desc) => navigateTo(desc),
+              navigateTo: navigateTo,
               navigateToNews: navigateToNews,
               navigateToDatabase: navigateToDatabase,
             ),
@@ -131,59 +394,94 @@ class _MainNavigationState extends State<MainNavigation> {
           {
             // Dynamischer Profil Screen basierend auf Auth Status
             'screen': isLoggedIn ? const ProfileScreen() : const LoginScreen(),
-            'title': 'Profil',
+            'title': isLoggedIn
+                ? 'Profil'
+                : 'Anmelden', // KORRIGIERT: Dynamischer Titel
           },
         ];
+
         _screens = screens;
+
+        // Index-Validierung
+        if (_selectedIndex >= screens.length) {
+          _selectedIndex = 0;
+        }
+
+        // KORRIGIERT: Dynamischen Titel verwenden
+        final currentTitle = _getScreenTitle(_selectedIndex, isLoggedIn);
 
         return Scaffold(
           backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
           appBar: CustomAppBar(
             context: context,
             pageIndex: _selectedIndex,
-            title: screens[_selectedIndex]['title'],
+            title: currentTitle, // KORRIGIERT: Verwende dynamischen Titel
             navigateTo: navigateTo,
             nav: _screens.map((screen) => screen['screen']).toList(),
-            onBackPressed: goBack,
+            onBackPressed: _navigationHistory.isNotEmpty ? goBack : null,
           ),
           endDrawer: CustomDrawer(
             navigateTo: (desc) {
               if (desc == 'Profil') {
-                // Spezielle Behandlung für Profil-Navigation
                 navigateToProfile();
               } else {
-                if (_navigationHistory.isEmpty ||
-                    _navigationHistory.last != _selectedIndex) {
-                  _navigationHistory.add(_selectedIndex);
-                }
+                _addToHistory();
                 navigateTo(desc);
               }
             },
             navigateToDatabase: navigateToDatabase,
             navigateToNews: navigateToNews,
+            // KORRIGIERT: Admin Dashboard Callback wird immer übergeben,
+            // aber im Drawer wird geprüft ob Admin
+            navigateToAdminDashboard: navigateToAdminDashboard,
           ),
-          body: screens[_selectedIndex]['screen'],
+          body: IndexedStack(
+            index: _selectedIndex,
+            children: screens
+                .map((screen) => screen['screen'] as Widget)
+                .toList(),
+          ),
           bottomNavigationBar: CustomNavigationBar(
             selectedIndex: _selectedIndex,
             onDestinationSelected: (index) {
               if (index == 4) {
                 // Spezielle Behandlung für Profil Tab
                 navigateToProfile();
-              } else {
-                if (_selectedIndex != index &&
-                    (_navigationHistory.isEmpty ||
-                        _navigationHistory.last != _selectedIndex)) {
-                  _navigationHistory.add(_selectedIndex);
-                }
-
+              } else if (index != _selectedIndex) {
+                _addToHistory();
                 setState(() {
                   _selectedIndex = index;
                 });
               }
             },
           ),
+          // Debug FAB
+          floatingActionButton: _buildDebugFAB(isAdmin, isLoggedIn),
         );
       },
+    );
+  }
+
+  // ERWEITERTE Debug Floating Action Button
+  Widget? _buildDebugFAB(bool isAdmin, bool isLoggedIn) {
+    // Debug-Modus - in Produktion auf false setzen
+    const bool debugMode = true;
+
+    // ignore: dead_code
+    if (!debugMode) return null;
+
+    return FloatingActionButton.small(
+      onPressed: _showAdminDebugInfo,
+      backgroundColor: isAdmin
+          ? Colors.orange
+          : (isLoggedIn ? Colors.blue : Colors.grey),
+      child: Icon(
+        isAdmin
+            ? Icons.admin_panel_settings
+            : (isLoggedIn ? Icons.person : Icons.person_off),
+        color: Colors.white,
+        size: 16,
+      ),
     );
   }
 }
