@@ -17,6 +17,7 @@ import 'details/bremen_farge.dart';
 import 'details/hamburg_veddel.dart';
 import 'details/hamburg_hammerbrook.dart';
 import 'details/ladelund.dart';
+import 'details/pavlos_melas.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -154,6 +155,16 @@ class _MapScreenState extends State<MapScreen> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const DetailScreen10()),
+          ),
+        ),
+        Marker(
+          markerId: const MarkerId('16'),
+          position: const LatLng(40.66228644935668, 22.936220486263025),
+          icon: _customIcon,
+          infoWindow: const InfoWindow(title: 'KZ Pavlos Melas'),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const DetailScreen16()),
           ),
         ),
 

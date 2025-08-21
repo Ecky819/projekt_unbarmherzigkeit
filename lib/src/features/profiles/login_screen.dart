@@ -52,7 +52,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Color(0xFFC0200E),
+          ),
         );
       }
     } finally {
@@ -76,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Erfolgreich mit Google angemeldet!'),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF759607),
           ),
         );
         // Zurück zur vorherigen Seite oder zur Hauptseite
@@ -87,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Google Anmeldung fehlgeschlagen: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFC0200E),
           ),
         );
       }
@@ -105,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Bitte geben Sie Ihre E-Mail-Adresse ein.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Color(0xFFDF7E35),
         ),
       );
       return;
@@ -119,14 +122,17 @@ class _LoginScreenState extends State<LoginScreen> {
             content: Text(
               'E-Mail zum Zurücksetzen des Passworts wurde gesendet.',
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF759607),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Color(0xFFC0200E),
+          ),
         );
       }
     }

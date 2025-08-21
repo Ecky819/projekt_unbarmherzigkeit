@@ -11,8 +11,8 @@ import 'details/detail_24maerz1943.dart';
 import 'details/detail_12februar1945.dart';
 import 'details/detail_28dezember1944.dart';
 import 'details/detail_29juni1944.dart';
-import 'details/detail_september1941a.dart';
-import 'details/detail_september1941b.dart';
+import 'details/detail_september1941.dart';
+import 'details/detail_november1942.dart';
 import 'details/detail_17oktober1943.dart';
 
 class TimelineScreen extends StatelessWidget {
@@ -76,13 +76,13 @@ class TimelineScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DetailSeptember1941a(),
+                  builder: (context) => const DetailSeptember1941(),
                 ),
               );
             },
           ),
           TimelineEntry(
-            date: 'September 1941',
+            date: 'November 1942',
             title: 'Operation Harling: Sprengung der Gorgopotamos-Brücke',
             description:
                 'Operation Harling: Sprengung der Gorgopotamos-Brücke durch britisch-griechische Partisanen – deutsche Vergeltungsaktionen in umliegenden Dörf...',
@@ -90,7 +90,7 @@ class TimelineScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DetailSeptember1941b(),
+                  builder: (context) => const DetailNovember1942(),
                 ),
               );
             },
