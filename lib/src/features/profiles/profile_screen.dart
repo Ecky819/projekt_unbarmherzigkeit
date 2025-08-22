@@ -12,11 +12,29 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
   User? _currentUser;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _currentUser = _authService.currentUser;
+    // Reload user data to get most current verification status
+    _reloadUserData();
+  }
+
+  /// Lädt die aktuellen Benutzerdaten neu
+  Future<void> _reloadUserData() async {
+    try {
+      await _currentUser?.reload();
+      final refreshedUser = _authService.currentUser;
+      if (mounted && refreshedUser != null) {
+        setState(() {
+          _currentUser = refreshedUser;
+        });
+      }
+    } catch (e) {
+      print('Fehler beim Neuladen der Benutzerdaten: $e');
+    }
   }
 
   String get _userDisplayName {
@@ -75,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.blue.withValues(alpha: 0.1),
+          color: Colors.blue.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.blue),
         ),
@@ -100,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.1),
+        color: Colors.grey.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey),
       ),
@@ -113,6 +131,193 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  /// Verbesserte E-Mail-Verifikation mit Fehlerbehandlung und Cooldown
+  Future<void> _sendEmailVerification() async {
+    if (_currentUser == null) {
+      _showErrorMessage('Kein Benutzer gefunden');
+      return;
+    }
+
+    if (_currentUser!.emailVerified) {
+      _showInfoMessage('Ihre E-Mail-Adresse ist bereits verifiziert.');
+      return;
+    }
+
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // ActionCodeSettings für bessere Benutzerfreundlichkeit
+      final actionCodeSettings = ActionCodeSettings(
+        url: 'https://your-app.page.link/emailVerified', // Optional: Deep Link
+        handleCodeInApp: false,
+        androidPackageName: 'com.example.projekt_unbarmherzigkeit',
+        androidInstallApp: false,
+        androidMinimumVersion: '12',
+      );
+
+      await _currentUser!.sendEmailVerification(actionCodeSettings);
+
+      if (mounted) {
+        _showSuccessMessage(
+          'Verifizierungs-E-Mail wurde erfolgreich gesendet!\n\n'
+          'Bitte überprüfen Sie Ihr E-Mail-Postfach (auch den Spam-Ordner) '
+          'und klicken Sie auf den Bestätigungslink.\n\n'
+          'Nach der Bestätigung können Sie die App neu starten oder '
+          'diese Seite aktualisieren.',
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'too-many-requests':
+          errorMessage =
+              'Zu viele Anfragen. Bitte warten Sie einen Moment '
+              'bevor Sie eine neue Verifizierungs-E-Mail anfordern.';
+          break;
+        case 'user-disabled':
+          errorMessage =
+              'Ihr Konto wurde deaktiviert. '
+              'Kontaktieren Sie den Support.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Ungültige E-Mail-Adresse.';
+          break;
+        default:
+          errorMessage =
+              'Fehler beim Senden der Verifizierungs-E-Mail: '
+              '${e.message}';
+      }
+      if (mounted) {
+        _showErrorMessage(errorMessage);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('Ein unerwarteter Fehler ist aufgetreten: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// Verbesserte Passwort-Reset-Funktion mit Fehlerbehandlung
+  Future<void> _sendPasswordResetEmail() async {
+    if (_currentUser == null || _currentUser!.email == null) {
+      _showErrorMessage('Keine E-Mail-Adresse gefunden');
+      return;
+    }
+
+    if (_authService.isGoogleUser) {
+      _showInfoMessage(
+        'Sie sind mit Google angemeldet. '
+        'Passwort-Änderungen erfolgen über Ihr Google-Konto.',
+      );
+      return;
+    }
+
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // ActionCodeSettings für bessere Benutzerfreundlichkeit
+      final actionCodeSettings = ActionCodeSettings(
+        url: 'https://your-app.page.link/resetPassword', // Optional: Deep Link
+        handleCodeInApp: false,
+        androidPackageName: 'com.example.projekt_unbarmherzigkeit',
+        androidInstallApp: false,
+        androidMinimumVersion: '12',
+      );
+
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _currentUser!.email!,
+        actionCodeSettings: actionCodeSettings,
+      );
+
+      if (mounted) {
+        _showSuccessMessage(
+          'E-Mail zum Zurücksetzen des Passworts wurde gesendet!\n\n'
+          'Bitte überprüfen Sie Ihr E-Mail-Postfach (auch den Spam-Ordner) '
+          'und folgen Sie den Anweisungen zum Zurücksetzen Ihres Passworts.\n\n'
+          'Die E-Mail wurde an: ${_currentUser!.email}',
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'Kein Benutzer mit dieser E-Mail-Adresse gefunden.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Ungültige E-Mail-Adresse.';
+          break;
+        case 'too-many-requests':
+          errorMessage =
+              'Zu viele Anfragen. Bitte warten Sie einen Moment '
+              'bevor Sie eine neue E-Mail anfordern.';
+          break;
+        case 'user-disabled':
+          errorMessage =
+              'Ihr Konto wurde deaktiviert. '
+              'Kontaktieren Sie den Support.';
+          break;
+        default:
+          errorMessage =
+              'Fehler beim Senden der Passwort-Reset-E-Mail: '
+              '${e.message}';
+      }
+      if (mounted) {
+        _showErrorMessage(errorMessage);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('Ein unerwarteter Fehler ist aufgetreten: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// Prüft den aktuellen Verifizierungsstatus
+  Future<void> _checkVerificationStatus() async {
+    if (_currentUser == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _currentUser!.reload();
+      final refreshedUser = FirebaseAuth.instance.currentUser;
+
+      if (mounted && refreshedUser != null) {
+        setState(() {
+          _currentUser = refreshedUser;
+          _isLoading = false;
+        });
+
+        if (refreshedUser.emailVerified) {
+          _showSuccessMessage(
+            'Glückwunsch! Ihre E-Mail-Adresse wurde erfolgreich verifiziert.',
+          );
+        } else {
+          _showInfoMessage(
+            'Ihre E-Mail-Adresse ist noch nicht verifiziert. '
+            'Bitte überprüfen Sie Ihr E-Mail-Postfach.',
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showErrorMessage('Fehler beim Überprüfen des Status: $e');
+      }
+    }
   }
 
   Future<void> _logout() async {
@@ -140,25 +345,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         await _authService.logout();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sie wurden erfolgreich abgemeldet.'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Aktualisiere den State nach dem Logout
+          _showSuccessMessage('Sie wurden erfolgreich abgemeldet.');
           setState(() {
             _currentUser = null;
           });
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler beim Abmelden: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          _showErrorMessage('Fehler beim Abmelden: $e');
         }
       }
     }
@@ -193,24 +387,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         await _currentUser?.delete();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Ihr Konto wurde erfolgreich gelöscht.'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          _showSuccessMessage('Ihr Konto wurde erfolgreich gelöscht.');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler beim Löschen des Kontos: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          _showErrorMessage('Fehler beim Löschen des Kontos: $e');
         }
       }
     }
+  }
+
+  /// Hilfsmethoden für Nachrichten
+  void _showSuccessMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
+  void _showInfoMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.orange,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   @override
@@ -232,7 +447,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -277,8 +492,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: _currentUser?.emailVerified == true
-                              ? Colors.green.withValues(alpha: 0.1)
-                              : Colors.orange.withValues(alpha: 0.1),
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.orange.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: _currentUser?.emailVerified == true
@@ -301,6 +516,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
+
+                  // Status aktualisieren Button
+                  if (!(_currentUser?.emailVerified ?? false)) ...[
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: _isLoading ? null : _checkVerificationStatus,
+                      icon: _isLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.refresh, size: 16),
+                      label: Text(
+                        _isLoading ? 'Prüfe...' : 'Status aktualisieren',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -314,7 +548,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -344,30 +578,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.mark_email_read,
                       title: 'E-Mail verifizieren',
                       subtitle: 'Bestätigen Sie Ihre E-Mail-Adresse',
-                      onTap: () async {
-                        try {
-                          await _currentUser?.sendEmailVerification();
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Verifizierungs-E-Mail wurde gesendet.',
-                                ),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Fehler: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onTap: _isLoading ? null : _sendEmailVerification,
+                      isLoading: _isLoading,
                     ),
 
                   // Passwort ändern (nur für E-Mail-User)
@@ -376,32 +588,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.lock_outline,
                       title: 'Passwort ändern',
                       subtitle: 'E-Mail zum Zurücksetzen senden',
-                      onTap: () async {
-                        try {
-                          await _authService.sendPasswordResetEmail(
-                            _currentUser!.email!,
-                          );
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'E-Mail zum Zurücksetzen wurde gesendet.',
-                                ),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Fehler: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onTap: _isLoading ? null : _sendPasswordResetEmail,
+                      isLoading: _isLoading,
                     ),
 
                   // Konto-Informationen
@@ -427,7 +615,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -479,8 +667,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     required String subtitle,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     bool isDestructive = false,
+    bool isLoading = false,
   }) {
     return InkWell(
       onTap: onTap,
@@ -493,17 +682,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 40,
               decoration: BoxDecoration(
                 color: isDestructive
-                    ? Colors.red.withValues(alpha: 0.1)
-                    : const Color(0xFF283A49).withValues(alpha: 0.1),
+                    ? Colors.red.withOpacity(0.1)
+                    : const Color(0xFF283A49).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Icon(
-                icon,
-                color: isDestructive
-                    ? Colors.red[700]
-                    : const Color(0xFF283A49),
-                size: 20,
-              ),
+              child: isLoading
+                  ? const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : Icon(
+                      icon,
+                      color: isDestructive
+                          ? Colors.red[700]
+                          : const Color(0xFF283A49),
+                      size: 20,
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -517,6 +714,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       fontWeight: FontWeight.w500,
                       color: isDestructive
                           ? Colors.red[700]
+                          : onTap == null
+                          ? Colors.grey
                           : const Color(0xFF283A49),
                     ),
                   ),
@@ -527,7 +726,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey[400]),
+            if (onTap != null && !isLoading)
+              Icon(Icons.chevron_right, color: Colors.grey[400]),
           ],
         ),
       ),

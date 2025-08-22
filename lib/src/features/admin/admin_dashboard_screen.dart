@@ -251,7 +251,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       onPressed: _showAddDialog,
       icon: const Icon(Icons.add),
       label: const Text(
-        'HINZUFÜGEN',
+        'Hinzufügen',
         style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'SF Pro'),
       ),
     );

@@ -599,7 +599,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                                 Row(
                                   children: [
                                     Icon(
-                                      Icons.favorite_border,
+                                      Icons.bookmark_border,
                                       size: 16,
                                       color: Colors.grey[600],
                                     ),

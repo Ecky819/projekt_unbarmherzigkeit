@@ -159,7 +159,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
                 ),
               )
             : Icon(
-                _isFavorite ? Icons.favorite : Icons.favorite_border,
+                _isFavorite ? Icons.bookmark : Icons.bookmark_border,
                 size: widget.size,
                 color: _isFavorite
                     ? (widget.favoriteColor ?? Colors.red)
@@ -271,7 +271,7 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton> {
                   child: const CircularProgressIndicator(strokeWidth: 1.5),
                 )
               : Icon(
-                  _isFavorite ? Icons.favorite : Icons.favorite_border_outlined,
+                  _isFavorite ? Icons.bookmark : Icons.bookmark_border_outlined,
                   size: widget.size,
                   color: _isFavorite ? Colors.red : Colors.grey[600],
                 ),

@@ -52,8 +52,8 @@ class CustomNavigationBar extends StatelessWidget {
         ),
         NavigationDestination(
           icon: ImageIcon(
-            const AssetImage('assets/icons/favorite_icon.png'),
-            size: 35,
+            const AssetImage('assets/icons/bookmark_icon.png'),
+            size: 30,
             color: selectedIndex == 3
                 ? const Color.fromRGBO(131, 132, 140, 1.0)
                 : Colors.white,

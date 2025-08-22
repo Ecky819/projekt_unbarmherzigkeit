@@ -202,7 +202,7 @@ class DetailScreen extends StatelessWidget {
               Icon(
                 _getIcon(),
                 size: 64,
-                color: _getIconColor().withOpacity(0.5),
+                color: _getIconColor().withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(

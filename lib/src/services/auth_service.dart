@@ -15,23 +15,6 @@ class AuthService {
   // Ist User eingeloggt
   bool get isLoggedIn => currentUser != null;
 
-  // DEBUG: Umfassende Admin-Status-Prüfung
-  Map<String, dynamic> debugAdminStatus() {
-    final user = currentUser;
-    return {
-      'currentUser': user?.email,
-      'isLoggedIn': isLoggedIn,
-      'isAdmin': isAdmin,
-      'adminEmail': 'marcoeggert73@gmail.com',
-      'emailMatch': user?.email == 'marcoeggert73@gmail.com',
-      'userProviders': user?.providerData.map((p) => p.providerId).toList(),
-      'userUid': user?.uid,
-      'emailVerified': user?.emailVerified,
-      'creationTime': user?.metadata.creationTime?.toIso8601String(),
-      'lastSignInTime': user?.metadata.lastSignInTime?.toIso8601String(),
-    };
-  }
-
   // Check if current user is admin
   bool get isAdmin {
     final user = currentUser;
@@ -50,13 +33,78 @@ class AuthService {
     );
   }
 
-  // Registrierung
+  // VERBESSERTE E-Mail-Verifizierung
+  Future<void> sendEmailVerification() async {
+    try {
+      final user = currentUser;
+      if (user == null) {
+        throw Exception('Kein Benutzer angemeldet');
+      }
+
+      if (user.emailVerified) {
+        throw Exception('E-Mail-Adresse ist bereits verifiziert');
+      }
+
+      // Sende Verifizierungs-E-Mail mit verbessertem Error Handling
+      await user.sendEmailVerification();
+
+      print('E-Mail-Verifizierung gesendet an: ${user.email}');
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'too-many-requests':
+          throw 'Zu viele Anfragen. Warten Sie eine Minute und versuchen Sie es erneut.';
+        case 'invalid-email':
+          throw 'Ungültige E-Mail-Adresse.';
+        case 'user-disabled':
+          throw 'Ihr Konto wurde deaktiviert.';
+        default:
+          throw 'Fehler beim Senden der Verifizierungs-E-Mail: ${e.message}';
+      }
+    } catch (e) {
+      throw 'Unerwarteter Fehler: $e';
+    }
+  }
+
+  // E-Mail-Verifizierungsstatus prüfen (mit Reload)
+  Future<bool> checkEmailVerificationStatus() async {
+    try {
+      final user = currentUser;
+      if (user == null) return false;
+
+      // User-Daten vom Server neu laden
+      await user.reload();
+
+      // Aktuellen User nach Reload erneut abrufen
+      final refreshedUser = _auth.currentUser;
+
+      return refreshedUser?.emailVerified ?? false;
+    } catch (e) {
+      print('Fehler beim Prüfen des Verifizierungsstatus: $e');
+      return false;
+    }
+  }
+
+  // Registrierung mit automatischer E-Mail-Verifizierung
   Future<UserCredential?> register(String email, String password) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // Automatisch E-Mail-Verifizierung senden
+      if (result.user != null && !result.user!.emailVerified) {
+        try {
+          await result.user!.sendEmailVerification();
+          print('Verifizierungs-E-Mail automatisch gesendet');
+        } catch (e) {
+          print(
+            'Fehler beim automatischen Senden der Verifizierungs-E-Mail: $e',
+          );
+          // Registrierung trotzdem erfolgreich, nur Verifizierung fehlgeschlagen
+        }
+      }
+
       return result;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -79,25 +127,20 @@ class AuthService {
   // Google Sign-In
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        // User cancelled the sign-in
         return null;
       }
 
-      // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      // Create a new credential
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Once signed in, return the UserCredential
       return await _auth.signInWithCredential(credential);
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -106,16 +149,14 @@ class AuthService {
     }
   }
 
-  // VERBESSERTE Logout-Methode mit robustem Fehlerhandling
+  // Logout
   Future<void> logout() async {
     List<String> errors = [];
     bool hasLoggedOut = false;
 
     try {
-      // 1. Versuche Google Sign-Out (falls Google User)
       if (isGoogleUser) {
         try {
-          // Prüfe erst, ob Google SignIn verfügbar ist
           final isSignedIn = await _googleSignIn.isSignedIn();
           if (isSignedIn) {
             await _googleSignIn.signOut();
@@ -124,15 +165,12 @@ class AuthService {
         } on PlatformException catch (e) {
           print('Google Sign-Out PlatformException: ${e.message}');
           errors.add('Google Sign-Out: ${e.message}');
-          // Weitermachen mit Firebase Logout
         } catch (e) {
           print('Google Sign-Out Fehler: $e');
           errors.add('Google Sign-Out: $e');
-          // Weitermachen mit Firebase Logout
         }
       }
 
-      // 2. Firebase Auth Sign-Out (wichtigster Teil)
       try {
         await _auth.signOut();
         hasLoggedOut = true;
@@ -145,9 +183,7 @@ class AuthService {
         print('Firebase Auth Sign-Out PlatformException: ${e.message}');
         errors.add('Firebase Platform: ${e.message}');
 
-        // Bei PlatformException, versuche trotzdem den Logout zu erzwingen
         if (e.code == 'channel-error' || e.code == 'network_error') {
-          // Diese sind oft nicht kritisch für den eigentlichen Logout
           hasLoggedOut = true;
           print('Logout trotz PlatformException als erfolgreich gewertet');
         } else {
@@ -159,18 +195,15 @@ class AuthService {
         throw 'Firebase Logout Fehler: $e';
       }
 
-      // 3. Zusätzliche Bereinigung für Google SignIn
       if (isGoogleUser && !hasLoggedOut) {
         try {
           await _googleSignIn.disconnect();
           print('Google disconnect als Fallback ausgeführt');
         } catch (e) {
           print('Google disconnect Fallback Fehler: $e');
-          // Nicht kritisch
         }
       }
 
-      // 4. Erfolg bestätigen
       if (hasLoggedOut) {
         print('Logout erfolgreich abgeschlossen');
         if (errors.isNotEmpty) {
@@ -180,7 +213,6 @@ class AuthService {
         throw 'Logout konnte nicht abgeschlossen werden';
       }
     } catch (e) {
-      // Final catch - wirft den Fehler weiter für UI-Handling
       if (e is String) {
         throw e;
       } else {
@@ -189,60 +221,36 @@ class AuthService {
     }
   }
 
-  // Alternative: Vereinfachter Logout (Fallback-Methode)
+  // Vereinfachter Logout (Fallback)
   Future<void> simpleLogout() async {
     try {
       await _auth.signOut();
     } catch (e) {
       print('Simple logout Fehler: $e');
-      // Selbst bei Fehlern, navigiere trotzdem zur Login-Seite
       rethrow;
     }
   }
 
-  // Neue Methode: Logout-Status prüfen
-  Future<bool> isCurrentlySignedOut() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return true;
-
-      // Zusätzliche Prüfung für Google
-      if (isGoogleUser) {
-        final googleSignedIn = await _googleSignIn.isSignedIn();
-        return !googleSignedIn;
-      }
-
-      return false;
-    } catch (e) {
-      print('Fehler bei Logout-Status-Prüfung: $e');
-      return true; // Im Zweifel als ausgeloggt betrachten
-    }
-  }
-
-  // Neue Methode: Forcierter Logout (für schwere Fälle)
+  // Forcierter Logout
   Future<void> forceLogout() async {
     try {
-      // Versuche alle Logout-Methoden parallel
       await Future.wait([
         _auth.signOut().catchError(
           (e) => print('Force Firebase logout error: $e'),
         ),
         _googleSignIn.signOut().catchError(
-          // ignore: invalid_return_type_for_catch_error
           (e) => print('Force Google logout error: $e'),
         ),
         _googleSignIn.disconnect().catchError(
-          // ignore: invalid_return_type_for_catch_error
           (e) => print('Force Google disconnect error: $e'),
         ),
       ]);
     } catch (e) {
       print('Force logout error: $e');
-      // Selbst bei Fehlern, betrachte es als erfolgreich
     }
   }
 
-  // Passwort vergessen
+  // Passwort zurücksetzen
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -251,16 +259,14 @@ class AuthService {
     }
   }
 
-  // Admin-spezifische Methoden
-
-  // Überprüfe Admin-Berechtigung mit Exception
+  // Admin-Berechtigung prüfen
   void requireAdmin() {
     if (!isAdmin) {
       throw Exception('Admin-Berechtigung erforderlich');
     }
   }
 
-  // Admin-Status mit detaillierter Info
+  // Admin-Status abrufen
   Map<String, dynamic> getAdminStatus() {
     final user = currentUser;
     return {
@@ -272,18 +278,17 @@ class AuthService {
     };
   }
 
-  // Aktuelle User-Rolle zurückgeben
+  // User-Rolle bestimmen
   String getUserRole() {
     if (!isLoggedIn) return 'guest';
     if (isAdmin) return 'admin';
     return 'user';
   }
 
-  // Berechtigung für bestimmte Admin-Aktionen prüfen
+  // Admin-Aktion-Berechtigung prüfen
   bool canPerformAdminAction(String action) {
     if (!isAdmin) return false;
 
-    // Hier könnten in Zukunft granulare Berechtigungen implementiert werden
     switch (action) {
       case 'create_victim':
       case 'update_victim':
@@ -302,7 +307,24 @@ class AuthService {
     }
   }
 
-  // ERWEITERTE Fehlerbehandlung mit PlatformException
+  // Debug Admin-Status
+  Map<String, dynamic> debugAdminStatus() {
+    final user = currentUser;
+    return {
+      'currentUser': user?.email,
+      'isLoggedIn': isLoggedIn,
+      'isAdmin': isAdmin,
+      'adminEmail': 'marcoeggert73@gmail.com',
+      'emailMatch': user?.email == 'marcoeggert73@gmail.com',
+      'userProviders': user?.providerData.map((p) => p.providerId).toList(),
+      'userUid': user?.uid,
+      'emailVerified': user?.emailVerified,
+      'creationTime': user?.metadata.creationTime?.toIso8601String(),
+      'lastSignInTime': user?.metadata.lastSignInTime?.toIso8601String(),
+    };
+  }
+
+  // Fehlerbehandlung für FirebaseAuthException
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
       case 'weak-password':
@@ -331,12 +353,14 @@ class AuthService {
         return 'Netzwerkfehler. Überprüfen Sie Ihre Internetverbindung.';
       case 'channel-error':
         return 'Kommunikationsfehler. Versuchen Sie es erneut.';
+      case 'unauthorized-domain':
+        return 'Die Domain ist nicht für dieses Projekt autorisiert. Kontaktieren Sie den Administrator.';
       default:
         return 'Ein unbekannter Fehler ist aufgetreten: ${e.message}';
     }
   }
 
-  // Neue Methode: Umfassendes Error-Handling für PlatformExceptions
+  // PlatformException Behandlung
   String handlePlatformException(PlatformException e) {
     switch (e.code) {
       case 'channel-error':
@@ -349,6 +373,8 @@ class AuthService {
         return 'Anmeldung wurde abgebrochen.';
       case 'sign_in_required':
         return 'Anmeldung erforderlich.';
+      case 'ERROR_UNAUTHORIZED_DOMAIN':
+        return 'Domain nicht autorisiert. Kontaktieren Sie den Administrator.';
       default:
         return 'Plattform-Fehler: ${e.message ?? e.code}';
     }

@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/favorites_service.dart';
 import '../../services/auth_service.dart';
 import '../../data/databaseRepository.dart';
-//import '../../data/profile.dart';
 import '../database/detail_screen.dart';
 import '../database/database_screen.dart';
 import '../profiles/login_screen.dart';
@@ -230,7 +229,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.favorite_border, size: 80, color: Colors.grey[400]),
+            Icon(Icons.bookmark_border, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 24),
             Text(
               'Sie müssen eingeloggt sein, um Favoriten festlegen zu können.',
@@ -288,7 +287,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.favorite_border, size: 80, color: Colors.grey[400]),
+            Icon(Icons.bookmark_border, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 24),
             Text(
               'Noch keine Favoriten',
@@ -362,7 +361,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           setState(() => _selectedFilter = value);
         }
       },
-      selectedColor: const Color(0xFF283A49).withOpacity(0.2),
+      selectedColor: const Color(0xFF283A49).withValues(alpha: 0.2),
       backgroundColor: Colors.grey[200],
       labelStyle: TextStyle(
         fontFamily: 'SF Pro',
@@ -382,7 +381,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: favorite.typeColor.withOpacity(0.1),
+            color: favorite.typeColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(favorite.typeIcon, color: favorite.typeColor, size: 24),
@@ -431,7 +430,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             // Favorit entfernen Button
             IconButton(
               onPressed: () => _showRemoveDialog(favorite),
-              icon: const Icon(Icons.favorite),
+              icon: const Icon(Icons.bookmark),
               color: Colors.red,
               tooltip: 'Von Favoriten entfernen',
               iconSize: 20,
@@ -453,7 +452,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           ),
           title: const Row(
             children: [
-              Icon(Icons.favorite, color: Colors.red),
+              Icon(Icons.bookmark, color: Colors.red),
               SizedBox(width: 8),
               Text('Favorit entfernen'),
             ],
