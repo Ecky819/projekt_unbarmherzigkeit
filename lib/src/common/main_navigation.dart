@@ -12,7 +12,7 @@ import 'package:projekt_unbarmherzigkeit/src/features/admin/admin_dashboard_scre
 import '../data/databaseRepository.dart';
 import '../data/FirebaseRepository.dart';
 import '../data/data_initialization.dart';
-import '../services/migration_service.dart';
+//import '../services/migration_service.dart';
 import '../services/auth_service.dart';
 import 'custom_appbar.dart';
 import 'bottom_navigation.dart';
@@ -109,13 +109,13 @@ class _MainNavigationState extends State<MainNavigation> {
     try {
       // Versuche Firebase Repository zu verwenden
       final firebaseRepo = FirebaseRepository();
-      final migrationService = MigrationService();
+      //final migrationService = MigrationService();
 
       // Prüfe ob Daten bereits migriert wurden
-      if (!await migrationService.isDataMigrated()) {
-        // Migriere Mock-Daten zu Firestore
-        await migrationService.migrateMockDataToFirestore();
-      }
+      //if (!await migrationService.isDataMigrated()) {
+      // Migriere Mock-Daten zu Firestore
+      //await migrationService.migrateMockDataToFirestore();
+      //}
 
       return firebaseRepo;
     } catch (e) {
@@ -308,6 +308,7 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   // Helper: Erfolg-SnackBar
+  // ignore: unused_element
   void _showSuccessSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
