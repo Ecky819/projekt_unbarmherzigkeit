@@ -70,7 +70,7 @@ class _DetailApril1941State extends State<DetailApril1941>
                         child: Hero(
                           tag: 'map',
                           child: Image.asset(
-                            'assets/images/balkan_feldzug_map.jpg',
+                            'assets/images/greek_timeline/balkan_feldzug_map.jpg',
                             width: imageWidth,
                           ),
                         ),

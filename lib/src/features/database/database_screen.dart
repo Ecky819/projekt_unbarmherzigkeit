@@ -6,6 +6,19 @@ import '../../common/custom_appbar.dart';
 import '../../common/favorite_button.dart';
 import 'detail_screen.dart';
 
+// Enum für Sortieroptionen
+enum SortOption {
+  nameAsc('Name (A-Z)'),
+  nameDesc('Name (Z-A)'),
+  dateAsc('Datum (alt-neu)'),
+  dateDesc('Datum (neu-alt)'),
+  typeAsc('Typ (A-Z)'),
+  typeDesc('Typ (Z-A)');
+
+  const SortOption(this.displayName);
+  final String displayName;
+}
+
 class DatabaseScreen extends StatefulWidget {
   final DatabaseRepository? repository;
 
@@ -23,8 +36,13 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
 
   late DatabaseRepository _repository;
   List<dynamic> _searchResults = [];
+  List<dynamic> _sortedResults = [];
   bool _isLoading = false;
-  bool _showSearchFields = true; // Neue Variable für Suchfelder-Sichtbarkeit
+  bool _showSearchFields = true;
+
+  // Sortier-Variablen
+  SortOption _currentSort = SortOption.nameAsc;
+  bool _showSortOptions = false;
 
   @override
   void initState() {
@@ -45,6 +63,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
     setState(() {
       _isLoading = true;
       _searchResults.clear();
+      _sortedResults.clear();
     });
 
     try {
@@ -57,6 +76,9 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
 
       // Filtere die Ergebnisse basierend auf den Suchkriterien
       _searchResults = _filterResults(allResults);
+
+      // Sortiere die Ergebnisse
+      _applySorting();
 
       // Blende Suchfelder aus, wenn Ergebnisse gefunden wurden
       if (_searchResults.isNotEmpty) {
@@ -81,6 +103,85 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
     }
   }
 
+  void _applySorting() {
+    _sortedResults = List.from(_searchResults);
+
+    switch (_currentSort) {
+      case SortOption.nameAsc:
+        _sortedResults.sort((a, b) => _getName(a).compareTo(_getName(b)));
+        break;
+      case SortOption.nameDesc:
+        _sortedResults.sort((a, b) => _getName(b).compareTo(_getName(a)));
+        break;
+      case SortOption.dateAsc:
+        _sortedResults.sort((a, b) => _compareDate(a, b, ascending: true));
+        break;
+      case SortOption.dateDesc:
+        _sortedResults.sort((a, b) => _compareDate(a, b, ascending: false));
+        break;
+      case SortOption.typeAsc:
+        _sortedResults.sort((a, b) => _getType(a).compareTo(_getType(b)));
+        break;
+      case SortOption.typeDesc:
+        _sortedResults.sort((a, b) => _getType(b).compareTo(_getType(a)));
+        break;
+    }
+  }
+
+  String _getName(dynamic item) {
+    if (item is Victim) {
+      return '${item.surname}, ${item.name}';
+    } else if (item is ConcentrationCamp) {
+      return item.name;
+    } else if (item is Commander) {
+      return '${item.surname}, ${item.name}';
+    }
+    return '';
+  }
+
+  String _getType(dynamic item) {
+    if (item is Victim) {
+      return 'A_Opfer'; // Prefix für konsistente Sortierung
+    } else if (item is ConcentrationCamp) {
+      return 'B_Lager';
+    } else if (item is Commander) {
+      return 'C_Kommandant';
+    }
+    return 'Z_Unbekannt';
+  }
+
+  int _compareDate(dynamic a, dynamic b, {required bool ascending}) {
+    DateTime? dateA = _getPrimaryDate(a);
+    DateTime? dateB = _getPrimaryDate(b);
+
+    // Elemente ohne Datum ans Ende sortieren
+    if (dateA == null && dateB == null) return 0;
+    if (dateA == null) return 1;
+    if (dateB == null) return -1;
+
+    return ascending ? dateA.compareTo(dateB) : dateB.compareTo(dateA);
+  }
+
+  DateTime? _getPrimaryDate(dynamic item) {
+    if (item is Victim) {
+      return item.birth ??
+          item.death; // Bevorzuge Geburtsdatum, dann Sterbedatum
+    } else if (item is ConcentrationCamp) {
+      return item.date_opened ?? item.liberation_date;
+    } else if (item is Commander) {
+      return item.birth ?? item.death;
+    }
+    return null;
+  }
+
+  void _changeSorting(SortOption newSort) {
+    setState(() {
+      _currentSort = newSort;
+      _showSortOptions = false;
+      _applySorting();
+    });
+  }
+
   List<dynamic> _filterResults(List<dynamic> results) {
     final ortQuery = _ortController.text.toLowerCase().trim();
     final ereignisQuery = _ereignisController.text.toLowerCase().trim();
@@ -88,30 +189,26 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
     final jahrQuery = _jahrController.text.trim();
 
     return results.where((item) {
-      // Ort-Filter: Hauptsächlich für Konzentrationslager, aber auch Geburts-/Sterbeorte
+      // Ort-Filter
       if (ortQuery.isNotEmpty) {
         bool ortMatch = false;
 
         if (item is ConcentrationCamp) {
-          // Priorität auf Lager-Standorte
           ortMatch =
               item.location.toLowerCase().contains(ortQuery) ||
               item.country.toLowerCase().contains(ortQuery) ||
               item.name.toLowerCase().contains(ortQuery);
         } else if (item is Victim) {
-          // Sekundär: Geburts- und Sterbeorte von Opfern
           if (item.birthplace != null) {
             ortMatch = item.birthplace!.toLowerCase().contains(ortQuery);
           }
           if (!ortMatch && item.deathplace != null) {
             ortMatch = item.deathplace!.toLowerCase().contains(ortQuery);
           }
-          // Auch das Lager, in dem das Opfer war
           if (!ortMatch && item.c_camp.isNotEmpty) {
             ortMatch = item.c_camp.toLowerCase().contains(ortQuery);
           }
         } else if (item is Commander) {
-          // Tertiär: Geburts- und Sterbeorte von Kommandanten
           if (item.birthplace != null) {
             ortMatch = item.birthplace!.toLowerCase().contains(ortQuery);
           }
@@ -123,22 +220,19 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
         if (!ortMatch) return false;
       }
 
-      // Name-Filter: Hauptsächlich für Opfer, aber auch andere Personen und Lager
+      // Name-Filter
       if (nameQuery.isNotEmpty) {
         bool nameMatch = false;
 
         if (item is Victim) {
-          // Priorität auf Opfer-Namen
           nameMatch =
               item.name.toLowerCase().contains(nameQuery) ||
               item.surname.toLowerCase().contains(nameQuery);
         } else if (item is Commander) {
-          // Sekundär: Kommandanten-Namen
           nameMatch =
               item.name.toLowerCase().contains(nameQuery) ||
               item.surname.toLowerCase().contains(nameQuery);
         } else if (item is ConcentrationCamp) {
-          // Tertiär: Lager-Namen oder Kommandant des Lagers
           nameMatch =
               item.name.toLowerCase().contains(nameQuery) ||
               item.commander.toLowerCase().contains(nameQuery);
@@ -147,7 +241,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
         if (!nameMatch) return false;
       }
 
-      // Ereignis-Filter: Für Lager-Typen und Schicksale
+      // Ereignis-Filter
       if (ereignisQuery.isNotEmpty) {
         bool ereignisMatch = false;
 
@@ -169,14 +263,13 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
         if (!ereignisMatch) return false;
       }
 
-      // Jahr-Filter: Umfassende Suche in allen Jahresangaben
+      // Jahr-Filter
       if (jahrQuery.isNotEmpty) {
         final searchYear = int.tryParse(jahrQuery);
         if (searchYear != null) {
           bool jahrMatch = false;
 
           if (item is Victim) {
-            // Geburts- und Sterbejahr von Opfern
             if (item.birth != null && item.birth!.year == searchYear) {
               jahrMatch = true;
             }
@@ -186,7 +279,6 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
               jahrMatch = true;
             }
           } else if (item is ConcentrationCamp) {
-            // Eröffnungs- und Befreiungsdatum von Lagern
             if (item.date_opened != null &&
                 item.date_opened!.year == searchYear) {
               jahrMatch = true;
@@ -197,7 +289,6 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
               jahrMatch = true;
             }
           } else if (item is Commander) {
-            // Geburts- und Sterbejahr von Kommandanten
             if (item.birth != null && item.birth!.year == searchYear) {
               jahrMatch = true;
             }
@@ -223,7 +314,9 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
       _nameController.clear();
       _jahrController.clear();
       _searchResults.clear();
-      _showSearchFields = true; // Zeige Suchfelder wieder an beim Zurücksetzen
+      _sortedResults.clear();
+      _showSearchFields = true;
+      _currentSort = SortOption.nameAsc; // Reset Sortierung
     });
   }
 
@@ -310,6 +403,123 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSortButton() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.sort, size: 20, color: Colors.grey[600]),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sortiert nach: ${_currentSort.displayName}',
+                    style: const TextStyle(fontSize: 14, fontFamily: 'SFPro'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showSortOptions = !_showSortOptions;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color.fromRGBO(40, 58, 73, 1.0),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                _showSortOptions ? Icons.expand_less : Icons.expand_more,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSortOptions() {
+    if (!_showSortOptions) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: SortOption.values.map((option) {
+          final isSelected = option == _currentSort;
+          return InkWell(
+            onTap: () => _changeSorting(option),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color.fromRGBO(40, 58, 73, 1.0).withOpacity(0.1)
+                    : null,
+                border: option != SortOption.values.last
+                    ? Border(bottom: BorderSide(color: Colors.grey[200]!))
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isSelected
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                    color: isSelected
+                        ? const Color.fromRGBO(40, 58, 73, 1.0)
+                        : Colors.grey[400],
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      option.displayName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'SFPro',
+                        color: isSelected
+                            ? const Color.fromRGBO(40, 58, 73, 1.0)
+                            : Colors.black87,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                  if (isSelected)
+                    const Icon(
+                      Icons.check,
+                      color: Color.fromRGBO(40, 58, 73, 1.0),
+                      size: 18,
+                    ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -402,22 +612,25 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final displayResults = _sortedResults.isNotEmpty
+        ? _sortedResults
+        : _searchResults;
+
     return Scaffold(
       backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
       appBar: CustomAppBar(
         context: context,
-        pageIndex: 1, // Index für Database-Seite
+        pageIndex: 1,
         title: 'Datenbank',
-        navigateTo: (desc) {}, // KORRIGIERT: Komma entfernt
-        nav: [], // Leere Liste, da wir keine andere Navigation brauchen
-        onBackPressed: () =>
-            Navigator.pop(context), // Zurück zur vorherigen Seite
+        navigateTo: (desc) {},
+        nav: const [],
+        onBackPressed: () => Navigator.pop(context),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Toggle-Button für Suchfelder (nur anzeigen wenn Ergebnisse vorhanden sind)
+            // Toggle-Button für Suchfelder
             if (!_showSearchFields && _searchResults.isNotEmpty)
               Container(
                 width: double.infinity,
@@ -431,9 +644,9 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.grey[300]!),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
                           'Suche einblenden',
                           style: TextStyle(
@@ -450,14 +663,13 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                 ),
               ),
 
-            // Suchfelder (nur anzeigen wenn _showSearchFields true ist)
+            // Suchfelder
             if (_showSearchFields) ...[
               _buildSearchField(
                 label: 'Name',
                 hint: 'Name von Opfern, Kommandanten oder Lagern',
                 controller: _nameController,
               ),
-              // Suchfelder mit spezifischen Hinweisen
               _buildSearchField(
                 label: 'Ort',
                 hint: 'Lagerstandort, Geburts-/Sterbeort',
@@ -526,7 +738,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
               const SizedBox(height: 24),
             ],
 
-            // Ausblenden-Button (nur anzeigen wenn Suchfelder sichtbar sind und Ergebnisse vorhanden)
+            // Ausblenden-Button
             if (_showSearchFields && _searchResults.isNotEmpty)
               Container(
                 width: double.infinity,
@@ -540,9 +752,9 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.grey[300]!),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
                           'Suche ausblenden',
                           style: TextStyle(
@@ -559,9 +771,15 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                 ),
               ),
 
+            // Sortier-Optionen (nur wenn Ergebnisse vorhanden)
+            if (_searchResults.isNotEmpty) ...[
+              _buildSortButton(),
+              _buildSortOptions(),
+            ],
+
             // Suchergebnisse
             Expanded(
-              child: _searchResults.isEmpty && !_isLoading
+              child: displayResults.isEmpty && !_isLoading
                   ? const Center(
                       child: Text(
                         'Geben Sie Suchbegriffe ein und drücken Sie "Suchen".\n\n'
@@ -580,22 +798,22 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                     )
                   : Column(
                       children: [
-                        // Ergebnisanzahl anzeigen
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${_searchResults.length} Ergebnis${_searchResults.length != 1 ? 'se' : ''} gefunden',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: 'SFPro',
-                                  color: Color.fromARGB(255, 101, 101, 101),
+                        // Ergebnisanzahl und Sortierung anzeigen
+                        if (displayResults.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${displayResults.length} Ergebnis${displayResults.length != 1 ? 'se' : ''} gefunden',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: 'SFPro',
+                                    color: Color.fromARGB(255, 101, 101, 101),
+                                  ),
                                 ),
-                              ),
-                              if (_searchResults.isNotEmpty)
                                 Row(
                                   children: [
                                     Icon(
@@ -614,15 +832,15 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                                     ),
                                   ],
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
                         // Ergebnisliste
                         Expanded(
                           child: ListView.builder(
-                            itemCount: _searchResults.length,
+                            itemCount: displayResults.length,
                             itemBuilder: (context, index) {
-                              return _buildResultItem(_searchResults[index]);
+                              return _buildResultItem(displayResults[index]);
                             },
                           ),
                         ),

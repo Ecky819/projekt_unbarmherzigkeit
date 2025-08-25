@@ -59,7 +59,9 @@ class _Detail28Oktober1940State extends State<Detail28Oktober1940> {
                     style: TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 16),
-                  _buildZoomableImage('assets/images/invasion_map.jpg'),
+                  _buildZoomableImage(
+                    'assets/images/greek_timeline/invasion_map.jpg',
+                  ),
                   const SizedBox(height: 24),
                   const Text(
                     'Der Verlauf des Feldzugs',
@@ -75,7 +77,7 @@ class _Detail28Oktober1940State extends State<Detail28Oktober1940> {
                   ),
                   const SizedBox(height: 16),
                   _buildZoomableImage(
-                    'assets/images/griechischer_widerstand.jpg',
+                    'assets/images/greek_timeline/griechischer_widerstand.jpg',
                   ),
                 ],
               ),

@@ -325,8 +325,9 @@ String? validateVictimData(VictimImpl victim) {
   if (victim.nationality.trim().isEmpty) return 'Nationalität ist erforderlich';
   if (victim.religion.trim().isEmpty) return 'Religion ist erforderlich';
   if (victim.occupation.trim().isEmpty) return 'Beruf ist erforderlich';
-  if (victim.c_camp.trim().isEmpty)
+  if (victim.c_camp.trim().isEmpty) {
     return 'Konzentrationslager ist erforderlich';
+  }
   if (victim.fate.trim().isEmpty) return 'Schicksal ist erforderlich';
 
   // Datum-Validierung
@@ -363,8 +364,9 @@ String? validateCommanderData(CommanderImpl commander) {
   if (commander.name.trim().isEmpty) return 'Vorname ist erforderlich';
   if (commander.surname.trim().isEmpty) return 'Nachname ist erforderlich';
   if (commander.rank.trim().isEmpty) return 'Rang ist erforderlich';
-  if (commander.description.trim().isEmpty)
+  if (commander.description.trim().isEmpty) {
     return 'Beschreibung ist erforderlich';
+  }
 
   // Datum-Validierung
   if (commander.birth != null && commander.death != null) {
@@ -400,7 +402,7 @@ int? calculateAge(DateTime? birth, DateTime? death) {
 /// Generiert eine Zusammenfassung für ein Opfer
 String generateVictimSummary(VictimImpl victim) {
   final age = calculateAge(victim.birth, victim.death);
-  final ageText = age != null ? ' (${age} Jahre)' : '';
+  final ageText = age != null ? ' ($age Jahre)' : '';
 
   return '${victim.surname}, ${victim.name}$ageText - ${victim.nationality}, ${victim.religion}, ${victim.occupation}';
 }

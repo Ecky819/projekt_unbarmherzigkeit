@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/databaseRepository.dart';
@@ -21,24 +22,50 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final AuthService _authService = AuthService();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
 
   List<Victim> _victims = [];
   List<ConcentrationCamp> _camps = [];
   List<Commander> _commanders = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  bool _isSearchExpanded = false;
+  bool _isCategoriesExpanded = true; // Kategorien standardmäßig erweitert
+
+  // Sorting
+  String _sortField = 'name';
+  bool _sortAscending = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadData();
+
+    // Search listener with debouncing
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  // Debounced search
+  Timer? _debounceTimer;
+  void _onSearchChanged() {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _searchQuery = _searchController.text.toLowerCase().trim();
+        });
+      }
+    });
   }
 
   Future<void> _loadData() async {
@@ -69,35 +96,198 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   List<Victim> get _filteredVictims {
-    if (_searchQuery.isEmpty) return _victims;
-    return _victims.where((victim) {
-      final searchLower = _searchQuery.toLowerCase();
-      return victim.name.toLowerCase().contains(searchLower) ||
-          victim.surname.toLowerCase().contains(searchLower) ||
-          victim.nationality.toLowerCase().contains(searchLower) ||
-          victim.c_camp.toLowerCase().contains(searchLower);
-    }).toList();
+    List<Victim> filtered = _searchQuery.isEmpty
+        ? List.from(_victims)
+        : _victims.where((victim) {
+            final searchLower = _searchQuery;
+            return victim.name.toLowerCase().contains(searchLower) ||
+                victim.surname.toLowerCase().contains(searchLower) ||
+                victim.nationality.toLowerCase().contains(searchLower) ||
+                victim.c_camp.toLowerCase().contains(searchLower);
+          }).toList();
+
+    // Sorting
+    filtered.sort((a, b) {
+      int result = 0;
+      switch (_sortField) {
+        case 'name':
+          result = '${a.surname}, ${a.name}'.compareTo(
+            '${b.surname}, ${b.name}',
+          );
+          break;
+        case 'nationality':
+          result = a.nationality.compareTo(b.nationality);
+          break;
+        case 'camp':
+          result = a.c_camp.compareTo(b.c_camp);
+          break;
+        case 'birth':
+          if (a.birth == null && b.birth == null) return 0;
+          if (a.birth == null) return 1;
+          if (b.birth == null) return -1;
+          result = a.birth!.compareTo(b.birth!);
+          break;
+        case 'death':
+          if (a.death == null && b.death == null) return 0;
+          if (a.death == null) return 1;
+          if (b.death == null) return -1;
+          result = a.death!.compareTo(b.death!);
+          break;
+      }
+      return _sortAscending ? result : -result;
+    });
+
+    return filtered;
   }
 
   List<ConcentrationCamp> get _filteredCamps {
-    if (_searchQuery.isEmpty) return _camps;
-    return _camps.where((camp) {
-      final searchLower = _searchQuery.toLowerCase();
-      return camp.name.toLowerCase().contains(searchLower) ||
-          camp.location.toLowerCase().contains(searchLower) ||
-          camp.country.toLowerCase().contains(searchLower) ||
-          camp.type.toLowerCase().contains(searchLower);
-    }).toList();
+    List<ConcentrationCamp> filtered = _searchQuery.isEmpty
+        ? List.from(_camps)
+        : _camps.where((camp) {
+            final searchLower = _searchQuery;
+            return camp.name.toLowerCase().contains(searchLower) ||
+                camp.location.toLowerCase().contains(searchLower) ||
+                camp.country.toLowerCase().contains(searchLower) ||
+                camp.type.toLowerCase().contains(searchLower);
+          }).toList();
+
+    // Sorting
+    filtered.sort((a, b) {
+      int result = 0;
+      switch (_sortField) {
+        case 'name':
+          result = a.name.compareTo(b.name);
+          break;
+        case 'location':
+          result = a.location.compareTo(b.location);
+          break;
+        case 'country':
+          result = a.country.compareTo(b.country);
+          break;
+        case 'type':
+          result = a.type.compareTo(b.type);
+          break;
+        case 'opened':
+          if (a.date_opened == null && b.date_opened == null) return 0;
+          if (a.date_opened == null) return 1;
+          if (b.date_opened == null) return -1;
+          result = a.date_opened!.compareTo(b.date_opened!);
+          break;
+      }
+      return _sortAscending ? result : -result;
+    });
+
+    return filtered;
   }
 
   List<Commander> get _filteredCommanders {
-    if (_searchQuery.isEmpty) return _commanders;
-    return _commanders.where((commander) {
-      final searchLower = _searchQuery.toLowerCase();
-      return commander.name.toLowerCase().contains(searchLower) ||
-          commander.surname.toLowerCase().contains(searchLower) ||
-          commander.rank.toLowerCase().contains(searchLower);
-    }).toList();
+    List<Commander> filtered = _searchQuery.isEmpty
+        ? List.from(_commanders)
+        : _commanders.where((commander) {
+            final searchLower = _searchQuery;
+            return commander.name.toLowerCase().contains(searchLower) ||
+                commander.surname.toLowerCase().contains(searchLower) ||
+                commander.rank.toLowerCase().contains(searchLower);
+          }).toList();
+
+    // Sorting
+    filtered.sort((a, b) {
+      int result = 0;
+      switch (_sortField) {
+        case 'name':
+          result = '${a.surname}, ${a.name}'.compareTo(
+            '${b.surname}, ${b.name}',
+          );
+          break;
+        case 'rank':
+          result = a.rank.compareTo(b.rank);
+          break;
+        case 'birth':
+          if (a.birth == null && b.birth == null) return 0;
+          if (a.birth == null) return 1;
+          if (b.birth == null) return -1;
+          result = a.birth!.compareTo(b.birth!);
+          break;
+      }
+      return _sortAscending ? result : -result;
+    });
+
+    return filtered;
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _searchFocusNode.unfocus();
+    setState(() {
+      _searchQuery = '';
+      _isSearchExpanded = false;
+    });
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearchExpanded = !_isSearchExpanded;
+      if (!_isSearchExpanded) {
+        _clearSearch();
+      }
+    });
+  }
+
+  void _toggleCategories() {
+    setState(() {
+      _isCategoriesExpanded = !_isCategoriesExpanded;
+    });
+  }
+
+  void _setSortField(String field) {
+    setState(() {
+      if (_sortField == field) {
+        _sortAscending = !_sortAscending;
+      } else {
+        _sortField = field;
+        _sortAscending = true;
+      }
+    });
+  }
+
+  List<String> get _currentSortFields {
+    switch (_tabController.index) {
+      case 0: // Victims
+        return ['name', 'nationality', 'camp', 'birth', 'death'];
+      case 1: // Camps
+        return ['name', 'location', 'country', 'type', 'opened'];
+      case 2: // Commanders
+        return ['name', 'rank', 'birth'];
+      default:
+        return ['name'];
+    }
+  }
+
+  String _getSortFieldDisplayName(String field) {
+    switch (field) {
+      case 'name':
+        return 'Name';
+      case 'nationality':
+        return 'Nationalität';
+      case 'camp':
+        return 'Lager';
+      case 'birth':
+        return 'Geburt';
+      case 'death':
+        return 'Tod';
+      case 'location':
+        return 'Ort';
+      case 'country':
+        return 'Land';
+      case 'type':
+        return 'Typ';
+      case 'opened':
+        return 'Eröffnet';
+      case 'rank':
+        return 'Rang';
+      default:
+        return field;
+    }
   }
 
   @override
@@ -106,7 +296,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       child: Scaffold(
         backgroundColor: const Color(0xFFE9E5DD),
         appBar: _buildAppBar(),
-        body: _isLoading ? _buildLoadingIndicator() : _buildTabBarView(),
+        body: _isLoading ? _buildLoadingIndicator() : _buildBody(),
         floatingActionButton: _isLoading ? null : _buildFloatingActionButton(),
       ),
     );
@@ -114,11 +304,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: Row(
+      title: const Row(
         children: [
-          const Icon(Icons.admin_panel_settings, color: Colors.white),
-          const SizedBox(width: 8),
-          const Expanded(
+          Icon(Icons.admin_panel_settings, color: Colors.white),
+          SizedBox(width: 8),
+          Expanded(
             child: Text(
               'Admin Dashboard',
               style: TextStyle(
@@ -131,87 +321,339 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       ),
       backgroundColor: const Color(0xFF283A49),
       foregroundColor: Colors.white,
-      elevation: 2,
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight + 65),
-        child: Column(
-          children: [
-            TabBar(
-              controller: _tabController,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              indicatorColor: Colors.white,
-              indicatorWeight: 3,
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontFamily: 'SF Pro',
-              ),
-              tabs: [
-                Tab(
-                  icon: const Icon(Icons.person, size: 22),
-                  iconMargin: const EdgeInsets.only(bottom: 4),
-                  text: 'Opfer (${_victims.length})',
-                ),
-                Tab(
-                  icon: const Icon(Icons.location_city, size: 22),
-                  iconMargin: const EdgeInsets.only(bottom: 4),
-                  text: 'Lager (${_camps.length})',
-                ),
-                Tab(
-                  icon: const Icon(Icons.military_tech, size: 22),
-                  iconMargin: const EdgeInsets.only(bottom: 4),
-                  text: 'Kommandanten (${_commanders.length})',
-                ),
-              ],
-            ),
-
-            Container(
-              color: const Color(0xFF283A49),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: TextField(
-                        onChanged: (value) =>
-                            setState(() => _searchQuery = value),
-                        decoration: const InputDecoration(
-                          hintText: 'Suchen...',
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: Color(0xFF283A49),
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                        ),
-                        style: const TextStyle(fontFamily: 'SF Pro'),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white),
-                    onPressed: _loadData,
-                    tooltip: 'Daten neu laden',
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+      elevation: 0,
       actions: [
         IconButton(
           icon: const Icon(Icons.logout),
           onPressed: () => _showLogoutDialog(),
           tooltip: 'Abmelden',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBody() {
+    return Column(
+      children: [
+        // Collapsible Tab Bar
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          color: const Color(0xFF283A49),
+          child: Column(
+            children: [
+              // Tab Bar Header with collapse button
+              InkWell(
+                onTap: _toggleCategories,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.category, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Kategorien',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'SF Pro',
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        _isCategoriesExpanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Collapsible Tab Bar
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                height: _isCategoriesExpanded ? null : 0,
+                child: _isCategoriesExpanded
+                    ? TabBar(
+                        controller: _tabController,
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.white70,
+                        indicatorColor: Colors.white,
+                        indicatorWeight: 3,
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'SF Pro',
+                        ),
+                        onTap: (index) {
+                          setState(() {
+                            _sortField =
+                                'name'; // Reset sort when changing tabs
+                            _sortAscending = true;
+                          });
+                        },
+                        tabs: [
+                          Tab(
+                            icon: const Icon(Icons.person, size: 22),
+                            text: 'Opfer (${_victims.length})',
+                          ),
+                          Tab(
+                            icon: const Icon(Icons.location_city, size: 22),
+                            text: 'Lager (${_camps.length})',
+                          ),
+                          Tab(
+                            icon: const Icon(Icons.military_tech, size: 22),
+                            text: 'Kommandanten (${_commanders.length})',
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+
+        // Search and Sort Controls
+        Container(
+          color: const Color(0xFF283A49),
+          child: Column(
+            children: [
+              // Search Toggle
+              InkWell(
+                onTap: _toggleSearch,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _isSearchExpanded ? Icons.search_off : Icons.search,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Suche',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'SF Pro',
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        _isSearchExpanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Collapsible Search Bar
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                height: _isSearchExpanded ? 60 : 0,
+                child: _isSearchExpanded
+                    ? Container(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(25),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: TextField(
+                                  controller: _searchController,
+                                  focusNode: _searchFocusNode,
+                                  style: const TextStyle(fontFamily: 'SF Pro'),
+                                  decoration: InputDecoration(
+                                    hintText: 'Suchen...',
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontFamily: 'SF Pro',
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      color: Colors.grey[600],
+                                    ),
+                                    suffixIcon: _searchQuery.isNotEmpty
+                                        ? IconButton(
+                                            icon: Icon(
+                                              Icons.clear,
+                                              color: Colors.grey[600],
+                                            ),
+                                            onPressed: _clearSearch,
+                                          )
+                                        : null,
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  color: Colors.white,
+                                ),
+                                onPressed: _loadData,
+                                tooltip: 'Daten neu laden',
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+
+              // Sort Controls
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.sort, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Sortieren:',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'SF Pro',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _currentSortFields.map((field) {
+                            final isActive = _sortField == field;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: InkWell(
+                                onTap: () => _setSortField(field),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isActive
+                                        ? Colors.white.withOpacity(0.2)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        _getSortFieldDisplayName(field),
+                                        style: TextStyle(
+                                          color: isActive
+                                              ? Colors.white
+                                              : Colors.white70,
+                                          fontFamily: 'SF Pro',
+                                          fontSize: 12,
+                                          fontWeight: isActive
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                      if (isActive) ...[
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          _sortAscending
+                                              ? Icons.arrow_upward
+                                              : Icons.arrow_downward,
+                                          color: Colors.white,
+                                          size: 12,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Search Results Info
+        if (_searchQuery.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Colors.blue.shade50,
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.blue.shade700, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'Suche nach: "$_searchQuery"',
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
+                    fontFamily: 'SF Pro',
+                    fontSize: 14,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: _clearSearch,
+                  child: const Text('Zurücksetzen'),
+                ),
+              ],
+            ),
+          ),
+
+        // Tab Content
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildVictimsTab(),
+              _buildCampsTab(),
+              _buildCommandersTab(),
+            ],
+          ),
         ),
       ],
     );
@@ -234,13 +676,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTabBarView() {
-    return TabBarView(
-      controller: _tabController,
-      children: [_buildVictimsTab(), _buildCampsTab(), _buildCommandersTab()],
     );
   }
 
@@ -291,7 +726,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
+                  color: const Color(0xFF283A49).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.person, color: Color(0xFF283A49)),
@@ -362,7 +797,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
+                  color: const Color(0xFF283A49).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -435,7 +870,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
+                  color: const Color(0xFF283A49).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -629,7 +1064,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   Future<void> _performLogout() async {
     try {
-      // Zeige Loading-Indikator
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -650,28 +1084,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
       );
 
-      // Versuche normalen Logout mit verbessertem AuthService
       await _authService.logout();
 
-      // Schließe Loading-Dialog
       if (mounted) Navigator.pop(context);
 
-      // Navigiere zur Startseite
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } on PlatformException catch (e) {
-      // Spezielle Behandlung für PlatformException
-      if (mounted) Navigator.pop(context); // Schließe Loading-Dialog
-
+      if (mounted) Navigator.pop(context);
       if (mounted) {
         _showPlatformErrorDialog(e);
       }
     } catch (e) {
-      // Schließe Loading-Dialog bei anderen Fehlern
       if (mounted) Navigator.pop(context);
-
-      // Zeige Fehler-Dialog mit Optionen
       if (mounted) {
         _showGeneralErrorDialog(e);
       }
@@ -721,14 +1147,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _performSimpleLogout(); // Vereinfachter Logout
+              _performSimpleLogout();
             },
             child: const Text('Erneut versuchen'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _forceLogout(); // Forcierter Logout
+              _forceLogout();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.orange),
             child: const Text('Trotzdem abmelden'),
@@ -785,14 +1211,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _performLogout(); // Erneut versuchen
+              _performLogout();
             },
             child: const Text('Erneut versuchen'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _forceLogout(); // Forcierter Logout
+              _forceLogout();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.orange),
             child: const Text('Trotzdem abmelden'),
@@ -827,13 +1253,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       await _authService.simpleLogout();
 
       if (mounted) {
-        Navigator.pop(context); // Schließe Loading-Dialog
+        Navigator.pop(context);
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // Schließe Loading-Dialog
-        _forceLogout(); // Als letzter Ausweg
+        Navigator.pop(context);
+        _forceLogout();
       }
     }
   }
@@ -860,16 +1286,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         ),
       );
 
-      // Verwende den neuen forceLogout aus AuthService
       await _authService.forceLogout();
 
       if (mounted) {
-        Navigator.pop(context); // Schließe Loading-Dialog
-
-        // Forciere Navigation zur Startseite
+        Navigator.pop(context);
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
 
-        // Zeige Bestätigung
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Sitzung beendet. Bitte melden Sie sich erneut an.'),
@@ -880,9 +1302,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // Schließe Loading-Dialog
+        Navigator.pop(context);
 
-        // Auch bei Fehlern, navigiere trotzdem
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
 
         ScaffoldMessenger.of(context).showSnackBar(

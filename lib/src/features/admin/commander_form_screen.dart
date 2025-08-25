@@ -487,17 +487,20 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
     );
   }
 
+  // Alternative _selectDate Methode für victim_form_screen.dart
+  // Ersetze die bestehende _selectDate Methode mit dieser:
+
   Future<void> _selectDate(
     DateTime? currentDate,
     Function(DateTime?) onChanged,
   ) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: currentDate ?? DateTime(1900),
-      firstDate: DateTime(1850),
-      lastDate: DateTime(1980),
-      locale: const Locale('de', 'DE'),
-      builder: (context, child) {
+      initialDate: currentDate ?? DateTime(1920),
+      firstDate: DateTime(1800),
+      lastDate: DateTime(2020),
+      // ENTFERNE locale und deutsche Texte vorerst
+      builder: (BuildContext context, Widget? child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
@@ -505,6 +508,11 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF283A49),
+              ),
             ),
           ),
           child: child!,

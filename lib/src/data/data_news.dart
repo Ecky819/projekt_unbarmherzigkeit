@@ -79,16 +79,16 @@ class DataNewsWidget extends StatelessWidget {
         style: AppTextStyles.body,
         children: <TextSpan>[
           // ABSCHNITT: Athen
-          TextSpan(
+          const TextSpan(
             text:
                 '80 Jahre Befreiung Athens: Feierliches Gedenken auf dem Akropolis-Fels und in der Hauptstadt \n \n',
             style: AppTextStyles.heading,
           ),
-          TextSpan(
+          const TextSpan(
             text: 'Athen, 12. Oktober 2024 – ',
             style: AppTextStyles.heading3,
           ),
-          TextSpan(
+          const TextSpan(
             text:
                 'Zum 80. Jahrestag der Befreiung Athens von der nationalsozialistischen Besatzung versammelte sich die griechische Hauptstadt am Wochenende zu einer Reihe von Gedenkveranstaltungen. Traditionell gekleidete Frauen hoben auf dem Akropolis-Fels die „Freiheitsflagge" empor, während politische und militärische Spitzenvertreter sowie Bürgerinnen und Bürger die Befreiung Athens im Jahr 1944 ehrten',
           ),
@@ -106,7 +106,7 @@ class DataNewsWidget extends StatelessWidget {
                 }
               },
           ),
-          TextSpan(
+          const TextSpan(
             text:
                 'Bereits am Morgen legten Mitglieder des Stadtrats und Vertreter der Regierung feierlich Kränze am Grab des unbekannten Soldaten am Syntagma-Platz nieder. „Heute gedenken wir all jener, die für Demokratie und Freiheit kämpften. Freiheit wird errungen durch stetigen Einsatz und bewahrt durch unsere Wachsamkeit", erklärte Bürgermeister Haris Doukas in seiner Ansprache und mahnte, die Ideale der Demokratie gegen aufkeimende Intoleranz zu schützen',
           ),
@@ -124,7 +124,7 @@ class DataNewsWidget extends StatelessWidget {
                 }
               },
           ),
-          TextSpan(
+          const TextSpan(
             text:
                 'Die Stadt Athen lud zudem zu historischen Führungen ein: Ein Rundgang durch das Dritte Friedhofsgelände – Ruhestätte tausender Hungertoter von 1941/42 und Opfer nationalsozialistischer Hinrichtungen – sowie Erkundungen in den Quartieren Pangrati und ehemaliger Luftschutzbunker gaben Einblicke in das Leid und den Widerstand während der Besatzungsjahre',
           ),
@@ -144,7 +144,7 @@ class DataNewsWidget extends StatelessWidget {
                 }
               },
           ),
-          TextSpan(
+          const TextSpan(
             text:
                 'Historiker Menelaos Charalampidis wies darauf hin, dass trotz der immensen Opfer – allein in Athen und Piräus starben schätzungsweise 45.000 Menschen an Hunger und Repression – viele Erinnerungsorte bis heute kaum sichtbar sind. Mit seiner Initiative „Athens History Walks" macht er bislang versteckte Orte der Erinnerung zugänglich und fordert eine stärkere museale Aufarbeitung der Besatzungszeit',
           ),
@@ -163,22 +163,25 @@ class DataNewsWidget extends StatelessWidget {
               },
           ),
           // Hintergrund
-          TextSpan(text: 'Hintergrund:\n\n', style: AppTextStyles.heading2),
-          TextSpan(
+          const TextSpan(
+            text: 'Hintergrund:\n\n',
+            style: AppTextStyles.heading2,
+          ),
+          const TextSpan(
             text:
                 '– Am 12. Oktober 1944 ging die Wehrmacht kapituliert, und die deutsche Besatzung Griechenlands endete nach knapp dreieinhalb Jahren.\n\n',
           ),
-          TextSpan(
+          const TextSpan(
             text:
                 '– Während der Besatzungszeit starben in Griechenland insgesamt rund 250.000 Menschen an den Folgen der Hungerblockade; über 86 % der griechischen Juden wurden in Vernichtungslager deportiert.\n\n',
           ),
-          TextSpan(
+          const TextSpan(
             text:
                 '– Die offizielle Erinnerungskultur in Griechenland erlitt besonders durch den anschließenden Bürgerkrieg bis in die 1980er Jahre Tabuisierungen, die eine umfassende Aufarbeitung lange behinderten.\n\n',
           ),
           // Kontakt
-          TextSpan(text: 'Kontakt:\n\n', style: AppTextStyles.heading2),
-          TextSpan(text: 'Stadt Athen – Kulturamt\n'),
+          const TextSpan(text: 'Kontakt:\n\n', style: AppTextStyles.heading2),
+          const TextSpan(text: 'Stadt Athen – Kulturamt\n'),
           TextSpan(
             text: 'Tel.: +30 210 324 xxx\n',
             style: AppTextStyles.link,
@@ -213,7 +216,7 @@ class DataNewsWidget extends StatelessWidget {
   Widget _buildThessalonikiArticle() {
     return RichText(
       textAlign: TextAlign.justify,
-      text: TextSpan(
+      text: const TextSpan(
         style: AppTextStyles.body,
         children: <TextSpan>[
           // ABSCHNITT: Thessaloniki

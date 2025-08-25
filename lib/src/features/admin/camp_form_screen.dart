@@ -270,15 +270,37 @@ class _CampFormScreenState extends State<CampFormScreen> {
     );
   }
 
+  // Alternative _selectDate Methode für victim_form_screen.dart
+  // Ersetze die bestehende _selectDate Methode mit dieser:
+
   Future<void> _selectDate(
     DateTime? currentDate,
     Function(DateTime?) onChanged,
   ) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: currentDate ?? DateTime(1940),
-      firstDate: DateTime(1933),
-      lastDate: DateTime(1950),
+      initialDate: currentDate ?? DateTime(1920),
+      firstDate: DateTime(1800),
+      lastDate: DateTime(2020),
+      // ENTFERNE locale und deutsche Texte vorerst
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF283A49),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF283A49),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       onChanged(picked);
@@ -362,6 +384,6 @@ class _CampFormScreenState extends State<CampFormScreen> {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}.${date.month}.${date.year}';
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }

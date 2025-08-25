@@ -63,13 +63,13 @@ class _NewsScreenState extends State<NewsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('News'),
-        backgroundColor: Color.fromRGBO(40, 58, 73, 1.0),
+        backgroundColor: const Color.fromRGBO(40, 58, 73, 1.0),
         foregroundColor: Colors.white,
         elevation: 1,
         actions: [
           // Artikel-Navigation Button
           PopupMenuButton<String>(
-            color: Color.fromRGBO(40, 58, 73, 1.0),
+            color: const Color.fromRGBO(40, 58, 73, 1.0),
             icon: const Icon(Icons.list_alt, color: Colors.white),
             tooltip: 'Zu Artikel springen',
             onSelected: _scrollToArticle,
@@ -99,7 +99,7 @@ class _NewsScreenState extends State<NewsScreen> {
                               color: Colors.white,
                             ),
                           ),
-                          Text(
+                          const Text(
                             '80 Jahre Befreiung',
                             style: TextStyle(fontSize: 12, color: Colors.white),
                           ),
@@ -134,7 +134,7 @@ class _NewsScreenState extends State<NewsScreen> {
                               color: Colors.white,
                             ),
                           ),
-                          Text(
+                          const Text(
                             '80 Jahre Befreiung',
                             style: TextStyle(fontSize: 12, color: Colors.white),
                           ),

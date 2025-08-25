@@ -3,10 +3,10 @@ import 'profile.dart';
 import 'databaseRepository.dart';
 
 class MockDatabaseRepository implements DatabaseRepository {
-  List<UserProfile> _userProfiles = [];
-  List<Victim> _victims = [];
-  List<ConcentrationCamp> _concentrationCamps = [];
-  List<Commander> _commanders = [];
+  final List<UserProfile> _userProfiles = [];
+  final List<Victim> _victims = [];
+  final List<ConcentrationCamp> _concentrationCamps = [];
+  final List<Commander> _commanders = [];
 
   @override
   Future<List<UserProfile>> getUserProfiles() async {

@@ -214,7 +214,7 @@ class AuthService {
       }
     } catch (e) {
       if (e is String) {
-        throw e;
+        rethrow;
       } else {
         throw 'Unerwarteter Logout-Fehler: $e';
       }

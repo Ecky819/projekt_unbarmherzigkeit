@@ -29,7 +29,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   List<Map<String, dynamic>> _screens = [];
-  List<int> _navigationHistory = [0];
+  final List<int> _navigationHistory = [0];
   final AuthService _authService = AuthService();
 
   // Repository management
@@ -71,10 +71,11 @@ class _MainNavigationState extends State<MainNavigation> {
     });
   }
 
-  // NEUE METHODE: Repository bei Auth-Änderungen neu laden
+  // Repository bei Auth-Änderungen neu laden
   Future<void> _reloadRepositoryOnAuthChange() async {
-    if (_isLoadingRepository)
+    if (_isLoadingRepository) {
       return; // Verhindere mehrfache gleichzeitige Ladungen
+    }
 
     setState(() {
       _isLoadingRepository = true;
@@ -307,7 +308,6 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   // Helper: Erfolg-SnackBar
-  // ignore: unused_element
   void _showSuccessSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -318,71 +318,6 @@ class _MainNavigationState extends State<MainNavigation> {
         ),
       );
     }
-  }
-
-  // Debug: Admin-Status anzeigen
-  void _showAdminDebugInfo() {
-    if (!mounted) return;
-
-    final status = _authService.getAdminStatus();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Admin-Status Debug'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Eingeloggt: ${status['isLoggedIn']}'),
-            Text('Admin: ${status['isAdmin']}'),
-            Text('E-Mail: ${status['userEmail'] ?? 'Keine'}'),
-            Text('Admin-E-Mail: ${status['adminEmail']}'),
-            Text('Berechtigung: ${status['hasPermission']}'),
-            Text('Rolle: ${_authService.getUserRole()}'),
-            Text('Repository geladen: ${_currentRepository != null}'),
-            Text('Repository loading: $_isLoadingRepository'),
-            const SizedBox(height: 16),
-            const Text('Firebase User:'),
-            Text('UID: ${_authService.currentUser?.uid ?? 'Keine'}'),
-            Text(
-              'Email verified: ${_authService.currentUser?.emailVerified ?? false}',
-            ),
-            const SizedBox(height: 16),
-            if (status['isAdmin'] == true) ...[
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  navigateToAdminDashboard();
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                child: const Text('Test Admin Dashboard'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _reloadRepositoryOnAuthChange();
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                child: const Text('Repository neu laden'),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {}); // Force refresh
-            },
-            child: const Text('Refresh UI'),
-          ),
-        ],
-      ),
-    );
   }
 
   // Hilfsmethode: Screen-Titel basierend auf Auth-Status ermitteln
@@ -463,7 +398,7 @@ class _MainNavigationState extends State<MainNavigation> {
           'StreamBuilder Build - User: ${snapshot.data?.email}, Admin: $isAdmin, Repository: ${_currentRepository != null}',
         );
 
-        // Screens basierend auf Auth-Status definieren - HIER IST DIE WICHTIGE ÄNDERUNG
+        // Screens basierend auf Auth-Status definieren
         List<Map<String, dynamic>> screens = [
           {
             'screen': HomeScreen(
@@ -476,7 +411,6 @@ class _MainNavigationState extends State<MainNavigation> {
           {'screen': const TimelineScreen(), 'title': 'Timeline'},
           {'screen': const MapScreen(), 'title': 'Karte'},
           {
-            // WICHTIGE ÄNDERUNG: Repository an FavoriteScreen weitergeben
             'screen': FavoriteScreen(repository: _currentRepository),
             'title': 'Favoriten',
           },
@@ -571,38 +505,8 @@ class _MainNavigationState extends State<MainNavigation> {
               }
             },
           ),
-          // Debug FAB
-          floatingActionButton: _buildDebugFAB(isAdmin, isLoggedIn),
         );
       },
-    );
-  }
-
-  // ERWEITERTE Debug Floating Action Button
-  Widget? _buildDebugFAB(bool isAdmin, bool isLoggedIn) {
-    // Debug-Modus - in Produktion auf false setzen
-    const bool debugMode = true;
-
-    // ignore: dead_code
-    if (!debugMode) return null;
-
-    return FloatingActionButton.small(
-      heroTag: "debug_fab", // Eindeutiger Hero-Tag hinzugefügt
-      onPressed: _showAdminDebugInfo,
-      backgroundColor: _isLoadingRepository
-          ? Colors.purple
-          : (isAdmin
-                ? Colors.orange
-                : (isLoggedIn ? Colors.blue : Colors.grey)),
-      child: Icon(
-        _isLoadingRepository
-            ? Icons.refresh
-            : (isAdmin
-                  ? Icons.admin_panel_settings
-                  : (isLoggedIn ? Icons.person : Icons.person_off)),
-        color: Colors.white,
-        size: 16,
-      ),
     );
   }
 }

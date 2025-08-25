@@ -53,7 +53,7 @@ class DetailScreen extends StatelessWidget {
 
   Color _getIconColor() {
     if (item is Victim) {
-      return Color.fromRGBO(40, 58, 73, 1.0);
+      return const Color.fromRGBO(40, 58, 73, 1.0);
     } else if (item is ConcentrationCamp) {
       return Colors.black54;
     } else if (item is Commander) {
@@ -115,7 +115,7 @@ class DetailScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Color.fromRGBO(243, 239, 231, 1.0),
+                color: const Color.fromRGBO(243, 239, 231, 1.0),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.grey[200]!),
               ),

@@ -25,12 +25,11 @@ class DetailScreen3 extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AuthGuard(
+                          builder: (context) => const AuthGuard(
                             // CONST ENTFERNT
                             redirectMessage:
                                 'Sie müssen sich anmelden, um auf die Datenbank zugreifen zu können.',
-                            child:
-                                const DatabaseScreen(), // const hier hinzugefügt
+                            child: DatabaseScreen(), // const hier hinzugefügt
                           ),
                         ),
                       );

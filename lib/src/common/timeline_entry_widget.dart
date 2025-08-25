@@ -23,9 +23,9 @@ class TimelineEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double dotSize = 18.0;
-    final double lineThickness = 3.0;
-    final double indicatorColumnWidth = 40.0;
+    const double dotSize = 18.0;
+    const double lineThickness = 3.0;
+    const double indicatorColumnWidth = 40.0;
 
     return IntrinsicHeight(
       child: Row(
@@ -44,7 +44,7 @@ class TimelineEntry extends StatelessWidget {
                 Container(
                   width: dotSize,
                   height: dotSize,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.timeline,
                     shape: BoxShape.circle,
                   ),
@@ -56,7 +56,7 @@ class TimelineEntry extends StatelessWidget {
                   ),
                 ),
                 if (isLast)
-                  Icon(
+                  const Icon(
                     Icons.arrow_drop_down,
                     color: AppColors.timeline,
                     size: 36.0,

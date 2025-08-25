@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
-            backgroundColor: Color(0xFFC0200E),
+            backgroundColor: const Color(0xFFC0200E),
           ),
         );
       }
@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Google Anmeldung fehlgeschlagen: $e'),
-            backgroundColor: Color(0xFFC0200E),
+            backgroundColor: const Color(0xFFC0200E),
           ),
         );
       }
@@ -131,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
-            backgroundColor: Color(0xFFC0200E),
+            backgroundColor: const Color(0xFFC0200E),
           ),
         );
       }
@@ -313,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     elevation: 2,
-                    backgroundColor: Color(0xFFF3EFE7),
+                    backgroundColor: const Color(0xFFF3EFE7),
                     foregroundColor: Colors.black87,
                     side: BorderSide(color: Colors.grey[300]!),
                     shape: RoundedRectangleBorder(
@@ -361,7 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         elevation: 2,
-                        backgroundColor: Color(0xFFF3EFE7),
+                        backgroundColor: const Color(0xFFF3EFE7),
                         foregroundColor: Colors.black87,
                         side: BorderSide(color: Colors.grey[300]!),
                         shape: RoundedRectangleBorder(
@@ -401,7 +401,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         elevation: 2,
-                        backgroundColor: Color(0xFFF3EFE7),
+                        backgroundColor: const Color(0xFFF3EFE7),
                         foregroundColor: Colors.black87,
                         side: BorderSide(color: Colors.grey[300]!),
                         shape: RoundedRectangleBorder(

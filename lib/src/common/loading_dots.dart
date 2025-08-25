@@ -19,14 +19,14 @@ class LoadingDots extends StatelessWidget {
             final opacity = 0.5 + (0.5 * animationValue);
 
             return Container(
-              margin: EdgeInsets.symmetric(horizontal: 4),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
               child: Transform.scale(
                 scale: scale,
                 child: Container(
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: Color(0xFF283A49).withOpacity(opacity),
+                    color: const Color(0xFF283A49).withOpacity(opacity),
                     shape: BoxShape.circle,
                   ),
                 ),

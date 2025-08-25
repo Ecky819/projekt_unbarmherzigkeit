@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Set status bar style
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
+      const SystemUiOverlayStyle(
         statusBarColor: Color(0xFF2C3E50),
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -35,17 +35,17 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Initialize animation controllers
     _fadeController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
     _scaleController = AnimationController(
-      duration: Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 3000),
       vsync: this,
     );
 
     _dotController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
@@ -74,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToHome() async {
-    await Future.delayed(Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 4));
     // Navigate to MainNavigation
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/main');
@@ -95,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Spacer(flex: 2),
+                const Spacer(flex: 2),
 
                 // App Icon with animation
                 AnimatedBuilder(
@@ -121,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
                         height: 120,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(26),
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
@@ -130,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen>
                             BoxShadow(
                               color: Colors.black.withOpacity(0.15),
                               blurRadius: 20,
-                              offset: Offset(0, 10),
+                              offset: const Offset(0, 10),
                             ),
                           ],
                         ),
@@ -171,14 +171,14 @@ class _SplashScreenState extends State<SplashScreen>
                   },
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
                 // Hashtag
                 ShaderMask(
-                  shaderCallback: (bounds) => LinearGradient(
+                  shaderCallback: (bounds) => const LinearGradient(
                     colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
                   ).createShader(bounds),
-                  child: Text(
+                  child: const Text(
                     '#Unbarmherzigkeit',
                     style: TextStyle(
                       fontSize: 28,
@@ -189,15 +189,15 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
 
                 // Loading dots
                 LoadingDots(animation: _dotAnimation),
 
-                Spacer(flex: 3),
+                const Spacer(flex: 3),
 
                 // Version
-                Padding(
+                const Padding(
                   padding: EdgeInsets.only(bottom: 40),
                   child: Text(
                     'Vers. 1.0',

@@ -8,7 +8,7 @@ class ProfileIcon extends StatelessWidget {
     return Container(
       width: 65,
       height: 65,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Color(0xFFF39C12),
         shape: BoxShape.circle,
       ),
@@ -21,7 +21,7 @@ class ProfileIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Color(0xFF2C3E50)
+      ..color = const Color(0xFF2C3E50)
       ..style = PaintingStyle.fill;
 
     final center = Offset(size.width / 2, size.height / 2);
@@ -36,7 +36,7 @@ class ProfileIconPainter extends CustomPainter {
         width: 35,
         height: 22,
       ),
-      Radius.circular(20),
+      const Radius.circular(20),
     );
 
     canvas.drawRRect(bodyRect, paint);

@@ -20,206 +20,224 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   final FavoritesService _favoritesService = FavoritesService();
   final AuthService _authService = AuthService();
 
-  List<FavoriteItem> _favorites = [];
-  bool _isLoading = true;
   String _selectedFilter = 'all';
 
   @override
-  void initState() {
-    super.initState();
-    _loadFavorites();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFE9E5DD),
+      body: StreamBuilder<User?>(
+        stream: _authService.authStateChanges,
+        builder: (context, authSnapshot) {
+          // Loading State
+          if (authSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Color(0xFF283A49)),
+                  SizedBox(height: 16),
+                  Text(
+                    'Lade Favoriten...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: 'SF Pro',
+                      color: Color(0xFF283A49),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
 
-    // Listener für Auth-State-Changes hinzufügen
-    _authService.authStateChanges.listen((user) {
-      if (mounted) {
-        print('Auth state changed in FavoritesScreen: ${user?.email}');
-        _loadFavorites(); // Favoriten neu laden bei Auth-Änderung
-      }
-    });
-  }
+          // User nicht eingeloggt
+          if (!_authService.isLoggedIn) {
+            return _buildLoginPrompt();
+          }
 
-  Future<void> _loadFavorites() async {
-    if (!_authService.isLoggedIn) {
-      setState(() {
-        _favorites = [];
-        _isLoading = false;
-      });
-      return;
-    }
+          // User ist eingeloggt - verwende Firestore Stream für Realtime Updates
+          return StreamBuilder<List<FavoriteItem>>(
+            stream: _favoritesService.getFavoritesStream(),
+            builder: (context, favoritesSnapshot) {
+              if (favoritesSnapshot.connectionState ==
+                  ConnectionState.waiting) {
+                return const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: Color(0xFF283A49)),
+                      SizedBox(height: 16),
+                      Text(
+                        'Lade Favoriten...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'SF Pro',
+                          color: Color(0xFF283A49),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-    setState(() => _isLoading = true);
+              if (favoritesSnapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Fehler beim Laden der Favoriten',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red[700],
+                            fontFamily: 'SF Pro',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          favoritesSnapshot.error.toString(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.red[600],
+                            fontFamily: 'SF Pro',
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {}); // Trigger rebuild
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF283A49),
+                          ),
+                          child: const Text(
+                            'Erneut versuchen',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
 
-    try {
-      print('Loading favorites for user: ${_authService.currentUser?.email}');
-      final favorites = await _favoritesService.getUserFavorites();
-      print('Loaded ${favorites.length} favorites');
+              final favorites = favoritesSnapshot.data ?? [];
+              final filteredFavorites = _getFilteredFavorites(favorites);
+              final favoritesCounts = _getFavoritesCounts(favorites);
 
-      if (mounted) {
-        setState(() {
-          _favorites = favorites;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Error loading favorites: $e');
-      if (mounted) {
-        setState(() {
-          _favorites = []; // Setze leere Liste bei Fehler
-          _isLoading = false;
-        });
+              return RefreshIndicator(
+                onRefresh: () async {
+                  // Force refresh durch setState
+                  setState(() {});
+                },
+                color: const Color(0xFF283A49),
+                child: Column(
+                  children: [
+                    // Filter Chips
+                    if (favorites.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _buildFilterChips(favoritesCounts),
+                      const SizedBox(height: 8),
+                    ],
 
-        // Zeige Fehler nur wenn es ein echter Fehler ist, nicht nur "keine Favoriten"
-        if (!e.toString().contains('permission-denied')) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fehler beim Laden der Favoriten: $e'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
+                    // Favoriten Liste
+                    Expanded(
+                      child: favorites.isEmpty
+                          ? _buildEmptyState()
+                          : filteredFavorites.isEmpty
+                          ? _buildNoResultsForFilter()
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: filteredFavorites.length,
+                              itemBuilder: (context, index) {
+                                return _buildFavoriteItem(
+                                  filteredFavorites[index],
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              );
+            },
           );
-        }
-      }
-    }
+        },
+      ),
+      // Floating Action Button für Datenbank-Navigation
+      floatingActionButton: _authService.isLoggedIn
+          ? StreamBuilder<List<FavoriteItem>>(
+              stream: _favoritesService.getFavoritesStream(),
+              builder: (context, snapshot) {
+                final favorites = snapshot.data ?? [];
+
+                if (favorites.isEmpty) {
+                  return FloatingActionButton.extended(
+                    heroTag: "favorites_fab",
+                    onPressed: () {
+                      if (widget.repository != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                DatabaseScreen(repository: widget.repository),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Datenbank nicht verfügbar'),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      }
+                    },
+                    backgroundColor: const Color(0xFF283A49),
+                    foregroundColor: Colors.white,
+                    icon: const Icon(Icons.search),
+                    label: const Text(
+                      'Datenbank durchsuchen',
+                      style: TextStyle(
+                        fontFamily: 'SF Pro',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink(); // Leeres Widget wenn Favoriten vorhanden
+              },
+            )
+          : null,
+    );
   }
 
-  List<FavoriteItem> get _filteredFavorites {
-    if (_selectedFilter == 'all') return _favorites;
-    return _favorites.where((fav) => fav.itemType == _selectedFilter).toList();
+  List<FavoriteItem> _getFilteredFavorites(List<FavoriteItem> favorites) {
+    if (_selectedFilter == 'all') return favorites;
+    return favorites.where((fav) => fav.itemType == _selectedFilter).toList();
   }
 
-  Map<String, int> get _favoritesCounts {
+  Map<String, int> _getFavoritesCounts(List<FavoriteItem> favorites) {
     final counts = <String, int>{
-      'all': _favorites.length,
+      'all': favorites.length,
       'victim': 0,
       'camp': 0,
       'commander': 0,
     };
 
-    for (var favorite in _favorites) {
+    for (var favorite in favorites) {
       counts[favorite.itemType] = (counts[favorite.itemType] ?? 0) + 1;
     }
 
     return counts;
-  }
-
-  Future<void> _removeFavorite(FavoriteItem favorite) async {
-    try {
-      await _favoritesService.removeFavorite(
-        itemId: favorite.itemId,
-        itemType: favorite.itemType,
-      );
-
-      if (mounted) {
-        setState(() {
-          _favorites.removeWhere((f) => f.id == favorite.id);
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Favorit entfernt'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 1),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Fehler beim Entfernen: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<dynamic> _loadDetailItem(FavoriteItem favorite) async {
-    if (widget.repository == null) return null;
-
-    try {
-      switch (favorite.itemType) {
-        case 'victim':
-          return await widget.repository!.getVictimById(favorite.itemId);
-        case 'camp':
-          return await widget.repository!.getConcentrationCampById(
-            favorite.itemId,
-          );
-        case 'commander':
-          return await widget.repository!.getCommanderById(favorite.itemId);
-        default:
-          return null;
-      }
-    } catch (e) {
-      print('Fehler beim Laden des Detail-Items: $e');
-      return null;
-    }
-  }
-
-  void _navigateToDetail(FavoriteItem favorite) async {
-    if (widget.repository == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Datenbank nicht verfügbar'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    // Loading-Indikator anzeigen
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Lade Details...'),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    try {
-      final item = await _loadDetailItem(favorite);
-
-      if (mounted) {
-        Navigator.pop(context); // Schließe Loading-Dialog
-
-        if (item != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => DetailScreen(item: item)),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Details konnten nicht geladen werden'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Schließe Loading-Dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Fehler beim Laden der Details: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 
   Widget _buildLoginPrompt() {
@@ -246,12 +264,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
-                ).then((_) {
-                  // Nach dem Login die Favoriten neu laden
-                  if (_authService.isLoggedIn) {
-                    _loadFavorites();
-                  }
-                });
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF283A49),
@@ -314,9 +327,31 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
-    final counts = _favoritesCounts;
+  Widget _buildNoResultsForFilter() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.filter_list_off, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'Keine Favoriten in dieser Kategorie',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                fontFamily: 'SF Pro',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _buildFilterChips(Map<String, int> counts) {
     return Container(
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -442,6 +477,122 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     );
   }
 
+  Future<void> _removeFavorite(FavoriteItem favorite) async {
+    try {
+      await _favoritesService.removeFavorite(
+        itemId: favorite.itemId,
+        itemType: favorite.itemType,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Favorit entfernt'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler beim Entfernen: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<dynamic> _loadDetailItem(FavoriteItem favorite) async {
+    if (widget.repository == null) return null;
+
+    try {
+      switch (favorite.itemType) {
+        case 'victim':
+          return await widget.repository!.getVictimById(favorite.itemId);
+        case 'camp':
+          return await widget.repository!.getConcentrationCampById(
+            favorite.itemId,
+          );
+        case 'commander':
+          return await widget.repository!.getCommanderById(favorite.itemId);
+        default:
+          return null;
+      }
+    } catch (e) {
+      print('Fehler beim Laden des Detail-Items: $e');
+      return null;
+    }
+  }
+
+  void _navigateToDetail(FavoriteItem favorite) async {
+    if (widget.repository == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Datenbank nicht verfügbar'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Loading-Indikator anzeigen
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Lade Details...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final item = await _loadDetailItem(favorite);
+
+      if (mounted) {
+        Navigator.pop(context); // Schließe Loading-Dialog
+
+        if (item != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DetailScreen(item: item)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Details konnten nicht geladen werden'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Schließe Loading-Dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler beim Laden der Details: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showRemoveDialog(FavoriteItem favorite) {
     showDialog(
       context: context,
@@ -482,154 +633,5 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFE9E5DD),
-      body: StreamBuilder<User?>(
-        stream: _authService.authStateChanges,
-        builder: (context, snapshot) {
-          // Loading State
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Color(0xFF283A49)),
-                  SizedBox(height: 16),
-                  Text(
-                    'Lade Favoriten...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: 'SF Pro',
-                      color: Color(0xFF283A49),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // User nicht eingeloggt
-          if (!_authService.isLoggedIn) {
-            return _buildLoginPrompt();
-          }
-
-          // User ist eingeloggt
-          return RefreshIndicator(
-            onRefresh: _loadFavorites,
-            color: const Color(0xFF283A49),
-            child: Column(
-              children: [
-                // Filter Chips
-                if (_favorites.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _buildFilterChips(),
-                  const SizedBox(height: 8),
-                ],
-
-                // Favoriten Liste
-                Expanded(
-                  child: _isLoading
-                      ? const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(
-                                color: Color(0xFF283A49),
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                'Lade Favoriten...',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'SF Pro',
-                                  color: Color(0xFF283A49),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : _favorites.isEmpty
-                      ? _buildEmptyState()
-                      : _filteredFavorites.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.filter_list_off,
-                                  size: 64,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Keine Favoriten in dieser Kategorie',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                    fontFamily: 'SF Pro',
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _filteredFavorites.length,
-                          itemBuilder: (context, index) {
-                            return _buildFavoriteItem(
-                              _filteredFavorites[index],
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-      // Floating Action Button für Datenbank-Navigation
-      floatingActionButton: _authService.isLoggedIn && _favorites.isEmpty
-          ? FloatingActionButton.extended(
-              heroTag: "favorites_fab", // Eindeutiger Hero-Tag hinzugefügt
-              onPressed: () {
-                // Navigiere zur Datenbank über den Navigator push
-                if (widget.repository != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          DatabaseScreen(repository: widget.repository),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Datenbank nicht verfügbar'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                }
-              },
-              backgroundColor: const Color(0xFF283A49),
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.search),
-              label: const Text(
-                'Datenbank durchsuchen',
-                style: TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          : null,
-    );
   }
 }
