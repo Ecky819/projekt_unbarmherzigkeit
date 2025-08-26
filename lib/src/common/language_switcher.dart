@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/language_service.dart';
-import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/app_localizations.dart';
 
 class LanguageSwitcher extends StatelessWidget {
   final bool showText;
