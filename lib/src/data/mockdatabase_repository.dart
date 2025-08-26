@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'profile.dart';
-import 'databaseRepository.dart';
+import 'database_repository.dart';
 
 class MockDatabaseRepository implements DatabaseRepository {
   final List<UserProfile> _userProfiles = [];

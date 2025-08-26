@@ -57,12 +57,8 @@ class LanguageSwitcher extends StatelessWidget {
       onSelected: (locale) => languageService.changeLanguage(locale),
       itemBuilder: (context) => LanguageService.supportedLocales.map((locale) {
         final isSelected = locale == languageService.currentLocale;
-        final displayName = locale.languageCode == 'el'
-            ? 'Ελληνικά'
-            : 'English';
-        final flagPath = locale.languageCode == 'el'
-            ? 'assets/icons/flag_greece.png'
-            : 'assets/icons/flag_uk.png';
+        final displayName = _getDisplayName(locale.languageCode);
+        final flagPath = _getFlagPath(locale.languageCode);
 
         return PopupMenuItem<Locale>(
           value: locale,
@@ -108,9 +104,9 @@ class LanguageSwitcher extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -139,6 +135,32 @@ class LanguageSwitcher extends StatelessWidget {
       ),
     );
   }
+
+  String _getDisplayName(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'Ελληνικά';
+      case 'en':
+        return 'English';
+      case 'de':
+        return 'Deutsch';
+      default:
+        return 'Deutsch';
+    }
+  }
+
+  String _getFlagPath(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'assets/icons/flag_greece.png';
+      case 'en':
+        return 'assets/icons/flag_uk.png';
+      case 'de':
+        return 'assets/icons/flag_germany.png';
+      default:
+        return 'assets/icons/flag_germany.png';
+    }
+  }
 }
 
 // Erweiterte Language Switcher Variante für Settings
@@ -148,20 +170,19 @@ class LanguageSwitcherTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final languageService = context.watch<LanguageService>();
-    final l10n = AppLocalizations.of(context)!;
 
     return ListTile(
       leading: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: const Color(0xFF283A49).withValues(alpha: 0.1),
+          color: const Color(0xFF283A49).withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: const Icon(Icons.language, color: Color(0xFF283A49), size: 20),
       ),
       title: const Text(
-        'Sprache / Language',
+        'Sprache / Language / Γλώσσα',
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
@@ -205,19 +226,15 @@ class LanguageSwitcherTile extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(
-            'Sprache wählen / Choose Language',
+            'Sprache wählen / Choose Language / Επιλέξτε γλώσσα',
             style: TextStyle(fontFamily: 'SF Pro'),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: LanguageService.supportedLocales.map((locale) {
               final isSelected = locale == languageService.currentLocale;
-              final displayName = locale.languageCode == 'el'
-                  ? 'Ελληνικά'
-                  : 'English';
-              final flagPath = locale.languageCode == 'el'
-                  ? 'assets/icons/flag_greece.png'
-                  : 'assets/icons/flag_uk.png';
+              final displayName = _getDisplayName(locale.languageCode);
+              final flagPath = _getFlagPath(locale.languageCode);
 
               return ListTile(
                 leading: Image.asset(
@@ -251,7 +268,7 @@ class LanguageSwitcherTile extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text(
-                'Schließen / Close',
+                'Schließen / Close / Κλείσιμο',
                 style: TextStyle(fontFamily: 'SF Pro'),
               ),
             ),
@@ -259,5 +276,31 @@ class LanguageSwitcherTile extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _getDisplayName(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'Ελληνικά (Greek)';
+      case 'en':
+        return 'English';
+      case 'de':
+        return 'Deutsch (German)';
+      default:
+        return 'Deutsch';
+    }
+  }
+
+  String _getFlagPath(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'assets/icons/flag_greece.png';
+      case 'en':
+        return 'assets/icons/flag_uk.png';
+      case 'de':
+        return 'assets/icons/flag_germany.png';
+      default:
+        return 'assets/icons/flag_germany.png';
+    }
   }
 }

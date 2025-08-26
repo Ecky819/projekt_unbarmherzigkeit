@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth_service.dart';
 import '../../common/main_navigation.dart';
 import '../../features/profiles/login_screen.dart';
-import '../../data/databaseRepository.dart';
+import '../../data/database_repository.dart';
 
 class AuthWrapper extends StatelessWidget {
   final DatabaseRepository? repository;

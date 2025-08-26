@@ -1,5 +1,5 @@
 import 'profile.dart';
-import 'MockDatabaseRepository.dart';
+import 'mockdatabase_repository.dart';
 
 // Konkrete Implementierungen der abstrakten Klassen
 class UserProfileImpl extends UserProfile {

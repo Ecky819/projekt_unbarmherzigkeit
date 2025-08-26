@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/profile.dart';
-import '../../data/databaseRepository.dart';
-import '../../data/MockDatabaseRepository.dart';
+import '../../data/database_repository.dart';
+import '../../data/mockdatabase_repository.dart';
 import '../../common/custom_appbar.dart';
 import '../../common/favorite_button.dart';
 import 'detail_screen.dart';

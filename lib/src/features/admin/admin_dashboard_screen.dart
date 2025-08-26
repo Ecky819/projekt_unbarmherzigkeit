@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../data/databaseRepository.dart';
+import '../../data/database_repository.dart';
 import '../../data/profile.dart';
 import '../../services/auth_service.dart';
 import '../auth/admin_guard.dart';

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'profile.dart';
-import 'databaseRepository.dart';
+import 'database_repository.dart';
 import 'data_initialization.dart';
 
 class FirebaseRepository implements DatabaseRepository {

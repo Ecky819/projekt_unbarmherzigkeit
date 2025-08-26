@@ -9,8 +9,8 @@ import 'package:projekt_unbarmherzigkeit/src/features/favorites/favorites_screen
 import 'package:projekt_unbarmherzigkeit/src/features/profiles/login_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/profiles/profile_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/admin/admin_dashboard_screen.dart';
-import '../data/databaseRepository.dart';
-import '../data/FirebaseRepository.dart';
+import '../data/database_repository.dart';
+import '../data/firebaserepository.dart';
 import '../data/data_initialization.dart';
 //import '../services/migration_service.dart';
 import '../services/auth_service.dart';
