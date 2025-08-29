@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/favorites_service.dart';
 import '../../services/auth_service.dart';
 import '../../data/database_repository.dart';
+import '../../data/profile.dart'; // Hinzugefügter Import für DatabaseResult
 import '../database/detail_screen.dart';
 import '../database/database_screen.dart';
 import '../profiles/login_screen.dart';
@@ -506,28 +507,46 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     }
   }
 
+  // KORRIGIERTE VERSION
   Future<dynamic> _loadDetailItem(FavoriteItem favorite) async {
     if (widget.repository == null) return null;
 
     try {
+      late DatabaseResult result;
+
       switch (favorite.itemType) {
         case 'victim':
-          return await widget.repository!.getVictimById(favorite.itemId);
+          result = await widget.repository!.getVictimById(favorite.itemId);
+          break;
         case 'camp':
-          return await widget.repository!.getConcentrationCampById(
+          result = await widget.repository!.getConcentrationCampById(
             favorite.itemId,
           );
+          break;
         case 'commander':
-          return await widget.repository!.getCommanderById(favorite.itemId);
+          result = await widget.repository!.getCommanderById(favorite.itemId);
+          break;
         default:
           return null;
       }
+
+      // Check if the result is successful and has data
+      if (result.isSuccess && result.data != null) {
+        return result.data;
+      } else {
+        // Log the error for debugging (optional)
+        print(
+          'Error loading detail item: ${result.error?.message ?? "Unknown error"}',
+        );
+        return null;
+      }
     } catch (e) {
-      //print('Fehler beim Laden des Detail-Items: $e');
+      print('Exception while loading detail item: $e');
       return null;
     }
   }
 
+  // KORRIGIERTE VERSION
   void _navigateToDetail(FavoriteItem favorite) async {
     if (widget.repository == null) {
       ScaffoldMessenger.of(context).showSnackBar(
