@@ -94,6 +94,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
     } catch (e) {
       print('Fehler beim Suchen: $e');
       ScaffoldMessenger.of(
+        // ignore: use_build_context_synchronously
         context,
       ).showSnackBar(SnackBar(content: Text('Fehler beim Suchen: $e')));
     } finally {

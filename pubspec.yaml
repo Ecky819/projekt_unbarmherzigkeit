@@ -26,6 +26,13 @@ dependencies:
   provider: ^6.1.5+1
   shared_preferences: ^2.5.3
 
+  universal_html: ^2.2.4 # Für Web-spezifischen Code
+  flutter_map: ^6.0.0 # Alternative zu Google Maps für Web
+  latlong2: ^0.9.0
+
+  flutter_platform_widgets: ^6.0.0
+  responsive_builder: ^0.7.0
+
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_test:
@@ -52,6 +59,10 @@ dev_dependencies:
 
   # Optional: Analytics
   firebase_analytics: ^11.2.0
+
+dependency_overrides:
+  google_maps_flutter: ^2.5.0 # Nur für Mobile
+  google_maps_flutter_web: ^0.5.4 # Für Web-Kompatibilität
 
 flutter_icons:
   android: true

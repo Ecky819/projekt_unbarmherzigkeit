@@ -7,13 +7,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import '../lib/src/services/language_service.dart';
 import 'package:projekt_unbarmherzigkeit/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(languageService: LanguageService()));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
