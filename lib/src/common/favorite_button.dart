@@ -71,7 +71,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
         setState(() => _isFavorite = isFav);
       }
     } catch (e) {
-      print('Fehler beim Prüfen des Favoriten-Status: $e');
+      //print('Fehler beim Prüfen des Favoriten-Status: $e');
     }
   }
 
@@ -224,7 +224,7 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton> {
         setState(() => _isFavorite = isFav);
       }
     } catch (e) {
-      print('Fehler beim Prüfen des Favoriten-Status: $e');
+      //print('Fehler beim Prüfen des Favoriten-Status: $e');
     }
   }
 

@@ -43,8 +43,10 @@ class StorageService {
       final url = html.Url.createObjectUrlFromBlob(blob);
       final anchor = html.AnchorElement()
         ..href = url
-        ..download = fileName
-        ..click();
+        ..download = fileName;
+      html.document.body?.append(anchor);
+      anchor.click();
+      anchor.remove();
       html.Url.revokeObjectUrl(url);
     } else {
       // Mobile: Use path_provider and save to downloads

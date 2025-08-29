@@ -19,7 +19,7 @@ class AuthService {
   bool get isAdmin {
     final user = currentUser;
     final result = user != null && user.email == 'marcoeggert73@gmail.com';
-    print('AuthService.isAdmin - User: ${user?.email}, Result: $result');
+    //print('AuthService.isAdmin - User: ${user?.email}, Result: $result');
     return result;
   }
 
@@ -48,7 +48,7 @@ class AuthService {
       // Sende Verifizierungs-E-Mail mit verbessertem Error Handling
       await user.sendEmailVerification();
 
-      print('E-Mail-Verifizierung gesendet an: ${user.email}');
+      // print('E-Mail-Verifizierung gesendet an: ${user.email}');
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'too-many-requests':
@@ -79,7 +79,7 @@ class AuthService {
 
       return refreshedUser?.emailVerified ?? false;
     } catch (e) {
-      print('Fehler beim Prüfen des Verifizierungsstatus: $e');
+      //print('Fehler beim Prüfen des Verifizierungsstatus: $e');
       return false;
     }
   }
@@ -96,11 +96,11 @@ class AuthService {
       if (result.user != null && !result.user!.emailVerified) {
         try {
           await result.user!.sendEmailVerification();
-          print('Verifizierungs-E-Mail automatisch gesendet');
+          // print('Verifizierungs-E-Mail automatisch gesendet');
         } catch (e) {
-          print(
-            'Fehler beim automatischen Senden der Verifizierungs-E-Mail: $e',
-          );
+          // print(
+          //   'Fehler beim automatischen Senden der Verifizierungs-E-Mail: $e',
+          // );
           // Registrierung trotzdem erfolgreich, nur Verifizierung fehlgeschlagen
         }
       }
@@ -160,13 +160,13 @@ class AuthService {
           final isSignedIn = await _googleSignIn.isSignedIn();
           if (isSignedIn) {
             await _googleSignIn.signOut();
-            print('Google Sign-Out erfolgreich');
+            //print('Google Sign-Out erfolgreich');
           }
         } on PlatformException catch (e) {
-          print('Google Sign-Out PlatformException: ${e.message}');
+          // print('Google Sign-Out PlatformException: ${e.message}');
           errors.add('Google Sign-Out: ${e.message}');
         } catch (e) {
-          print('Google Sign-Out Fehler: $e');
+          // print('Google Sign-Out Fehler: $e');
           errors.add('Google Sign-Out: $e');
         }
       }
@@ -174,23 +174,23 @@ class AuthService {
       try {
         await _auth.signOut();
         hasLoggedOut = true;
-        print('Firebase Auth Sign-Out erfolgreich');
+        //  print('Firebase Auth Sign-Out erfolgreich');
       } on FirebaseAuthException catch (e) {
-        print('Firebase Auth Sign-Out FirebaseAuthException: ${e.message}');
+        //  print('Firebase Auth Sign-Out FirebaseAuthException: ${e.message}');
         errors.add('Firebase: ${e.message}');
         throw _handleAuthException(e);
       } on PlatformException catch (e) {
-        print('Firebase Auth Sign-Out PlatformException: ${e.message}');
+        // print('Firebase Auth Sign-Out PlatformException: ${e.message}');
         errors.add('Firebase Platform: ${e.message}');
 
         if (e.code == 'channel-error' || e.code == 'network_error') {
           hasLoggedOut = true;
-          print('Logout trotz PlatformException als erfolgreich gewertet');
+          // print('Logout trotz PlatformException als erfolgreich gewertet');
         } else {
           throw 'Firebase Logout PlatformException: ${e.message}';
         }
       } catch (e) {
-        print('Firebase Auth Sign-Out unbekannter Fehler: $e');
+        // print('Firebase Auth Sign-Out unbekannter Fehler: $e');
         errors.add('Firebase unbekannt: $e');
         throw 'Firebase Logout Fehler: $e';
       }
@@ -198,16 +198,16 @@ class AuthService {
       if (isGoogleUser && !hasLoggedOut) {
         try {
           await _googleSignIn.disconnect();
-          print('Google disconnect als Fallback ausgeführt');
+          //print('Google disconnect als Fallback ausgeführt');
         } catch (e) {
-          print('Google disconnect Fallback Fehler: $e');
+          //print('Google disconnect Fallback Fehler: $e');
         }
       }
 
       if (hasLoggedOut) {
-        print('Logout erfolgreich abgeschlossen');
+        //print('Logout erfolgreich abgeschlossen');
         if (errors.isNotEmpty) {
-          print('Logout mit Warnungen: ${errors.join(', ')}');
+          //print('Logout mit Warnungen: ${errors.join(', ')}');
         }
       } else {
         throw 'Logout konnte nicht abgeschlossen werden';
@@ -226,7 +226,7 @@ class AuthService {
     try {
       await _auth.signOut();
     } catch (e) {
-      print('Simple logout Fehler: $e');
+      //print('Simple logout Fehler: $e');
       rethrow;
     }
   }
@@ -236,17 +236,20 @@ class AuthService {
     try {
       await Future.wait([
         _auth.signOut().catchError(
+          // ignore: avoid_print
           (e) => print('Force Firebase logout error: $e'),
         ),
-        _googleSignIn.signOut().catchError(
-          (e) => print('Force Google logout error: $e'),
-        ),
-        _googleSignIn.disconnect().catchError(
-          (e) => print('Force Google disconnect error: $e'),
-        ),
+        _googleSignIn.signOut().catchError((e) {
+          //print('Force Google logout error: $e');
+          return null;
+        }),
+        _googleSignIn.disconnect().catchError((e) {
+          //print('Force Google disconnect error: $e');
+          return null;
+        }),
       ]);
     } catch (e) {
-      print('Force logout error: $e');
+      //print('Force logout error: $e');
     }
   }
 

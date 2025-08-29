@@ -29,9 +29,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   List<ConcentrationCamp> _camps = [];
   List<Commander> _commanders = [];
   bool _isLoading = true;
+  String? _errorMessage;
   String _searchQuery = '';
   bool _isSearchExpanded = false;
-  bool _isCategoriesExpanded = true; // Kategorien standardmäßig erweitert
+  bool _isCategoriesExpanded = true;
 
   // Sorting
   String _sortField = 'name';
@@ -42,8 +43,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadData();
-
-    // Search listener with debouncing
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -55,7 +54,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     super.dispose();
   }
 
-  // Debounced search
   Timer? _debounceTimer;
   void _onSearchChanged() {
     if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
@@ -69,26 +67,53 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      final victims = await widget.repository.getVictims();
-      final camps = await widget.repository.getConcentrationCamps();
-      final commanders = await widget.repository.getCommanders();
+      // Verwende die neuen DatabaseResult-Returns
+      final victimsResult = await widget.repository.getVictims();
+      final campsResult = await widget.repository.getConcentrationCamps();
+      final commandersResult = await widget.repository.getCommanders();
+
+      // Prüfe auf Fehler
+      if (!victimsResult.isSuccess) {
+        throw victimsResult.error?.message ?? 'Fehler beim Laden der Opfer';
+      }
+      if (!campsResult.isSuccess) {
+        throw campsResult.error?.message ?? 'Fehler beim Laden der Lager';
+      }
+      if (!commandersResult.isSuccess) {
+        throw commandersResult.error?.message ??
+            'Fehler beim Laden der Kommandanten';
+      }
 
       setState(() {
-        _victims = victims;
-        _camps = camps;
-        _commanders = commanders;
+        _victims = victimsResult.data ?? [];
+        _camps = campsResult.data ?? [];
+        _commanders = commandersResult.data ?? [];
         _isLoading = false;
+        _errorMessage = null;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Fehler beim Laden der Daten: $e'),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Erneut versuchen',
+              textColor: Colors.white,
+              onPressed: _loadData,
+            ),
           ),
         );
       }
@@ -106,7 +131,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 victim.c_camp.toLowerCase().contains(searchLower);
           }).toList();
 
-    // Sorting
     filtered.sort((a, b) {
       int result = 0;
       switch (_sortField) {
@@ -151,7 +175,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 camp.type.toLowerCase().contains(searchLower);
           }).toList();
 
-    // Sorting
     filtered.sort((a, b) {
       int result = 0;
       switch (_sortField) {
@@ -190,7 +213,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 commander.rank.toLowerCase().contains(searchLower);
           }).toList();
 
-    // Sorting
     filtered.sort((a, b) {
       int result = 0;
       switch (_sortField) {
@@ -252,11 +274,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   List<String> get _currentSortFields {
     switch (_tabController.index) {
-      case 0: // Victims
+      case 0:
         return ['name', 'nationality', 'camp', 'birth', 'death'];
-      case 1: // Camps
+      case 1:
         return ['name', 'location', 'country', 'type', 'opened'];
-      case 2: // Commanders
+      case 2:
         return ['name', 'rank', 'birth'];
       default:
         return ['name'];
@@ -296,8 +318,65 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       child: Scaffold(
         backgroundColor: const Color(0xFFE9E5DD),
         appBar: _buildAppBar(),
-        body: _isLoading ? _buildLoadingIndicator() : _buildBody(),
-        floatingActionButton: _isLoading ? null : _buildFloatingActionButton(),
+        body: _errorMessage != null
+            ? _buildErrorView()
+            : (_isLoading ? _buildLoadingIndicator() : _buildBody()),
+        floatingActionButton: _isLoading || _errorMessage != null
+            ? null
+            : _buildFloatingActionButton(),
+      ),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            const Text(
+              'Fehler beim Laden',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'SF Pro',
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage ?? 'Unbekannter Fehler',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                fontFamily: 'SF Pro',
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _loadData,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Erneut versuchen'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF283A49),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Zurück'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -390,8 +469,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         ),
                         onTap: (index) {
                           setState(() {
-                            _sortField =
-                                'name'; // Reset sort when changing tabs
+                            _sortField = 'name';
                             _sortAscending = true;
                           });
                         },
@@ -473,7 +551,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                   borderRadius: BorderRadius.circular(25),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -514,7 +594,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                             const SizedBox(width: 8),
                             Container(
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: IconButton(
@@ -568,11 +648,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                   ),
                                   decoration: BoxDecoration(
                                     color: isActive
-                                        ? Colors.white.withOpacity(0.2)
+                                        ? Colors.white.withValues(alpha: 0.2)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.3,
+                                      ),
                                     ),
                                   ),
                                   child: Row(
@@ -726,7 +808,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withOpacity(0.1),
+                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.person, color: Color(0xFF283A49)),
@@ -797,7 +879,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withOpacity(0.1),
+                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -870,7 +952,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF283A49).withOpacity(0.1),
+                  color: const Color(0xFF283A49).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -1087,20 +1169,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       await _authService.logout();
 
       if (mounted) Navigator.pop(context);
-
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } on PlatformException catch (e) {
       if (mounted) Navigator.pop(context);
-      if (mounted) {
-        _showPlatformErrorDialog(e);
-      }
+      if (mounted) _showPlatformErrorDialog(e);
     } catch (e) {
       if (mounted) Navigator.pop(context);
-      if (mounted) {
-        _showGeneralErrorDialog(e);
-      }
+      if (mounted) _showGeneralErrorDialog(e);
     }
   }
 
@@ -1291,7 +1368,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       if (mounted) {
         Navigator.pop(context);
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Sitzung beendet. Bitte melden Sie sich erneut an.'),
@@ -1303,9 +1379,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Logout mit Fehlern: $e'),
@@ -1317,7 +1391,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     }
   }
 
-  // Navigation Methods
+  // Navigation Methods - Angepasst für DatabaseResult
   void _navigateToVictimForm([Victim? victim]) async {
     final result = await Navigator.push<bool>(
       context,
@@ -1422,10 +1496,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  // Delete Methods
+  // Delete Methods - Angepasst für DatabaseResult
   Future<void> _deleteVictim(Victim victim) async {
     try {
-      await widget.repository.deleteVictim(victim.victim_id.toString());
+      final result = await widget.repository.deleteVictim(victim.victim_id);
+
+      if (!result.isSuccess) {
+        throw result.error?.message ?? 'Unbekannter Fehler beim Löschen';
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1451,7 +1530,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   Future<void> _deleteCamp(ConcentrationCamp camp) async {
     try {
-      await widget.repository.deleteConcentrationCamp(camp.camp_id.toString());
+      final result = await widget.repository.deleteConcentrationCamp(
+        camp.camp_id,
+      );
+
+      if (!result.isSuccess) {
+        throw result.error?.message ?? 'Unbekannter Fehler beim Löschen';
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1477,9 +1563,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   Future<void> _deleteCommander(Commander commander) async {
     try {
-      await widget.repository.deleteCommander(
-        commander.commander_id.toString(),
+      final result = await widget.repository.deleteCommander(
+        commander.commander_id,
       );
+
+      if (!result.isSuccess) {
+        throw result.error?.message ?? 'Unbekannter Fehler beim Löschen';
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

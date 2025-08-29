@@ -130,8 +130,8 @@ class CustomNavigationBar extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isAdmin ? Colors.orange : Colors.green).withOpacity(
-                      0.5,
+                    color: (isAdmin ? Colors.orange : Colors.green).withValues(
+                      alpha: 0.5,
                     ),
                     blurRadius: 4,
                     spreadRadius: 1,

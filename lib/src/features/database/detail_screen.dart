@@ -20,7 +20,8 @@ class DetailScreen extends StatelessWidget {
 
   String _getItemId() {
     if (item is Victim) {
-      return item.victim_id.toString();
+      return item.victim_id
+          .toString(); // Jetzt schon String, aber toString() für Sicherheit
     } else if (item is ConcentrationCamp) {
       return item.camp_id.toString();
     } else if (item is Commander) {
@@ -95,6 +96,24 @@ class DetailScreen extends StatelessWidget {
     return null;
   }
 
+  // Utility method für Altersberechnung
+  String? _getAgeInfo() {
+    if (item is Victim) {
+      final victim = item as Victim;
+      if (victim.age != null) {
+        return '${victim.age} Jahre';
+      }
+    } else if (item is Commander) {
+      final commander = item as Commander;
+      if (commander.age != null) {
+        return '${commander.age} Jahre';
+      }
+    }
+    return null;
+  }
+
+  // Utility method für Vollname
+
   Widget _buildImageWithCaption() {
     final imagePath = _getImagePath();
     final imageDescription = _getImageDescription();
@@ -130,7 +149,7 @@ class DetailScreen extends StatelessWidget {
                       imageDescription,
                       style: const TextStyle(
                         fontSize: 10,
-                        fontFamily: 'SFPro',
+                        fontFamily: 'SF Pro',
                         height: 1.4,
                       ),
                     ),
@@ -146,7 +165,7 @@ class DetailScreen extends StatelessWidget {
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: Colors.grey[700],
-                        fontFamily: 'SFPro',
+                        fontFamily: 'SF Pro',
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -156,7 +175,7 @@ class DetailScreen extends StatelessWidget {
                         fontSize: 10,
                         fontStyle: FontStyle.italic,
                         color: Colors.grey[600],
-                        fontFamily: 'SFPro',
+                        fontFamily: 'SF Pro',
                         height: 1.4,
                       ),
                     ),
@@ -207,7 +226,7 @@ class DetailScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Kein Bild verfügbar',
-                style: TextStyle(color: Colors.grey[600], fontFamily: 'SFPro'),
+                style: TextStyle(color: Colors.grey[600], fontFamily: 'SF Pro'),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -248,7 +267,7 @@ class DetailScreen extends StatelessWidget {
                       'Bild konnte nicht geladen werden',
                       style: TextStyle(
                         color: Colors.grey[600],
-                        fontFamily: 'SFPro',
+                        fontFamily: 'SF Pro',
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -262,7 +281,11 @@ class DetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String? value) {
+  Widget _buildDetailRow(
+    String label,
+    String? value, {
+    bool isImportant = false,
+  }) {
     if (value == null || value.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -272,45 +295,116 @@ class DetailScreen extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.grey,
-              fontFamily: 'SFPro',
+              color: isImportant ? const Color(0xFF283A49) : Colors.grey,
+              fontFamily: 'SF Pro',
             ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(fontSize: 16, fontFamily: 'SFPro'),
+            style: TextStyle(
+              fontSize: 16,
+              fontFamily: 'SF Pro',
+              fontWeight: isImportant ? FontWeight.w500 : FontWeight.normal,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDateRow(String label, DateTime? date) {
+  Widget _buildDateRow(
+    String label,
+    DateTime? date, {
+    bool isImportant = false,
+  }) {
     if (date == null) return const SizedBox.shrink();
 
-    return _buildDetailRow(label, '${date.day}.${date.month}.${date.year}');
+    return _buildDetailRow(
+      label,
+      '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}',
+      isImportant: isImportant,
+    );
   }
 
   Widget _buildBooleanRow(String label, bool value) {
     return _buildDetailRow(label, value ? 'Ja' : 'Nein');
   }
 
+  Widget _buildInfoCard(String title, String? subtitle, IconData icon) {
+    if (subtitle == null || subtitle.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF283A49).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: const Color(0xFF283A49).withValues(alpha: 0.1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFF283A49)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF283A49),
+                    fontFamily: 'SF Pro',
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(fontSize: 14, fontFamily: 'SF Pro'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFE9E5DD),
       appBar: AppBar(
-        title: Text(_getTitle()),
+        title: Text(_getTitle(), style: const TextStyle(fontFamily: 'SF Pro')),
         backgroundColor: const Color(0xFF283A49),
         foregroundColor: Colors.white,
+        elevation: 2,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          // Share Button
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              // Hier könnte eine Share-Funktionalität implementiert werden
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Teilen-Funktion noch nicht implementiert'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            },
+            tooltip: 'Teilen',
+          ),
+
           // Favoriten-Button in der AppBar
           FavoriteButton(
             itemId: _getItemId(),
@@ -333,10 +427,10 @@ class DetailScreen extends StatelessWidget {
               _buildImageWithCaption(),
               const SizedBox(height: 24),
 
-              // Header mit Icon, Titel und Favorit-Button
+              // Header mit Icon, Titel und Info-Cards
               Container(
                 margin: const EdgeInsets.only(bottom: 24),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -348,55 +442,103 @@ class DetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Row(
+                child: Column(
                   children: [
-                    Icon(_getIcon(), size: 48, color: _getIconColor()),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _getTitle(),
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'SFPro',
-                            ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _getIconColor().withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          Text(
-                            _getSubtitle(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                              fontFamily: 'SFPro',
-                            ),
+                          child: Icon(
+                            _getIcon(),
+                            size: 32,
+                            color: _getIconColor(),
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _getTitle(),
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'SF Pro',
+                                ),
+                              ),
+                              Text(
+                                _getSubtitle(),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                  fontFamily: 'SF Pro',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Großer Favoriten-Button im Header
+                        // Container(
+                        //   padding: const EdgeInsets.all(8),
+                        //   decoration: BoxDecoration(
+                        //     color: Colors.grey[100],
+                        //     borderRadius: BorderRadius.circular(12),
+                        //   ),
+                        //   child: FavoriteButton(
+                        //     itemId: _getItemId(),
+                        //     itemType: _getItemType(),
+                        //     itemTitle: _getTitle(),
+                        //     size: 32.0,
+                        //     favoriteColor: Colors.red,
+                        //     notFavoriteColor: Colors.grey[500],
+                        //   ),
+                        // ),
+                      ],
                     ),
-                    // Großer Favoriten-Button im Header
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
+
+                    // Zusätzliche Info-Cards je nach Typ
+                    const SizedBox(height: 16),
+                    if (item is Victim) ...[
+                      _buildInfoCard(
+                        'Nationalität',
+                        (item as Victim).nationality,
+                        Icons.flag,
                       ),
-                      child: FavoriteButton(
-                        itemId: _getItemId(),
-                        itemType: _getItemType(),
-                        itemTitle: _getTitle(),
-                        size: 32.0,
-                        favoriteColor: Colors.red,
-                        notFavoriteColor: Colors.grey[500],
+                      _buildInfoCard(
+                        'Lager',
+                        (item as Victim).c_camp,
+                        Icons.location_city,
                       ),
-                    ),
+                    ] else if (item is ConcentrationCamp) ...[
+                      _buildInfoCard(
+                        'Standort',
+                        '${(item as ConcentrationCamp).location}, ${(item as ConcentrationCamp).country}',
+                        Icons.place,
+                      ),
+                      _buildInfoCard(
+                        'Typ',
+                        (item as ConcentrationCamp).type,
+                        Icons.category,
+                      ),
+                    ] else if (item is Commander) ...[
+                      _buildInfoCard(
+                        'Rang',
+                        (item as Commander).rank,
+                        Icons.military_tech,
+                      ),
+                    ],
                   ],
                 ),
               ),
 
               // Details basierend auf Typ
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -426,11 +568,13 @@ class DetailScreen extends StatelessWidget {
 
   String _getSubtitle() {
     if (item is Victim) {
-      return 'Opfer';
+      final ageInfo = _getAgeInfo();
+      return ageInfo != null ? 'Opfer • $ageInfo' : 'Opfer';
     } else if (item is ConcentrationCamp) {
       return 'Konzentrationslager';
     } else if (item is Commander) {
-      return 'Kommandant';
+      final ageInfo = _getAgeInfo();
+      return ageInfo != null ? 'Kommandant • $ageInfo' : 'Kommandant';
     }
     return '';
   }
@@ -443,18 +587,20 @@ class DetailScreen extends StatelessWidget {
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          fontFamily: 'SFPro',
+          fontFamily: 'SF Pro',
+          color: Color(0xFF283A49),
         ),
       ),
       const SizedBox(height: 16),
-      _buildDetailRow('Nachname', victim.surname),
-      _buildDetailRow('Vorname', victim.name),
-      _buildDetailRow('Häflingsnummer', victim.prisoner_number?.toString()),
-      _buildDateRow('Geburtsdatum', victim.birth),
+
+      _buildDetailRow('Nachname', victim.surname, isImportant: true),
+      _buildDetailRow('Vorname', victim.name, isImportant: true),
+      _buildDetailRow('Häftlingsnummer', victim.prisoner_number?.toString()),
+      _buildDateRow('Geburtsdatum', victim.birth, isImportant: true),
       _buildDetailRow('Geburtsort', victim.birthplace),
-      _buildDateRow('Sterbedatum', victim.death),
+      _buildDateRow('Sterbedatum', victim.death, isImportant: true),
       _buildDetailRow('Sterbeort', victim.deathplace),
-      _buildDetailRow('Nationalität', victim.nationality),
+      _buildDetailRow('Nationalität', victim.nationality, isImportant: true),
       _buildDetailRow('Religion', victim.religion),
       _buildDetailRow('Beruf', victim.occupation),
 
@@ -464,13 +610,15 @@ class DetailScreen extends StatelessWidget {
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          fontFamily: 'SFPro',
+          fontFamily: 'SF Pro',
+          color: Color(0xFF283A49),
         ),
       ),
       const SizedBox(height: 16),
-      _buildDetailRow('Konzentrationslager', victim.c_camp),
+
+      _buildDetailRow('Konzentrationslager', victim.c_camp, isImportant: true),
       _buildDateRow('Einlieferungsdatum', victim.env_date),
-      _buildDetailRow('Schicksal', victim.fate),
+      _buildDetailRow('Schicksal', victim.fate, isImportant: true),
       _buildBooleanRow('Sterbeurkunde vorhanden', victim.death_certificate),
     ];
   }
@@ -483,16 +631,18 @@ class DetailScreen extends StatelessWidget {
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          fontFamily: 'SFPro',
+          fontFamily: 'SF Pro',
+          color: Color(0xFF283A49),
         ),
       ),
       const SizedBox(height: 16),
-      _buildDetailRow('Name', camp.name),
-      _buildDetailRow('Ort', camp.location),
-      _buildDetailRow('Land', camp.country),
-      _buildDetailRow('Typ', camp.type),
-      _buildDateRow('Eröffnet', camp.date_opened),
-      _buildDateRow('Befreit', camp.liberation_date),
+
+      _buildDetailRow('Name', camp.name, isImportant: true),
+      _buildDetailRow('Ort', camp.location, isImportant: true),
+      _buildDetailRow('Land', camp.country, isImportant: true),
+      _buildDetailRow('Typ', camp.type, isImportant: true),
+      _buildDateRow('Eröffnet', camp.date_opened, isImportant: true),
+      _buildDateRow('Befreit', camp.liberation_date, isImportant: true),
       _buildDetailRow('Kommandant', camp.commander),
 
       const SizedBox(height: 24),
@@ -501,10 +651,12 @@ class DetailScreen extends StatelessWidget {
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          fontFamily: 'SFPro',
+          fontFamily: 'SF Pro',
+          color: Color(0xFF283A49),
         ),
       ),
       const SizedBox(height: 16),
+
       _buildDetailRow('Beschreibung', camp.description),
     ];
   }
@@ -517,16 +669,18 @@ class DetailScreen extends StatelessWidget {
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          fontFamily: 'SFPro',
+          fontFamily: 'SF Pro',
+          color: Color(0xFF283A49),
         ),
       ),
       const SizedBox(height: 16),
-      _buildDetailRow('Nachname', commander.surname),
-      _buildDetailRow('Vorname', commander.name),
-      _buildDetailRow('Letzter Rang', commander.rank),
-      _buildDateRow('Geburtsdatum', commander.birth),
+
+      _buildDetailRow('Nachname', commander.surname, isImportant: true),
+      _buildDetailRow('Vorname', commander.name, isImportant: true),
+      _buildDetailRow('Letzter Rang', commander.rank, isImportant: true),
+      _buildDateRow('Geburtsdatum', commander.birth, isImportant: true),
       _buildDetailRow('Geburtsort', commander.birthplace),
-      _buildDateRow('Sterbedatum', commander.death),
+      _buildDateRow('Sterbedatum', commander.death, isImportant: true),
       _buildDetailRow('Sterbeort', commander.deathplace),
 
       const SizedBox(height: 24),
@@ -535,10 +689,12 @@ class DetailScreen extends StatelessWidget {
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          fontFamily: 'SFPro',
+          fontFamily: 'SF Pro',
+          color: Color(0xFF283A49),
         ),
       ),
       const SizedBox(height: 16),
+
       _buildDetailRow('Beschreibung', commander.description),
     ];
   }

@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/src/services/language_service.dart';
+import 'package:projekt_unbarmherzigkeit/src/services/language_service.dart';
 import 'package:projekt_unbarmherzigkeit/main.dart';
 
 void main() {

@@ -349,7 +349,7 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -365,7 +365,7 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF283A49).withOpacity(0.1),
+                    color: const Color(0xFF283A49).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: const Color(0xFF283A49), size: 20),
@@ -487,9 +487,6 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
     );
   }
 
-  // Alternative _selectDate Methode für victim_form_screen.dart
-  // Ersetze die bestehende _selectDate Methode mit dieser:
-
   Future<void> _selectDate(
     DateTime? currentDate,
     Function(DateTime?) onChanged,
@@ -499,7 +496,6 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
       initialDate: currentDate ?? DateTime(1920),
       firstDate: DateTime(1800),
       lastDate: DateTime(2020),
-      // ENTFERNE locale und deutsche Texte vorerst
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -581,9 +577,13 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await widget.repository.deleteCommander(
-        widget.commander!.commander_id.toString(),
+      final result = await widget.repository.deleteCommander(
+        widget.commander!.commander_id,
       );
+
+      if (!result.isSuccess) {
+        throw result.error?.message ?? 'Unbekannter Fehler beim Löschen';
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -652,31 +652,36 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
             : null,
       );
 
+      // Validiere die Daten
+      final validation = validateCommanderData(commander);
+      if (!validation.isSuccess) {
+        throw validation.error?.message ?? 'Validierungsfehler';
+      }
+
+      DatabaseResult<void> result;
+
       if (isEditing) {
-        await widget.repository.updateCommander(commander);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Kommandant erfolgreich aktualisiert'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+        result = await widget.repository.updateCommander(commander);
       } else {
-        await widget.repository.createCommander(commander);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Kommandant erfolgreich hinzugefügt'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+        result = await widget.repository.createCommander(commander);
+      }
+
+      if (!result.isSuccess) {
+        throw result.error?.message ?? 'Unbekannter Fehler beim Speichern';
       }
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isEditing
+                  ? 'Kommandant erfolgreich aktualisiert'
+                  : 'Kommandant erfolgreich hinzugefügt',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -696,17 +701,28 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
     }
   }
 
-  Future<int> _getNextCommanderId() async {
+  Future<String> _getNextCommanderId() async {
     try {
-      final commanders = await widget.repository.getCommanders();
-      if (commanders.isEmpty) return 1;
-      return commanders
-              .map((c) => c.commander_id)
-              .reduce((a, b) => a > b ? a : b) +
-          1;
+      final result = await widget.repository.getCommanders();
+      if (!result.isSuccess || result.data == null) {
+        return DateTime.now().millisecondsSinceEpoch.toString();
+      }
+
+      final commanders = result.data!;
+      if (commanders.isEmpty) return '1';
+
+      // Finde die höchste numerische ID
+      int maxId = 0;
+      for (final commander in commanders) {
+        final id = int.tryParse(commander.commander_id);
+        if (id != null && id > maxId) {
+          maxId = id;
+        }
+      }
+
+      return (maxId + 1).toString();
     } catch (e) {
-      // Fallback: Timestamp-basierte ID
-      return DateTime.now().millisecondsSinceEpoch % 1000000;
+      return DateTime.now().millisecondsSinceEpoch.toString();
     }
   }
 

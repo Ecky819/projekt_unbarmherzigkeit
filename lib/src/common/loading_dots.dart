@@ -26,7 +26,7 @@ class LoadingDots extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF283A49).withOpacity(opacity),
+                    color: const Color(0xFF283A49).withValues(alpha: opacity),
                     shape: BoxShape.circle,
                   ),
                 ),

@@ -523,7 +523,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           return null;
       }
     } catch (e) {
-      print('Fehler beim Laden des Detail-Items: $e');
+      //print('Fehler beim Laden des Detail-Items: $e');
       return null;
     }
   }

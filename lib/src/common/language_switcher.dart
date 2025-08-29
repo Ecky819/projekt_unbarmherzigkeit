@@ -104,9 +104,9 @@ class LanguageSwitcher extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -176,7 +176,7 @@ class LanguageSwitcherTile extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: const Color(0xFF283A49).withOpacity(0.1),
+          color: const Color(0xFF283A49).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: const Icon(Icons.language, color: Color(0xFF283A49), size: 20),

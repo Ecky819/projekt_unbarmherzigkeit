@@ -102,7 +102,7 @@ class DataNewsWidget extends StatelessWidget {
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url);
                 } else {
-                  print('Could not launch $url');
+                  //print('Could not launch $url');
                 }
               },
           ),
@@ -120,7 +120,7 @@ class DataNewsWidget extends StatelessWidget {
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url);
                 } else {
-                  print('Could not launch $url');
+                  //print('Could not launch $url');
                 }
               },
           ),
@@ -140,7 +140,7 @@ class DataNewsWidget extends StatelessWidget {
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url);
                 } else {
-                  print('Could not launch $url');
+                  //print('Could not launch $url');
                 }
               },
           ),
@@ -158,7 +158,7 @@ class DataNewsWidget extends StatelessWidget {
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url);
                 } else {
-                  print('Could not launch $url');
+                  //print('Could not launch $url');
                 }
               },
           ),
@@ -191,7 +191,7 @@ class DataNewsWidget extends StatelessWidget {
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url);
                 } else {
-                  print('Could not launch $url');
+                  //print('Could not launch $url');
                 }
               },
           ),
@@ -204,7 +204,7 @@ class DataNewsWidget extends StatelessWidget {
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url);
                 } else {
-                  print('Could not launch $url');
+                  //print('Could not launch $url');
                 }
               },
           ),

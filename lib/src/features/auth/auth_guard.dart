@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// ignore: depend_on_referenced_packages
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../features/profiles/registration_screen.dart';
 import '../../services/auth_service.dart';
@@ -31,15 +32,27 @@ class AuthGuard extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator(color: Color(0xFF283A49)),
                   SizedBox(height: 16),
                   Text(
                     'Authentifizierung wird überprüft...',
-                    style: TextStyle(fontSize: 16, fontFamily: 'SFPro'),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: 'SF Pro',
+                      color: Color(0xFF283A49),
+                    ),
                   ),
                 ],
               ),
             ),
+          );
+        }
+
+        // Error State
+        if (snapshot.hasError) {
+          return _AuthErrorScreen(
+            error: snapshot.error.toString(),
+            authService: authService,
           );
         }
 
@@ -55,6 +68,90 @@ class AuthGuard extends StatelessWidget {
               'Sie müssen sich anmelden, um auf diese Funktion zugreifen zu können.',
         );
       },
+    );
+  }
+}
+
+class _AuthErrorScreen extends StatelessWidget {
+  final String error;
+  final AuthService authService;
+
+  const _AuthErrorScreen({required this.error, required this.authService});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFE9E5DD),
+      appBar: AppBar(
+        title: const Text('Authentifizierungsfehler'),
+        backgroundColor: const Color(0xFF283A49),
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 80, color: Colors.red.shade400),
+              const SizedBox(height: 24),
+              Text(
+                'Authentifizierungsfehler',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade700,
+                  fontFamily: 'SF Pro',
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  'Ein Fehler ist bei der Authentifizierung aufgetreten:\n\n$error',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.red.shade700,
+                    fontFamily: 'SF Pro',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/login',
+                      (route) => false,
+                    ),
+                    icon: const Icon(Icons.login),
+                    label: const Text('Zur Anmeldung'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF283A49),
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Zurück'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -75,7 +172,6 @@ class LoginScreenWithMessage extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          // LÖSUNG: ScrollView hinzugefügt
           physics: const ClampingScrollPhysics(),
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -107,6 +203,7 @@ class LoginScreenWithMessage extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.black87,
+                              fontFamily: 'SF Pro',
                             ),
                           ),
                         ),
@@ -114,7 +211,7 @@ class LoginScreenWithMessage extends StatelessWidget {
                     ),
                   ),
 
-                  // Login Screen Content - SCROLLABLE
+                  // Login Screen Content
                   const Expanded(child: _LoginScreenBody()),
                 ],
               ),
@@ -126,7 +223,6 @@ class LoginScreenWithMessage extends StatelessWidget {
   }
 }
 
-// Extrahierte Login-Body-Komponente ohne AppBar
 class _LoginScreenBody extends StatefulWidget {
   const _LoginScreenBody();
 
@@ -160,9 +256,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       await _authService.login(
@@ -171,7 +265,6 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
       );
 
       if (mounted) {
-        // Zurück zur vorherigen Seite oder zur Hauptseite
         Navigator.pop(context);
       }
     } catch (e) {
@@ -182,17 +275,13 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
 
   Future<void> _signInWithGoogle() async {
-    setState(() {
-      _isGoogleLoading = true;
-    });
+    setState(() => _isGoogleLoading = true);
 
     try {
       final result = await _authService.signInWithGoogle();
@@ -204,7 +293,6 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
             backgroundColor: Colors.green,
           ),
         );
-        // Zurück zur vorherigen Seite oder zur Hauptseite
         Navigator.pop(context);
       }
     } catch (e) {
@@ -218,9 +306,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isGoogleLoading = false;
-        });
+        setState(() => _isGoogleLoading = false);
       }
     }
   }
@@ -260,7 +346,6 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      // ZUSÄTZLICHE ScrollView für den Login-Body
       padding: const EdgeInsets.all(24.0),
       child: Form(
         key: _formKey,
@@ -268,7 +353,6 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Responsive Spacing
             SizedBox(height: MediaQuery.of(context).size.height * 0.02),
 
             const Text(
@@ -279,13 +363,18 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF283A49),
                 decoration: TextDecoration.underline,
+                fontFamily: 'SF Pro',
               ),
             ),
             const SizedBox(height: 4),
             const Text(
               'Melden Sie sich an, um fortzufahren',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Color(0xFF283A49)),
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF283A49),
+                fontFamily: 'SF Pro',
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -293,6 +382,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
+              style: const TextStyle(fontFamily: 'SF Pro'),
               decoration: InputDecoration(
                 labelText: 'E-Mail-Adresse',
                 hintText: 'max.mustermann@example.com',
@@ -320,6 +410,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
+              style: const TextStyle(fontFamily: 'SF Pro'),
               decoration: InputDecoration(
                 labelText: 'Passwort',
                 hintText: 'Geben Sie Ihr Passwort ein',
@@ -376,6 +467,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                           fontSize: 16,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
+                          fontFamily: 'SF Pro',
                         ),
                       ),
               ),
@@ -390,6 +482,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                   style: TextStyle(
                     decoration: TextDecoration.underline,
                     color: Color(0xFF283A49),
+                    fontFamily: 'SF Pro',
                   ),
                 ),
               ),
@@ -401,7 +494,10 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
               children: [
                 const Text(
                   'Noch kein Konto?',
-                  style: TextStyle(color: Color(0xFF283A49)),
+                  style: TextStyle(
+                    color: Color(0xFF283A49),
+                    fontFamily: 'SF Pro',
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
@@ -417,6 +513,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF283A49),
+                      fontFamily: 'SF Pro',
                     ),
                   ),
                 ),
@@ -436,6 +533,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontWeight: FontWeight.w500,
+                      fontFamily: 'SF Pro',
                     ),
                   ),
                 ),
@@ -485,6 +583,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    fontFamily: 'SF Pro',
                   ),
                 ),
               ),
@@ -492,13 +591,13 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
 
             const SizedBox(height: 16),
 
-            // Alternative Login Buttons - KOMPAKTER
+            // Alternative Login Buttons
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Apple Sign-In Button
                 SizedBox(
-                  height: 44, // Etwas kleiner für bessere Platznutzung
+                  height: 44,
                   child: ElevatedButton.icon(
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -529,6 +628,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
+                        fontFamily: 'SF Pro',
                       ),
                     ),
                   ),
@@ -571,6 +671,7 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
+                        fontFamily: 'SF Pro',
                       ),
                     ),
                   ),
@@ -578,7 +679,6 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
               ],
             ),
 
-            // Bottom Spacing für bessere ScrollView-Erfahrung
             SizedBox(height: MediaQuery.of(context).size.height * 0.05),
           ],
         ),

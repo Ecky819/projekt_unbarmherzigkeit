@@ -48,7 +48,7 @@ class _MainNavigationState extends State<MainNavigation> {
     // Auth-State-Listener mit Repository-Reload
     _authService.authStateChanges.listen((user) async {
       if (mounted) {
-        print('Auth state changed: ${user?.email}');
+        //print('Auth state changed: ${user?.email}');
 
         // Bei Logout: Navigation zum Home-Screen zurücksetzen
         if (user == null && _selectedIndex == 4) {
@@ -81,7 +81,7 @@ class _MainNavigationState extends State<MainNavigation> {
     });
 
     try {
-      print('Reloading repository due to auth state change...');
+      //print('Reloading repository due to auth state change...');
       final newRepository = await _initializeRepository();
 
       if (mounted) {
@@ -89,10 +89,10 @@ class _MainNavigationState extends State<MainNavigation> {
           _currentRepository = newRepository;
           _isLoadingRepository = false;
         });
-        print('Repository successfully reloaded');
+        //print('Repository successfully reloaded');
       }
     } catch (e) {
-      print('Error reloading repository: $e');
+      //print('Error reloading repository: $e');
       if (mounted) {
         setState(() {
           _isLoadingRepository = false;
@@ -106,8 +106,8 @@ class _MainNavigationState extends State<MainNavigation> {
       final firebaseRepo = FirebaseRepository();
       return firebaseRepo;
     } catch (e) {
-      print('Firebase Repository konnte nicht initialisiert werden: $e');
-      print('Verwende Mock Repository als Fallback');
+      // print('Firebase Repository konnte nicht initialisiert werden: $e');
+      // print('Verwende Mock Repository als Fallback');
       return await initializeMockData();
     }
   }
@@ -180,10 +180,10 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   void navigateToAdminDashboard() {
-    print('Admin Dashboard Navigation aufgerufen');
-    print('User logged in: ${_authService.isLoggedIn}');
-    print('User email: ${_authService.currentUser?.email}');
-    print('Is admin: ${_authService.isAdmin}');
+    // print('Admin Dashboard Navigation aufgerufen');
+    // print('User logged in: ${_authService.isLoggedIn}');
+    // print('User email: ${_authService.currentUser?.email}');
+    // print('Is admin: ${_authService.isAdmin}');
 
     if (!_authService.isLoggedIn) {
       _navigateToLogin(
@@ -205,7 +205,7 @@ class _MainNavigationState extends State<MainNavigation> {
       return;
     }
 
-    print('Navigiere zum Admin Dashboard...');
+    //print('Navigiere zum Admin Dashboard...');
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -239,9 +239,9 @@ class _MainNavigationState extends State<MainNavigation> {
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
             setState(() {
-              print(
-                'UI nach Login aktualisiert - Admin status: ${_authService.isAdmin}',
-              );
+              // print(
+              //   'UI nach Login aktualisiert - Admin status: ${_authService.isAdmin}',
+              // );
             });
           }
         });
@@ -327,7 +327,7 @@ class _MainNavigationState extends State<MainNavigation> {
               color: const Color(0xFF283A49),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(2, 0),
                 ),
@@ -382,7 +382,7 @@ class _MainNavigationState extends State<MainNavigation> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
@@ -452,7 +452,7 @@ class _MainNavigationState extends State<MainNavigation> {
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 2,
                           offset: const Offset(0, 2),
                         ),
@@ -483,7 +483,9 @@ class _MainNavigationState extends State<MainNavigation> {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF283A49).withOpacity(0.1),
+                                color: const Color(
+                                  0xFF283A49,
+                                ).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -574,7 +576,7 @@ class _MainNavigationState extends State<MainNavigation> {
             backgroundColor: const Color(0xFF283A49),
             selectedIconTheme: const IconThemeData(color: Colors.white),
             unselectedIconTheme: const IconThemeData(color: Colors.white70),
-            indicatorColor: const Color(0xFF283A49).withOpacity(0.2),
+            indicatorColor: const Color(0xFF283A49).withValues(alpha: 0.2),
             destinations: _buildNavigationDestinations()
                 .map(
                   (dest) => NavigationRailDestination(

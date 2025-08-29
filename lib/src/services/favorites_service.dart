@@ -29,13 +29,13 @@ class FavoritesService {
       final favoriteId = '${_currentUser!.uid}_${itemType}_$itemId';
 
       // Debug-Informationen
-      print('Adding favorite:');
-      print('- User UID: ${_currentUser!.uid}');
-      print('- User Email: ${_currentUser!.email}');
-      print('- Favorite ID: $favoriteId');
-      print('- Item Type: $itemType');
-      print('- Item ID: $itemId');
-      print('- Item Title: $itemTitle');
+      // print('Adding favorite:');
+      // print('- User UID: ${_currentUser!.uid}');
+      // print('- User Email: ${_currentUser!.email}');
+      // print('- Favorite ID: $favoriteId');
+      // print('- Item Type: $itemType');
+      // print('- Item ID: $itemId');
+      // print('- Item Title: $itemTitle');
 
       await _firestore.collection(_favoritesCollection).doc(favoriteId).set({
         'userId': _currentUser!.uid,
@@ -46,9 +46,9 @@ class FavoritesService {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      print('Favorite added successfully!');
+      //print('Favorite added successfully!');
     } catch (e) {
-      print('Error adding favorite: $e');
+      //print('Error adding favorite: $e');
       throw Exception('Fehler beim Hinzufügen des Favoriten: $e');
     }
   }
@@ -91,7 +91,7 @@ class FavoritesService {
 
       return doc.exists;
     } catch (e) {
-      print('Fehler beim Prüfen des Favoriten-Status: $e');
+      //print('Fehler beim Prüfen des Favoriten-Status: $e');
       return false;
     }
   }
@@ -123,7 +123,7 @@ class FavoritesService {
         );
       }).toList();
     } catch (e) {
-      print('Error with orderBy query, trying without orderBy: $e');
+      //print('Error with orderBy query, trying without orderBy: $e');
 
       // Fallback: Query ohne orderBy
       try {
@@ -150,7 +150,7 @@ class FavoritesService {
 
         return favorites;
       } catch (fallbackError) {
-        print('Fallback query also failed: $fallbackError');
+        //print('Fallback query also failed: $fallbackError');
         throw Exception('Fehler beim Laden der Favoriten: $fallbackError');
       }
     }
@@ -183,7 +183,7 @@ class FavoritesService {
             }).toList();
           });
     } catch (e) {
-      print('Error with stream orderBy, using fallback: $e');
+      //print('Error with stream orderBy, using fallback: $e');
 
       // Fallback Stream ohne orderBy
       return _firestore
@@ -250,7 +250,7 @@ class FavoritesService {
       }
       await batch.commit();
     } catch (e) {
-      print('Fehler beim Löschen aller Favoriten: $e');
+      //print('Fehler beim Löschen aller Favoriten: $e');
     }
   }
 
@@ -283,7 +283,7 @@ class FavoritesService {
             : 0,
       };
     } catch (e) {
-      print('Fehler beim Laden der Favoriten-Statistiken: $e');
+      //print('Fehler beim Laden der Favoriten-Statistiken: $e');
       return {
         'totalFavorites': 0,
         'favoritesByType': <String, int>{},
