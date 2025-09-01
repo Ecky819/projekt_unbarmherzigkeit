@@ -63,8 +63,8 @@ class _CampFormScreenState extends State<CampFormScreen> {
       _imageDescriptionController.text = camp.imageDescription ?? '';
       _imageSourceController.text = camp.imageSource ?? '';
 
-      _dateOpened = camp.date_opened;
-      _liberationDate = camp.liberation_date;
+      _dateOpened = camp.dateOpened;
+      _liberationDate = camp.liberationDate;
     }
   }
 
@@ -269,7 +269,7 @@ class _CampFormScreenState extends State<CampFormScreen> {
                   ),
                 ),
                 Text(
-                  'ID: ${widget.camp!.camp_id}',
+                  'ID: ${widget.camp!.campId}',
                   style: TextStyle(color: Colors.blue.shade600, fontSize: 12),
                 ),
               ],
@@ -469,16 +469,16 @@ class _CampFormScreenState extends State<CampFormScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final campId = isEditing ? widget.camp!.camp_id : await _getNextCampId();
+      final campId = isEditing ? widget.camp!.campId : await _getNextCampId();
 
       final camp = ConcentrationCampImpl(
-        camp_id: campId,
+        campId: campId,
         name: _nameController.text.trim(),
         location: _locationController.text.trim(),
         country: _countryController.text.trim(),
         description: _descriptionController.text.trim(),
-        date_opened: _dateOpened,
-        liberation_date: _liberationDate,
+        dateOpened: _dateOpened,
+        liberationDate: _liberationDate,
         type: _typeController.text.trim(),
         commander: _commanderController.text.trim(),
         imagePath: _imagePathController.text.trim().isNotEmpty
@@ -554,7 +554,7 @@ class _CampFormScreenState extends State<CampFormScreen> {
       // Finde die höchste numerische ID
       int maxId = 0;
       for (final camp in camps) {
-        final id = int.tryParse(camp.camp_id);
+        final id = int.tryParse(camp.campId);
         if (id != null && id > maxId) {
           maxId = id;
         }

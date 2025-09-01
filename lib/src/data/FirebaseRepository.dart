@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:firebase_auth/firebase_auth.dart';
 import 'profile.dart';
+import 'firestore_converter.dart';
 import 'database_repository.dart';
 import 'data_initialization.dart';
 
@@ -147,7 +148,7 @@ class FirebaseRepository implements DatabaseRepository {
         return const DatabaseResult.success(null);
       }
 
-      final victim = _victimFromFirestore(doc);
+      final victim = FirestoreConverter.victimFromFirestore(doc);
       return DatabaseResult.success(victim);
     } catch (e, stackTrace) {
       return DatabaseResult.failure(
@@ -163,23 +164,20 @@ class FirebaseRepository implements DatabaseRepository {
   @override
   Future<DatabaseResult<void>> createVictim(Victim victim) async {
     try {
-      await _firestore
-          .collection(_victimsCollection)
-          .doc(victim.victim_id)
-          .set({
-            ...victim.toJson(),
-            'birth': victim.birth != null
-                ? Timestamp.fromDate(victim.birth!)
-                : null,
-            'death': victim.death != null
-                ? Timestamp.fromDate(victim.death!)
-                : null,
-            'env_date': victim.env_date != null
-                ? Timestamp.fromDate(victim.env_date!)
-                : null,
-            'createdAt': FieldValue.serverTimestamp(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+      await _firestore.collection(_victimsCollection).doc(victim.victimId).set({
+        ...victim.toJson(),
+        'birth': victim.birth != null
+            ? Timestamp.fromDate(victim.birth!)
+            : null,
+        'death': victim.death != null
+            ? Timestamp.fromDate(victim.death!)
+            : null,
+        'env_date': victim.envDate != null
+            ? Timestamp.fromDate(victim.envDate!)
+            : null,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
       return const DatabaseResult.success(null);
     } catch (e, stackTrace) {
@@ -198,7 +196,7 @@ class FirebaseRepository implements DatabaseRepository {
     try {
       await _firestore
           .collection(_victimsCollection)
-          .doc(victim.victim_id)
+          .doc(victim.victimId)
           .update({
             ...victim.toJson(),
             'birth': victim.birth != null
@@ -207,8 +205,8 @@ class FirebaseRepository implements DatabaseRepository {
             'death': victim.death != null
                 ? Timestamp.fromDate(victim.death!)
                 : null,
-            'env_date': victim.env_date != null
-                ? Timestamp.fromDate(victim.env_date!)
+            'env_date': victim.envDate != null
+                ? Timestamp.fromDate(victim.envDate!)
                 : null,
             'updatedAt': FieldValue.serverTimestamp(),
           });
@@ -295,13 +293,13 @@ class FirebaseRepository implements DatabaseRepository {
     ConcentrationCamp camp,
   ) async {
     try {
-      await _firestore.collection(_campsCollection).doc(camp.camp_id).set({
+      await _firestore.collection(_campsCollection).doc(camp.campId).set({
         ...camp.toJson(),
-        'date_opened': camp.date_opened != null
-            ? Timestamp.fromDate(camp.date_opened!)
+        'date_opened': camp.dateOpened != null
+            ? Timestamp.fromDate(camp.dateOpened!)
             : null,
-        'liberation_date': camp.liberation_date != null
-            ? Timestamp.fromDate(camp.liberation_date!)
+        'liberation_date': camp.liberationDate != null
+            ? Timestamp.fromDate(camp.liberationDate!)
             : null,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -324,13 +322,13 @@ class FirebaseRepository implements DatabaseRepository {
     ConcentrationCamp camp,
   ) async {
     try {
-      await _firestore.collection(_campsCollection).doc(camp.camp_id).update({
+      await _firestore.collection(_campsCollection).doc(camp.campId).update({
         ...camp.toJson(),
-        'date_opened': camp.date_opened != null
-            ? Timestamp.fromDate(camp.date_opened!)
+        'date_opened': camp.dateOpened != null
+            ? Timestamp.fromDate(camp.dateOpened!)
             : null,
-        'liberation_date': camp.liberation_date != null
-            ? Timestamp.fromDate(camp.liberation_date!)
+        'liberation_date': camp.liberationDate != null
+            ? Timestamp.fromDate(camp.liberationDate!)
             : null,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -418,7 +416,7 @@ class FirebaseRepository implements DatabaseRepository {
     try {
       await _firestore
           .collection(_commandersCollection)
-          .doc(commander.commander_id)
+          .doc(commander.commanderId)
           .set({
             ...commander.toJson(),
             'birth': commander.birth != null
@@ -448,7 +446,7 @@ class FirebaseRepository implements DatabaseRepository {
     try {
       await _firestore
           .collection(_commandersCollection)
-          .doc(commander.commander_id)
+          .doc(commander.commanderId)
           .update({
             ...commander.toJson(),
             'birth': commander.birth != null
@@ -554,7 +552,7 @@ class FirebaseRepository implements DatabaseRepository {
       final results = <SearchResult>[];
 
       for (final doc in querySnapshot.docs) {
-        final victim = _victimFromFirestore(doc);
+        final victim = FirestoreConverter.victimFromFirestore(doc);
 
         // Client-side Filterung für komplexere Suchanfragen
         if (_victimMatchesFilters(
@@ -681,7 +679,7 @@ class FirebaseRepository implements DatabaseRepository {
 
       final querySnapshot = await query.get();
       final victims = querySnapshot.docs
-          .map((doc) => _victimFromFirestore(doc))
+          .map((doc) => FirestoreConverter.victimFromFirestore(doc))
           .toList();
 
       return DatabaseResult.success(victims);
@@ -835,7 +833,7 @@ class FirebaseRepository implements DatabaseRepository {
       for (final victim in victims) {
         final docRef = _firestore
             .collection(_victimsCollection)
-            .doc(victim.victim_id);
+            .doc(victim.victimId);
         batch.set(docRef, {
           ...victim.toJson(),
           'birth': victim.birth != null
@@ -844,8 +842,8 @@ class FirebaseRepository implements DatabaseRepository {
           'death': victim.death != null
               ? Timestamp.fromDate(victim.death!)
               : null,
-          'env_date': victim.env_date != null
-              ? Timestamp.fromDate(victim.env_date!)
+          'env_date': victim.envDate != null
+              ? Timestamp.fromDate(victim.envDate!)
               : null,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -873,7 +871,7 @@ class FirebaseRepository implements DatabaseRepository {
       for (final victim in victims) {
         final docRef = _firestore
             .collection(_victimsCollection)
-            .doc(victim.victim_id);
+            .doc(victim.victimId);
         batch.update(docRef, {
           ...victim.toJson(),
           'birth': victim.birth != null
@@ -882,8 +880,8 @@ class FirebaseRepository implements DatabaseRepository {
           'death': victim.death != null
               ? Timestamp.fromDate(victim.death!)
               : null,
-          'env_date': victim.env_date != null
-              ? Timestamp.fromDate(victim.env_date!)
+          'env_date': victim.envDate != null
+              ? Timestamp.fromDate(victim.envDate!)
               : null,
           'updatedAt': FieldValue.serverTimestamp(),
         });
@@ -929,10 +927,10 @@ class FirebaseRepository implements DatabaseRepository {
   VictimImpl _victimFromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return VictimImpl(
-      victim_id: doc.id, // Verwende Document ID als victim_id
+      victimId: doc.id, // Verwende Document ID als victimId
       surname: data['surname'] ?? '',
       name: data['name'] ?? '',
-      prisoner_number: data['prisoner_number'],
+      prisonerNumber: data['prisoner_number'],
       birth: data['birth'] != null
           ? (data['birth'] as Timestamp).toDate()
           : null,
@@ -944,11 +942,11 @@ class FirebaseRepository implements DatabaseRepository {
       nationality: data['nationality'] ?? '',
       religion: data['religion'] ?? '',
       occupation: data['occupation'] ?? '',
-      death_certificate: data['death_certificate'] ?? false,
-      env_date: data['env_date'] != null
+      deathCertificate: data['death_certificate'] ?? false,
+      envDate: data['env_date'] != null
           ? (data['env_date'] as Timestamp).toDate()
           : null,
-      c_camp: data['c_camp'] ?? '',
+      cCamp: data['c_camp'] ?? '',
       fate: data['fate'] ?? '',
       imagePath: data['imagePath'],
       imageDescription: data['imageDescription'],
@@ -961,15 +959,15 @@ class FirebaseRepository implements DatabaseRepository {
   ConcentrationCampImpl _campFromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return ConcentrationCampImpl(
-      camp_id: doc.id, // Verwende Document ID als camp_id
+      campId: doc.id, // Verwende Document ID als campId
       name: data['name'] ?? '',
       location: data['location'] ?? '',
       country: data['country'] ?? '',
       description: data['description'] ?? '',
-      date_opened: data['date_opened'] != null
+      dateOpened: data['date_opened'] != null
           ? (data['date_opened'] as Timestamp).toDate()
           : null,
-      liberation_date: data['liberation_date'] != null
+      liberationDate: data['liberation_date'] != null
           ? (data['liberation_date'] as Timestamp).toDate()
           : null,
       type: data['type'] ?? '',
@@ -985,7 +983,7 @@ class FirebaseRepository implements DatabaseRepository {
   CommanderImpl _commanderFromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return CommanderImpl(
-      commander_id: doc.id, // Verwende Document ID als commander_id
+      commanderId: doc.id, // Verwende Document ID als commanderId
       name: data['name'] ?? '',
       surname: data['surname'] ?? '',
       rank: data['rank'] ?? '',
@@ -1037,7 +1035,7 @@ class FirebaseRepository implements DatabaseRepository {
           victim.deathplace!.toLowerCase().contains(query)) {
         locationMatch = true;
       }
-      if (!locationMatch && victim.c_camp.toLowerCase().contains(query)) {
+      if (!locationMatch && victim.cCamp.toLowerCase().contains(query)) {
         locationMatch = true;
       }
 
@@ -1108,12 +1106,12 @@ class FirebaseRepository implements DatabaseRepository {
       if (searchYear != null) {
         bool yearMatch = false;
 
-        if (camp.date_opened != null && camp.date_opened!.year == searchYear) {
+        if (camp.dateOpened != null && camp.dateOpened!.year == searchYear) {
           yearMatch = true;
         }
         if (!yearMatch &&
-            camp.liberation_date != null &&
-            camp.liberation_date!.year == searchYear) {
+            camp.liberationDate != null &&
+            camp.liberationDate!.year == searchYear) {
           yearMatch = true;
         }
 

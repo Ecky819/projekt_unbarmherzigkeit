@@ -146,7 +146,7 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 50));
 
       final victim = _victims.cast<Victim?>().firstWhere(
-        (victim) => victim?.victim_id == id,
+        (victim) => victim?.victimId == id,
         orElse: () => null,
       );
 
@@ -165,12 +165,12 @@ class MockDatabaseRepository implements DatabaseRepository {
 
       // Prüfe ob ID bereits existiert
       final existingIndex = _victims.indexWhere(
-        (v) => v.victim_id == victim.victim_id,
+        (v) => v.victimId == victim.victimId,
       );
       if (existingIndex != -1) {
         return DatabaseResult.failure(
           DatabaseException(
-            'Opfer mit ID ${victim.victim_id} existiert bereits',
+            'Opfer mit ID ${victim.victimId} existiert bereits',
             code: 'DUPLICATE_ID',
           ),
         );
@@ -190,11 +190,11 @@ class MockDatabaseRepository implements DatabaseRepository {
     try {
       await Future.delayed(const Duration(milliseconds: 100));
 
-      final index = _victims.indexWhere((v) => v.victim_id == victim.victim_id);
+      final index = _victims.indexWhere((v) => v.victimId == victim.victimId);
       if (index == -1) {
         return DatabaseResult.failure(
           DatabaseException(
-            'Opfer mit ID ${victim.victim_id} nicht gefunden',
+            'Opfer mit ID ${victim.victimId} nicht gefunden',
             code: 'NOT_FOUND',
           ),
         );
@@ -218,7 +218,7 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 100));
 
       final beforeLength = _victims.length;
-      _victims.removeWhere((victim) => victim.victim_id == id);
+      _victims.removeWhere((victim) => victim.victimId == id);
       final afterLength = _victims.length;
       if (beforeLength == afterLength) {
         return DatabaseResult.failure(
@@ -258,7 +258,7 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 50));
 
       final camp = _concentrationCamps.cast<ConcentrationCamp?>().firstWhere(
-        (camp) => camp?.camp_id == id,
+        (camp) => camp?.campId == id,
         orElse: () => null,
       );
 
@@ -279,12 +279,12 @@ class MockDatabaseRepository implements DatabaseRepository {
 
       // Prüfe ob ID bereits existiert
       final existingIndex = _concentrationCamps.indexWhere(
-        (c) => c.camp_id == camp.camp_id,
+        (c) => c.campId == camp.campId,
       );
       if (existingIndex != -1) {
         return DatabaseResult.failure(
           DatabaseException(
-            'Lager mit ID ${camp.camp_id} existiert bereits',
+            'Lager mit ID ${camp.campId} existiert bereits',
             code: 'DUPLICATE_ID',
           ),
         );
@@ -307,12 +307,12 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 100));
 
       final index = _concentrationCamps.indexWhere(
-        (c) => c.camp_id == camp.camp_id,
+        (c) => c.campId == camp.campId,
       );
       if (index == -1) {
         return DatabaseResult.failure(
           DatabaseException(
-            'Lager mit ID ${camp.camp_id} nicht gefunden',
+            'Lager mit ID ${camp.campId} nicht gefunden',
             code: 'NOT_FOUND',
           ),
         );
@@ -336,7 +336,7 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 100));
 
       final beforeLength = _concentrationCamps.length;
-      _concentrationCamps.removeWhere((camp) => camp.camp_id == id);
+      _concentrationCamps.removeWhere((camp) => camp.campId == id);
       final afterLength = _concentrationCamps.length;
       if (beforeLength == afterLength) {
         return DatabaseResult.failure(
@@ -376,7 +376,7 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 50));
 
       final commander = _commanders.cast<Commander?>().firstWhere(
-        (commander) => commander?.commander_id == id,
+        (commander) => commander?.commanderId == id,
         orElse: () => null,
       );
 
@@ -398,12 +398,12 @@ class MockDatabaseRepository implements DatabaseRepository {
 
       // Prüfe ob ID bereits existiert
       final existingIndex = _commanders.indexWhere(
-        (c) => c.commander_id == commander.commander_id,
+        (c) => c.commanderId == commander.commanderId,
       );
       if (existingIndex != -1) {
         return DatabaseResult.failure(
           DatabaseException(
-            'Kommandant mit ID ${commander.commander_id} existiert bereits',
+            'Kommandant mit ID ${commander.commanderId} existiert bereits',
             code: 'DUPLICATE_ID',
           ),
         );
@@ -427,12 +427,12 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 100));
 
       final index = _commanders.indexWhere(
-        (c) => c.commander_id == commander.commander_id,
+        (c) => c.commanderId == commander.commanderId,
       );
       if (index == -1) {
         return DatabaseResult.failure(
           DatabaseException(
-            'Kommandant mit ID ${commander.commander_id} nicht gefunden',
+            'Kommandant mit ID ${commander.commanderId} nicht gefunden',
             code: 'NOT_FOUND',
           ),
         );
@@ -456,7 +456,7 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 100));
 
       final beforeLength = _commanders.length;
-      _commanders.removeWhere((commander) => commander.commander_id == id);
+      _commanders.removeWhere((commander) => commander.commanderId == id);
       final afterLength = _commanders.length;
       if (beforeLength == afterLength) {
         return DatabaseResult.failure(
@@ -591,8 +591,8 @@ class MockDatabaseRepository implements DatabaseRepository {
         if (!locationMatch && item.deathplace != null) {
           locationMatch = item.deathplace!.toLowerCase().contains(query);
         }
-        if (!locationMatch && item.c_camp.isNotEmpty) {
-          locationMatch = item.c_camp.toLowerCase().contains(query);
+        if (!locationMatch && item.cCamp.isNotEmpty) {
+          locationMatch = item.cCamp.toLowerCase().contains(query);
         }
       } else if (item is Commander) {
         if (item.birthplace != null) {
@@ -622,13 +622,12 @@ class MockDatabaseRepository implements DatabaseRepository {
             yearMatch = true;
           }
         } else if (item is ConcentrationCamp) {
-          if (item.date_opened != null &&
-              item.date_opened!.year == searchYear) {
+          if (item.dateOpened != null && item.dateOpened!.year == searchYear) {
             yearMatch = true;
           }
           if (!yearMatch &&
-              item.liberation_date != null &&
-              item.liberation_date!.year == searchYear) {
+              item.liberationDate != null &&
+              item.liberationDate!.year == searchYear) {
             yearMatch = true;
           }
         } else if (item is Commander) {
@@ -814,12 +813,12 @@ class MockDatabaseRepository implements DatabaseRepository {
       // Prüfe auf doppelte IDs
       for (final victim in victims) {
         final existingIndex = _victims.indexWhere(
-          (v) => v.victim_id == victim.victim_id,
+          (v) => v.victimId == victim.victimId,
         );
         if (existingIndex != -1) {
           return DatabaseResult.failure(
             DatabaseException(
-              'Opfer mit ID ${victim.victim_id} existiert bereits',
+              'Opfer mit ID ${victim.victimId} existiert bereits',
               code: 'DUPLICATE_ID',
             ),
           );
@@ -844,13 +843,11 @@ class MockDatabaseRepository implements DatabaseRepository {
       await Future.delayed(const Duration(milliseconds: 300));
 
       for (final victim in victims) {
-        final index = _victims.indexWhere(
-          (v) => v.victim_id == victim.victim_id,
-        );
+        final index = _victims.indexWhere((v) => v.victimId == victim.victimId);
         if (index == -1) {
           return DatabaseResult.failure(
             DatabaseException(
-              'Opfer mit ID ${victim.victim_id} nicht gefunden',
+              'Opfer mit ID ${victim.victimId} nicht gefunden',
               code: 'NOT_FOUND',
             ),
           );
@@ -877,7 +874,7 @@ class MockDatabaseRepository implements DatabaseRepository {
       int removedCount = 0;
       for (final id in ids) {
         final beforeLength = _victims.length;
-        _victims.removeWhere((victim) => victim.victim_id == id);
+        _victims.removeWhere((victim) => victim.victimId == id);
         final afterLength = _victims.length;
         removedCount += (beforeLength - afterLength);
       }

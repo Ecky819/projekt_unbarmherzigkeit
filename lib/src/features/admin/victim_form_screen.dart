@@ -66,13 +66,13 @@ class _VictimFormScreenState extends State<VictimFormScreen> {
       final victim = widget.victim!;
       _surnameController.text = victim.surname;
       _nameController.text = victim.name;
-      _prisonerNumberController.text = victim.prisoner_number?.toString() ?? '';
+      _prisonerNumberController.text = victim.prisonerNumber?.toString() ?? '';
       _birthplaceController.text = victim.birthplace ?? '';
       _deathplaceController.text = victim.deathplace ?? '';
       _nationalityController.text = victim.nationality;
       _religionController.text = victim.religion;
       _occupationController.text = victim.occupation;
-      _cCampController.text = victim.c_camp;
+      _cCampController.text = victim.cCamp;
       _fateController.text = victim.fate;
       _imagePathController.text = victim.imagePath ?? '';
       _imageDescriptionController.text = victim.imageDescription ?? '';
@@ -80,8 +80,8 @@ class _VictimFormScreenState extends State<VictimFormScreen> {
 
       _birthDate = victim.birth;
       _deathDate = victim.death;
-      _envDate = victim.env_date;
-      _deathCertificate = victim.death_certificate;
+      _envDate = victim.envDate;
+      _deathCertificate = victim.deathCertificate;
     }
   }
 
@@ -318,7 +318,7 @@ class _VictimFormScreenState extends State<VictimFormScreen> {
                   ),
                 ),
                 Text(
-                  'ID: ${widget.victim!.victim_id}',
+                  'ID: ${widget.victim!.victimId}',
                   style: TextStyle(color: Colors.blue.shade600, fontSize: 12),
                 ),
               ],
@@ -533,10 +533,10 @@ class _VictimFormScreenState extends State<VictimFormScreen> {
 
     // Validiere Daten vor dem Speichern
     final victimData = VictimImpl(
-      victim_id: isEditing ? widget.victim!.victim_id : '',
+      victimId: isEditing ? widget.victim!.victimId : '',
       surname: _surnameController.text.trim(),
       name: _nameController.text.trim(),
-      prisoner_number: _prisonerNumberController.text.isNotEmpty
+      prisonerNumber: _prisonerNumberController.text.isNotEmpty
           ? int.tryParse(_prisonerNumberController.text)
           : null,
       birth: _birthDate,
@@ -550,9 +550,9 @@ class _VictimFormScreenState extends State<VictimFormScreen> {
       nationality: _nationalityController.text.trim(),
       religion: _religionController.text.trim(),
       occupation: _occupationController.text.trim(),
-      death_certificate: _deathCertificate,
-      env_date: _envDate,
-      c_camp: _cCampController.text.trim(),
+      deathCertificate: _deathCertificate,
+      envDate: _envDate,
+      cCamp: _cCampController.text.trim(),
       fate: _fateController.text.trim(),
       imagePath: _imagePathController.text.trim().isNotEmpty
           ? _imagePathController.text.trim()
@@ -593,7 +593,7 @@ class _VictimFormScreenState extends State<VictimFormScreen> {
                   // Verwende eine neue ID
                 )
                 as VictimImpl;
-        newVictim.victim_id = victimId;
+        newVictim.victimId = victimId;
 
         result = await widget.repository.createVictim(newVictim);
       }
@@ -647,7 +647,7 @@ class _VictimFormScreenState extends State<VictimFormScreen> {
       // Finde die höchste numerische ID
       int maxId = 0;
       for (final victim in victims) {
-        final id = int.tryParse(victim.victim_id);
+        final id = int.tryParse(victim.victimId);
         if (id != null && id > maxId) {
           maxId = id;
         }

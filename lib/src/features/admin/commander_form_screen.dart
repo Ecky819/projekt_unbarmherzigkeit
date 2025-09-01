@@ -330,7 +330,7 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
                   ),
                 ),
                 Text(
-                  'ID: ${widget.commander!.commander_id}',
+                  'ID: ${widget.commander!.commanderId}',
                   style: TextStyle(color: Colors.blue.shade600, fontSize: 12),
                 ),
               ],
@@ -578,7 +578,7 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
 
     try {
       final result = await widget.repository.deleteCommander(
-        widget.commander!.commander_id,
+        widget.commander!.commanderId,
       );
 
       if (!result.isSuccess) {
@@ -624,11 +624,11 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
 
     try {
       final commanderId = isEditing
-          ? widget.commander!.commander_id
+          ? widget.commander!.commanderId
           : await _getNextCommanderId();
 
       final commander = CommanderImpl(
-        commander_id: commanderId,
+        commanderId: commanderId,
         name: _nameController.text.trim(),
         surname: _surnameController.text.trim(),
         rank: _rankController.text.trim(),
@@ -714,7 +714,7 @@ class _CommanderFormScreenState extends State<CommanderFormScreen> {
       // Finde die höchste numerische ID
       int maxId = 0;
       for (final commander in commanders) {
-        final id = int.tryParse(commander.commander_id);
+        final id = int.tryParse(commander.commanderId);
         if (id != null && id > maxId) {
           maxId = id;
         }

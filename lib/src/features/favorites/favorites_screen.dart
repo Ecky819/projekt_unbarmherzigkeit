@@ -535,13 +535,13 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         return result.data;
       } else {
         // Log the error for debugging (optional)
-        print(
-          'Error loading detail item: ${result.error?.message ?? "Unknown error"}',
-        );
+        // print(
+        //   'Error loading detail item: ${result.error?.message ?? "Unknown error"}',
+        // );
         return null;
       }
     } catch (e) {
-      print('Exception while loading detail item: $e');
+      // print('Exception while loading detail item: $e');
       return null;
     }
   }

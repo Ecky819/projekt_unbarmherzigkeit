@@ -20,12 +20,12 @@ class DetailScreen extends StatelessWidget {
 
   String _getItemId() {
     if (item is Victim) {
-      return item.victim_id
+      return item.victimId
           .toString(); // Jetzt schon String, aber toString() für Sicherheit
     } else if (item is ConcentrationCamp) {
-      return item.camp_id.toString();
+      return item.campId.toString();
     } else if (item is Commander) {
-      return item.commander_id.toString();
+      return item.commanderId.toString();
     }
     return '0';
   }
@@ -511,7 +511,7 @@ class DetailScreen extends StatelessWidget {
                       ),
                       _buildInfoCard(
                         'Lager',
-                        (item as Victim).c_camp,
+                        (item as Victim).cCamp,
                         Icons.location_city,
                       ),
                     ] else if (item is ConcentrationCamp) ...[
@@ -595,7 +595,7 @@ class DetailScreen extends StatelessWidget {
 
       _buildDetailRow('Nachname', victim.surname, isImportant: true),
       _buildDetailRow('Vorname', victim.name, isImportant: true),
-      _buildDetailRow('Häftlingsnummer', victim.prisoner_number?.toString()),
+      _buildDetailRow('Häftlingsnummer', victim.prisonerNumber?.toString()),
       _buildDateRow('Geburtsdatum', victim.birth, isImportant: true),
       _buildDetailRow('Geburtsort', victim.birthplace),
       _buildDateRow('Sterbedatum', victim.death, isImportant: true),
@@ -616,10 +616,10 @@ class DetailScreen extends StatelessWidget {
       ),
       const SizedBox(height: 16),
 
-      _buildDetailRow('Konzentrationslager', victim.c_camp, isImportant: true),
-      _buildDateRow('Einlieferungsdatum', victim.env_date),
+      _buildDetailRow('Konzentrationslager', victim.cCamp, isImportant: true),
+      _buildDateRow('Einlieferungsdatum', victim.envDate),
       _buildDetailRow('Schicksal', victim.fate, isImportant: true),
-      _buildBooleanRow('Sterbeurkunde vorhanden', victim.death_certificate),
+      _buildBooleanRow('Sterbeurkunde vorhanden', victim.deathCertificate),
     ];
   }
 
@@ -641,8 +641,8 @@ class DetailScreen extends StatelessWidget {
       _buildDetailRow('Ort', camp.location, isImportant: true),
       _buildDetailRow('Land', camp.country, isImportant: true),
       _buildDetailRow('Typ', camp.type, isImportant: true),
-      _buildDateRow('Eröffnet', camp.date_opened, isImportant: true),
-      _buildDateRow('Befreit', camp.liberation_date, isImportant: true),
+      _buildDateRow('Eröffnet', camp.dateOpened, isImportant: true),
+      _buildDateRow('Befreit', camp.liberationDate, isImportant: true),
       _buildDetailRow('Kommandant', camp.commander),
 
       const SizedBox(height: 24),

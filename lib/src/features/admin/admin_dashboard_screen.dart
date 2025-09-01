@@ -128,7 +128,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             return victim.name.toLowerCase().contains(searchLower) ||
                 victim.surname.toLowerCase().contains(searchLower) ||
                 victim.nationality.toLowerCase().contains(searchLower) ||
-                victim.c_camp.toLowerCase().contains(searchLower);
+                victim.cCamp.toLowerCase().contains(searchLower);
           }).toList();
 
     filtered.sort((a, b) {
@@ -143,7 +143,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           result = a.nationality.compareTo(b.nationality);
           break;
         case 'camp':
-          result = a.c_camp.compareTo(b.c_camp);
+          result = a.cCamp.compareTo(b.cCamp);
           break;
         case 'birth':
           if (a.birth == null && b.birth == null) return 0;
@@ -191,10 +191,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           result = a.type.compareTo(b.type);
           break;
         case 'opened':
-          if (a.date_opened == null && b.date_opened == null) return 0;
-          if (a.date_opened == null) return 1;
-          if (b.date_opened == null) return -1;
-          result = a.date_opened!.compareTo(b.date_opened!);
+          if (a.dateOpened == null && b.dateOpened == null) return 0;
+          if (a.dateOpened == null) return 1;
+          if (b.dateOpened == null) return -1;
+          result = a.dateOpened!.compareTo(b.dateOpened!);
           break;
       }
       return _sortAscending ? result : -result;
@@ -824,14 +824,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  if (victim.prisoner_number != null)
-                    Text('Häftlingsnummer: ${victim.prisoner_number}'),
+                  if (victim.prisonerNumber != null)
+                    Text('Häftlingsnummer: ${victim.prisonerNumber}'),
                   if (victim.birth != null)
                     Text('Geboren: ${_formatDate(victim.birth!)}'),
                   if (victim.death != null)
                     Text('Gestorben: ${_formatDate(victim.death!)}'),
                   Text('Nationalität: ${victim.nationality}'),
-                  Text('KZ: ${victim.c_camp}'),
+                  Text('KZ: ${victim.cCamp}'),
                 ],
               ),
               trailing: _buildActionMenu(
@@ -901,10 +901,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   Text('Ort: ${camp.location}, ${camp.country}'),
                   Text('Typ: ${camp.type}'),
                   Text('Kommandant: ${camp.commander}'),
-                  if (camp.date_opened != null)
-                    Text('Eröffnet: ${_formatDate(camp.date_opened!)}'),
-                  if (camp.liberation_date != null)
-                    Text('Befreit: ${_formatDate(camp.liberation_date!)}'),
+                  if (camp.dateOpened != null)
+                    Text('Eröffnet: ${_formatDate(camp.dateOpened!)}'),
+                  if (camp.liberationDate != null)
+                    Text('Befreit: ${_formatDate(camp.liberationDate!)}'),
                 ],
               ),
               trailing: _buildActionMenu(
@@ -1067,12 +1067,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: const Row(
           children: [
             Icon(Icons.add, color: Color(0xFF283A49)),
             SizedBox(width: 8),
-            Text('Neuen Eintrag hinzufügen'),
+            Text(
+              'Neuen Eintrag hinzufügen',
+              style: TextStyle(fontFamily: 'SF Pro', fontSize: 18),
+            ),
           ],
         ),
         content: const Text(
@@ -1080,10 +1084,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           style: TextStyle(fontFamily: 'SF Pro'),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Abbrechen'),
-          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
@@ -1104,6 +1104,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               _navigateToCommanderForm();
             },
             child: const Text('Kommandant'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Abbrechen'),
           ),
         ],
       ),
@@ -1499,7 +1503,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   // Delete Methods - Angepasst für DatabaseResult
   Future<void> _deleteVictim(Victim victim) async {
     try {
-      final result = await widget.repository.deleteVictim(victim.victim_id);
+      final result = await widget.repository.deleteVictim(victim.victimId);
 
       if (!result.isSuccess) {
         throw result.error?.message ?? 'Unbekannter Fehler beim Löschen';
@@ -1531,7 +1535,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Future<void> _deleteCamp(ConcentrationCamp camp) async {
     try {
       final result = await widget.repository.deleteConcentrationCamp(
-        camp.camp_id,
+        camp.campId,
       );
 
       if (!result.isSuccess) {
@@ -1564,7 +1568,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Future<void> _deleteCommander(Commander commander) async {
     try {
       final result = await widget.repository.deleteCommander(
-        commander.commander_id,
+        commander.commanderId,
       );
 
       if (!result.isSuccess) {
