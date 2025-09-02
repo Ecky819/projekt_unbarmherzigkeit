@@ -66,7 +66,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
           maxLines: 1,
         ),
         foregroundColor: Colors.white,
-        //backgroundColor: AppColors.primaryDark,
+        backgroundColor: AppColors.primary,
       ),
       body: StreamBuilder<User?>(
         stream: _authService.authStateChanges,
@@ -102,7 +102,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: Colors.grey[300],
+                            color: AppColors.secondary,
                             child: const Icon(
                               Icons.image_not_supported,
                               size: 50,
@@ -117,6 +117,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                 // Hauptinformationen Card
                 Card(
                   elevation: 2,
+                  color: AppColors.secondary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -145,6 +146,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                 // Zeitraum Card
                 Card(
                   elevation: 2,
+                  color: AppColors.secondary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -179,6 +181,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                 if (widget.camp.description.isNotEmpty)
                   Card(
                     elevation: 2,
+                    color: AppColors.secondary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -195,7 +198,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                           Text(
                             widget.camp.description,
                             style: AppTextStyles.body,
-                            textAlign: TextAlign.justify,
+                            textAlign: TextAlign.left,
                           ),
                         ],
                       ),
@@ -208,6 +211,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                   const SizedBox(height: 16),
                   Card(
                     elevation: 2,
+                    color: AppColors.secondary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -304,7 +308,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isLoggedIn
                               ? AppColors.secondary
-                              : AppColors.accent,
+                              : AppColors.primary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
