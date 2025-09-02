@@ -1,23 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-
-import 'details/neuengamme.dart';
-import 'details/dachau.dart';
-import 'details/chaidari.dart';
-import 'details/cap_arcona.dart';
-import 'details/salzgitter_druette.dart';
-import 'details/hannover_stoecken.dart';
-import 'details/mauthausen.dart';
-import 'details/ravensbrueck.dart';
-import 'details/sachsenhausen.dart';
-import 'details/buchenwald.dart';
-import 'details/bremen_schuetzenhof.dart';
-import 'details/bremen_farge.dart';
-import 'details/hamburg_veddel.dart';
-import 'details/hamburg_hammerbrook.dart';
-import 'details/ladelund.dart';
-import 'details/pavlos_melas.dart';
+import 'package:provider/provider.dart';
+import '../../data/profile.dart';
+import '../../data/database_repository.dart';
+import '../database/widgets/camp_detail_view.dart'; // Wir erstellen diese View gleich
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -38,10 +25,30 @@ class _MapScreenState extends State<MapScreen> {
   final Set<Marker> _markers = {};
   final TextEditingController _searchController = TextEditingController();
 
-  // Drei verschiedene Custom Icons
+  // Custom Icons
   late BitmapDescriptor _customIcon;
   late BitmapDescriptor _secondaryIcon;
   late BitmapDescriptor _memoryIcon;
+
+  // Mapping von Marker-IDs zu Camp-Namen für Suche in der Datenbank
+  final Map<String, String> _markerToCampName = {
+    '1': 'Neuengamme',
+    '2': 'Dachau',
+    '3': 'Chaidari',
+    '7': 'Mauthausen',
+    '8': 'Ravensbrück',
+    '9': 'Sachsenhausen',
+    '10': 'Buchenwald',
+    '16': 'Pavlos Melas',
+    // Außenlager zum KZ Neuengamme
+    '5': 'Außenlager Salzgitter-Drütte',
+    '6': 'Außenlager Hannover-Stöcken',
+    '11': 'Außenlager Bremen-Schützenhof',
+    '12': 'Außenlager Bremen-Farge',
+    '13': 'Außenlager Hamburg-Veddel',
+    '14': 'Außenlager Hamburg-Hammerbrook',
+    '15': 'Außenlager Ladelund',
+  };
 
   @override
   void initState() {
@@ -51,7 +58,6 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _loadCustomMarkers() async {
     try {
-      // Laden des ersten Custom Icons
       _customIcon = await BitmapDescriptor.asset(
         const ImageConfiguration(size: Size(41, 58)),
         'assets/icons/custom_marker.png',
@@ -61,7 +67,6 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     try {
-      // Laden des zweiten Custom Icons
       _secondaryIcon = await BitmapDescriptor.asset(
         const ImageConfiguration(size: Size(41, 58)),
         'assets/icons/secondary_marker.png',
@@ -71,7 +76,6 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     try {
-      // Laden des dritten Custom Icons
       _memoryIcon = await BitmapDescriptor.asset(
         const ImageConfiguration(size: Size(41, 58)),
         'assets/icons/memory_marker.png',
@@ -83,173 +87,178 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  void _loadCampFromDatabase(String markerId) async {
+    final campName = _markerToCampName[markerId];
+    if (campName == null) {
+      // Für Marker ohne Datenbank-Eintrag (z.B. Cap Arcona Mahnmal)
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Keine Detailinformationen verfügbar')),
+      );
+      return;
+    }
+
+    // Repository aus dem Provider holen
+    final repository = Provider.of<DatabaseRepository>(context, listen: false);
+
+    // Lade alle Lager und suche nach dem Namen
+    final result = await repository.getConcentrationCamps();
+
+    if (result.isSuccess && result.data != null && mounted) {
+      // Finde das Lager mit dem passenden Namen
+      ConcentrationCamp? camp;
+      try {
+        camp = result.data!.firstWhere((c) => c.name == campName);
+      } catch (e) {
+        // Kein passendes Lager gefunden
+        camp = null;
+      }
+
+      if (camp != null) {
+        // Zeige die Camp-Detail-Ansicht
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CampDetailScreen(camp: camp!),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lager "$campName" nicht in der Datenbank gefunden'),
+          ),
+        );
+      }
+    } else if (mounted) {
+      // Fehlerbehandlung
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.error?.message ?? 'Lager konnten nicht geladen werden',
+          ),
+        ),
+      );
+    }
+  }
+
   void _addFixedMarkers() {
     setState(() {
       _markers.addAll([
-        // Hauptgedenkstätten mit _customIcon
+        // Hauptgedenkstätten
         Marker(
           markerId: const MarkerId('1'),
           position: const LatLng(53.44533791501996, 10.231914427627382),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Neuengamme'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen1()),
-          ),
+          onTap: () => _loadCampFromDatabase('1'),
         ),
         Marker(
           markerId: const MarkerId('2'),
           position: const LatLng(48.26803027293752, 11.468799470140294),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Dachau'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen2()),
-          ),
+          onTap: () => _loadCampFromDatabase('2'),
         ),
         Marker(
           markerId: const MarkerId('3'),
           position: const LatLng(38.017, 23.657),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Chaidari'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen3()),
-          ),
+          onTap: () => _loadCampFromDatabase('3'),
         ),
         Marker(
           markerId: const MarkerId('7'),
           position: const LatLng(48.2572730983791, 14.50011983452205),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Mauthausen'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen7()),
-          ),
+          onTap: () => _loadCampFromDatabase('7'),
         ),
         Marker(
           markerId: const MarkerId('8'),
           position: const LatLng(53.191261740815285, 13.166822194955147),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Ravensbrück'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen8()),
-          ),
+          onTap: () => _loadCampFromDatabase('8'),
         ),
         Marker(
           markerId: const MarkerId('9'),
           position: const LatLng(52.76603986508148, 13.264222206697125),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Sachsenhausen'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen9()),
-          ),
+          onTap: () => _loadCampFromDatabase('9'),
         ),
         Marker(
           markerId: const MarkerId('10'),
           position: const LatLng(51.09989118661302, 11.2670648585419),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Buchenwald'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen10()),
-          ),
+          onTap: () => _loadCampFromDatabase('10'),
         ),
         Marker(
           markerId: const MarkerId('16'),
           position: const LatLng(40.66228644935668, 22.936220486263025),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Pavlos Melas'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen16()),
-          ),
+          onTap: () => _loadCampFromDatabase('16'),
         ),
 
-        // Außenlager mit _secondaryIcon
+        // Außenlager
         Marker(
           markerId: const MarkerId('5'),
           position: const LatLng(52.15831978059626, 10.418884460728652),
           icon: _secondaryIcon,
           infoWindow: const InfoWindow(title: 'Außenlager Salzgitter-Drütte'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen5()),
-          ),
+          onTap: () => _loadCampFromDatabase('5'),
         ),
         Marker(
           markerId: const MarkerId('6'),
           position: const LatLng(52.41109774125131, 9.632497590344874),
           icon: _secondaryIcon,
           infoWindow: const InfoWindow(title: 'Außenlager Hannover-Stöcken'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen6()),
-          ),
+          onTap: () => _loadCampFromDatabase('6'),
         ),
         Marker(
           markerId: const MarkerId('11'),
           position: const LatLng(53.11853532824218, 8.767580978044537),
           icon: _secondaryIcon,
           infoWindow: const InfoWindow(title: 'Außenlager Bremen-Schützenhof'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen11()),
-          ),
+          onTap: () => _loadCampFromDatabase('11'),
         ),
         Marker(
           markerId: const MarkerId('12'),
           position: const LatLng(53.217068047232104, 8.506245553092445),
           icon: _secondaryIcon,
           infoWindow: const InfoWindow(title: 'Außenlager Bremen-Farge'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen12()),
-          ),
+          onTap: () => _loadCampFromDatabase('12'),
         ),
         Marker(
           markerId: const MarkerId('13'),
           position: const LatLng(53.52476449769444, 10.009821352971022),
           icon: _secondaryIcon,
           infoWindow: const InfoWindow(title: 'Außenlager Hamburg-Veddel'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen13()),
-          ),
+          onTap: () => _loadCampFromDatabase('13'),
         ),
         Marker(
           markerId: const MarkerId('14'),
           position: const LatLng(53.5508921939367, 10.022469180968752),
           icon: _secondaryIcon,
           infoWindow: const InfoWindow(title: 'Außenlager Hamburg-Hammerbrook'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen14()),
-          ),
+          onTap: () => _loadCampFromDatabase('14'),
         ),
         Marker(
           markerId: const MarkerId('15'),
           position: const LatLng(54.84776339877242, 9.036395587840683),
           icon: _secondaryIcon,
           infoWindow: const InfoWindow(title: 'Außenlager Ladelund'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen15()),
-          ),
+          onTap: () => _loadCampFromDatabase('15'),
         ),
 
-        // Mahnmale mit _memoryIcon
+        // Mahnmale
         Marker(
           markerId: const MarkerId('4'),
           position: const LatLng(54.09143087671109, 10.818427949630182),
           icon: _memoryIcon,
           infoWindow: const InfoWindow(title: 'Cap Arcona Mahnmal'),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DetailScreen4()),
-          ),
+          onTap: () => _loadCampFromDatabase('4'),
         ),
       ]);
     });

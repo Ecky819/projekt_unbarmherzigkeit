@@ -8,6 +8,8 @@ import 'src/common/main_navigation.dart';
 import 'src/theme/app_theme.dart';
 import 'src/services/language_service.dart';
 import 'l10n/app_localizations.dart';
+import 'src/data/database_repository.dart';
+import 'src/data/FirebaseRepository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,18 +19,29 @@ Future<void> main() async {
   final languageService = LanguageService();
   await languageService.initialize();
 
-  runApp(MyApp(languageService: languageService));
+  // Erstelle das Repository
+  final DatabaseRepository repository = FirebaseRepository();
+
+  runApp(MyApp(languageService: languageService, repository: repository));
 }
 
 class MyApp extends StatelessWidget {
   final LanguageService languageService;
+  final DatabaseRepository repository;
 
-  const MyApp({super.key, required this.languageService});
+  const MyApp({
+    super.key,
+    required this.languageService,
+    required this.repository,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: languageService,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: languageService),
+        Provider<DatabaseRepository>.value(value: repository),
+      ],
       child: Consumer<LanguageService>(
         builder: (context, langService, child) {
           return MaterialApp(
