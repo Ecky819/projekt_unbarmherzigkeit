@@ -41,13 +41,14 @@ class _MapScreenState extends State<MapScreen> {
     '10': 'Buchenwald',
     '16': 'Pavlos Melas',
     // Außenlager zum KZ Neuengamme
-    '5': 'Außenlager Salzgitter-Drütte',
-    '6': 'Außenlager Hannover-Stöcken',
-    '11': 'Außenlager Bremen-Schützenhof',
-    '12': 'Außenlager Bremen-Farge',
-    '13': 'Außenlager Hamburg-Veddel',
-    '14': 'Außenlager Hamburg-Hammerbrook',
-    '15': 'Außenlager Ladelund',
+    '5': 'Salzgitter-Drütte',
+    '6': 'Hannover-Stöcken',
+    '11': 'Bremen-Schützenhof',
+    '12': 'Bremen-Farge',
+    '13': 'Hamburg-Veddel',
+    '14': 'Hamburg-Hammerbrook',
+    '15': 'Ladelund',
+    '17': 'Hamburg-Hammerbrook',
   };
 
   @override
@@ -251,7 +252,13 @@ class _MapScreenState extends State<MapScreen> {
           infoWindow: const InfoWindow(title: 'Außenlager Ladelund'),
           onTap: () => _loadCampFromDatabase('15'),
         ),
-
+        Marker(
+          markerId: const MarkerId('17'),
+          position: const LatLng(53.550936023637625, 10.022374851112998),
+          icon: _secondaryIcon,
+          infoWindow: const InfoWindow(title: 'Außenlager Hamburg-Hammerbrook'),
+          onTap: () => _loadCampFromDatabase('17'),
+        ),
         // Mahnmale
         Marker(
           markerId: const MarkerId('4'),

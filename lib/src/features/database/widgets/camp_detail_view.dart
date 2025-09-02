@@ -52,10 +52,21 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Generiere den Titel aus Typ und Name
+    final String appBarTitle = widget.camp.type.isNotEmpty
+        ? '${widget.camp.type} ${widget.camp.name}'
+        : widget.camp.name;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.camp.name),
+        title: Text(
+          appBarTitle,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
         foregroundColor: Colors.white,
+        //backgroundColor: AppColors.primaryDark,
       ),
       body: StreamBuilder<User?>(
         stream: _authService.authStateChanges,
