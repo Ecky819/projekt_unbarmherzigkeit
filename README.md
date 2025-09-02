@@ -10,4 +10,4 @@ Der "internen" Bereich ist nur für Benutzer, die sich mit dem "offen" Bereich r
 
 Die nächsten Schritte für die Umsetzung sind die Einbindung der Google Maps Funktion (erledigt), die gesamte Login bzw. Registrierung Logik und Screens, sowie die Datenbankstruktur und die Datenbankzugriffskontrolle. (alle Aufgaben erledigt und gefixt).
 
-Weitere Aufgaben sind: Einbindung der Lagerseiten aus der Datenbank in die Map, Einbindung eines Sprachenwechselsystems Deutsch, Englisch und Griechisch, sowie bei gleichem Code Erstellung einer Web App. Zuletzt Produktionsreife herstellen, Fehler finden, Code cleanen
+Weitere Aufgaben sind: Einbindung der Lagerseiten aus der Datenbank in die Map (Erledigt), Einbindung eines Sprachenwechselsystems Deutsch, Englisch und Griechisch, sowie bei gleichem Code Erstellung einer Web App. Zuletzt Produktionsreife herstellen, Fehler finden, Code cleanen.
