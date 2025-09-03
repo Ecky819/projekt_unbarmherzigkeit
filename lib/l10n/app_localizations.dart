@@ -63,8 +63,7 @@ import 'app_localizations_en.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -72,8 +71,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -85,19 +83,18 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('de'),
     Locale('el'),
-    Locale('en'),
+    Locale('en')
   ];
 
   /// The title of the application
@@ -1005,10 +1002,201 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in for more features'**
   String get drawerloginForMoreFeatures;
+
+  /// No description provided for @loadingNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading navigation...'**
+  String get loadingNavigation;
+
+  /// No description provided for @loadingDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Database is being reloaded...'**
+  String get loadingDatabase;
+
+  /// No description provided for @errorRetryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get errorRetryButton;
+
+  /// No description provided for @errorLoadingNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading navigation: {error}'**
+  String errorLoadingNavigation(Object error);
+
+  /// No description provided for @errorDatabaseLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must log in to access the database.'**
+  String get errorDatabaseLoginRequired;
+
+  /// No description provided for @errorAdminLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must log in to access the admin dashboard.'**
+  String get errorAdminLoginRequired;
+
+  /// No description provided for @errorAdminPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have admin permission for this feature.'**
+  String get errorAdminPermissionRequired;
+
+  /// No description provided for @errorRepositoryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Repository not available. Please reload the app.'**
+  String get errorRepositoryUnavailable;
+
+  /// No description provided for @userEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'User email'**
+  String get userEmail;
+
+  /// No description provided for @unknownEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown email'**
+  String get unknownEmail;
+
+  /// No description provided for @adminBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMIN'**
+  String get adminBadge;
+
+  /// No description provided for @adminPermissionActiveShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin active'**
+  String get adminPermissionActiveShort;
+
+  /// No description provided for @languageSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get languageSwitch;
+
+  /// No description provided for @languageSwitchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change app language'**
+  String get languageSwitchSubtitle;
+
+  /// No description provided for @languageDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Language'**
+  String get languageDialogTitle;
+
+  /// No description provided for @languageDialogClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get languageDialogClose;
+
+  /// No description provided for @desktopUserInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'User Information'**
+  String get desktopUserInfo;
+
+  /// No description provided for @mobileDrawerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Access'**
+  String get mobileDrawerTitle;
+
+  /// No description provided for @tabletLayoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tablet View'**
+  String get tabletLayoutTitle;
+
+  /// No description provided for @accessibilityNavigationHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to home'**
+  String get accessibilityNavigationHome;
+
+  /// No description provided for @accessibilityNavigationTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to timeline'**
+  String get accessibilityNavigationTimeline;
+
+  /// No description provided for @accessibilityNavigationMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to map'**
+  String get accessibilityNavigationMap;
+
+  /// No description provided for @accessibilityNavigationFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to favorites'**
+  String get accessibilityNavigationFavorites;
+
+  /// No description provided for @accessibilityNavigationProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to profile'**
+  String get accessibilityNavigationProfile;
+
+  /// No description provided for @accessibilityLanguageSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch language'**
+  String get accessibilityLanguageSwitch;
+
+  /// No description provided for @accessibilityAdminPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin panel access'**
+  String get accessibilityAdminPanel;
+
+  /// No description provided for @navigationRailExtend.
+  ///
+  /// In en, this message translates to:
+  /// **'Extend navigation'**
+  String get navigationRailExtend;
+
+  /// No description provided for @navigationRailCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse navigation'**
+  String get navigationRailCollapse;
+
+  /// No description provided for @quickAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Access'**
+  String get quickAccessTitle;
+
+  /// No description provided for @adminStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Statistics'**
+  String get adminStatsTitle;
+
+  /// No description provided for @verificationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Status'**
+  String get verificationStatus;
+
+  /// No description provided for @adminDashboardTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open admin dashboard'**
+  String get adminDashboardTooltip;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -1017,28 +1205,26 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['de', 'el', 'en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['de', 'el', 'en'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'de':
-      return AppLocalizationsDe();
-    case 'el':
-      return AppLocalizationsEl();
-    case 'en':
-      return AppLocalizationsEn();
+    case 'de': return AppLocalizationsDe();
+    case 'el': return AppLocalizationsEl();
+    case 'en': return AppLocalizationsEn();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

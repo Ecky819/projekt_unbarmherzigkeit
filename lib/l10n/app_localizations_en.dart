@@ -45,15 +45,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hometimelineTitle => 'TIMELINE';
 
   @override
-  String get hometimelineDescription =>
-      'Here you can find all historical events in Greece from 1941 to 1945.';
+  String get hometimelineDescription => 'Here you can find all historical events in Greece from 1941 to 1945.';
 
   @override
   String get homemapTitle => 'MAP';
 
   @override
-  String get homemapDescription =>
-      'Here you can find our map with all camp locations marked.';
+  String get homemapDescription => 'Here you can find our map with all camp locations marked.';
 
   @override
   String get authwelcomeBack => 'Welcome back';
@@ -189,12 +187,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get favoritesnoFavorites => 'No favorites yet';
 
   @override
-  String get favoritesnoFavoritesDescription =>
-      'Mark entries in the database as favorites to see them here.';
+  String get favoritesnoFavoritesDescription => 'Mark entries in the database as favorites to see them here.';
 
   @override
-  String get favoritesloginRequired =>
-      'You must be logged in to set favorites.';
+  String get favoritesloginRequired => 'You must be logged in to set favorites.';
 
   @override
   String get favoritesaddedToFavorites => 'Added to favorites';
@@ -251,8 +247,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilelogoutConfirm => 'Do you really want to log out?';
 
   @override
-  String get profiledeleteConfirm =>
-      'Are you sure you want to delete your account? This action cannot be undone.';
+  String get profiledeleteConfirm => 'Are you sure you want to delete your account? This action cannot be undone.';
 
   @override
   String get admindashboard => 'Admin Dashboard';
@@ -282,33 +277,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get admincancel => 'Cancel';
 
   @override
-  String get adminconfirmDelete =>
-      'Do you really want to delete this entry? This action cannot be undone.';
+  String get adminconfirmDelete => 'Do you really want to delete this entry? This action cannot be undone.';
 
   @override
   String get timelineeventsoct28_1940 => 'Italian invasion of Greece';
 
   @override
-  String get timelineeventsapr_1941 =>
-      'German Wehrmacht starts the Balkan campaign';
+  String get timelineeventsapr_1941 => 'German Wehrmacht starts the Balkan campaign';
 
   @override
   String get timelineeventssummer_1941 => 'Beginning of the Great Famine';
 
   @override
-  String get timelineeventssep_1941 =>
-      'Formation of the first organized resistance groups';
+  String get timelineeventssep_1941 => 'Formation of the first organized resistance groups';
 
   @override
-  String get timelineeventsnov_1942 =>
-      'Operation Harling: Destruction of Gorgopotamos Bridge';
+  String get timelineeventsnov_1942 => 'Operation Harling: Destruction of Gorgopotamos Bridge';
 
   @override
   String get timelineeventsmar24_1943 => 'Domeniko massacre (Thessaly)';
 
   @override
-  String get timelineeventsaug17_1943 =>
-      'Destruction of the Jewish community of Thessaloniki';
+  String get timelineeventsaug17_1943 => 'Destruction of the Jewish community of Thessaloniki';
 
   @override
   String get timelineeventssep14_1943 => 'Italian capitulation';
@@ -323,8 +313,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timelineeventsoct12_1944 => 'Liberation of Athens';
 
   @override
-  String get timelineeventsdec28_1944 =>
-      'Dekemvriana: Street battles in Athens';
+  String get timelineeventsdec28_1944 => 'Dekemvriana: Street battles in Athens';
 
   @override
   String get timelineeventsfeb12_1945 => 'Varkiza Agreement';
@@ -435,15 +424,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get validationinvalidEmail => 'Please enter a valid email address';
 
   @override
-  String get validationpasswordTooShort =>
-      'Password must be at least 8 characters long';
+  String get validationpasswordTooShort => 'Password must be at least 8 characters long';
 
   @override
   String get validationpasswordsDoNotMatch => 'Passwords do not match';
 
   @override
-  String get validationusernameTooShort =>
-      'Username must be between 4 and 10 characters long';
+  String get validationusernameTooShort => 'Username must be between 4 and 10 characters long';
 
   @override
   String get drawerhome => 'Home';
@@ -483,4 +470,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drawerloginForMoreFeatures => 'Sign in for more features';
+
+  @override
+  String get loadingNavigation => 'Loading navigation...';
+
+  @override
+  String get loadingDatabase => 'Database is being reloaded...';
+
+  @override
+  String get errorRetryButton => 'Try again';
+
+  @override
+  String errorLoadingNavigation(Object error) {
+    return 'Error loading navigation: $error';
+  }
+
+  @override
+  String get errorDatabaseLoginRequired => 'You must log in to access the database.';
+
+  @override
+  String get errorAdminLoginRequired => 'You must log in to access the admin dashboard.';
+
+  @override
+  String get errorAdminPermissionRequired => 'You don\'t have admin permission for this feature.';
+
+  @override
+  String get errorRepositoryUnavailable => 'Repository not available. Please reload the app.';
+
+  @override
+  String get userEmail => 'User email';
+
+  @override
+  String get unknownEmail => 'Unknown email';
+
+  @override
+  String get adminBadge => 'ADMIN';
+
+  @override
+  String get adminPermissionActiveShort => 'Admin active';
+
+  @override
+  String get languageSwitch => 'Language';
+
+  @override
+  String get languageSwitchSubtitle => 'Change app language';
+
+  @override
+  String get languageDialogTitle => 'Choose Language';
+
+  @override
+  String get languageDialogClose => 'Close';
+
+  @override
+  String get desktopUserInfo => 'User Information';
+
+  @override
+  String get mobileDrawerTitle => 'Quick Access';
+
+  @override
+  String get tabletLayoutTitle => 'Tablet View';
+
+  @override
+  String get accessibilityNavigationHome => 'Navigate to home';
+
+  @override
+  String get accessibilityNavigationTimeline => 'Navigate to timeline';
+
+  @override
+  String get accessibilityNavigationMap => 'Navigate to map';
+
+  @override
+  String get accessibilityNavigationFavorites => 'Navigate to favorites';
+
+  @override
+  String get accessibilityNavigationProfile => 'Navigate to profile';
+
+  @override
+  String get accessibilityLanguageSwitch => 'Switch language';
+
+  @override
+  String get accessibilityAdminPanel => 'Admin panel access';
+
+  @override
+  String get navigationRailExtend => 'Extend navigation';
+
+  @override
+  String get navigationRailCollapse => 'Collapse navigation';
+
+  @override
+  String get quickAccessTitle => 'Quick Access';
+
+  @override
+  String get adminStatsTitle => 'Admin Statistics';
+
+  @override
+  String get verificationStatus => 'Verification Status';
+
+  @override
+  String get adminDashboardTooltip => 'Open admin dashboard';
 }

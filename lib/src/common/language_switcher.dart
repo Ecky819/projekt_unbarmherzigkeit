@@ -15,14 +15,22 @@ class LanguageSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final languageService = context.watch<LanguageService>();
-    final l10n = AppLocalizations.of(context)!;
+    return Consumer<LanguageService>(
+      builder: (context, languageService, child) {
+        final l10n = AppLocalizations.of(context);
 
-    if (compact) {
-      return _buildCompactSwitcher(context, languageService);
-    } else {
-      return _buildFullSwitcher(context, languageService, l10n);
-    }
+        // Fallback falls l10n noch nicht verfügbar
+        if (l10n == null) {
+          return const SizedBox.shrink();
+        }
+
+        if (compact) {
+          return _buildCompactSwitcher(context, languageService);
+        } else {
+          return _buildFullSwitcher(context, languageService, l10n);
+        }
+      },
+    );
   }
 
   Widget _buildCompactSwitcher(
@@ -54,7 +62,12 @@ class LanguageSwitcher extends StatelessWidget {
           ],
         ],
       ),
-      onSelected: (locale) => languageService.changeLanguage(locale),
+      // EINFACHER SPRACHWECHSEL - Nur Service-Call
+      onSelected: (locale) {
+        if (languageService.currentLocale != locale) {
+          languageService.changeLanguage(locale);
+        }
+      },
       itemBuilder: (context) => LanguageService.supportedLocales.map((locale) {
         final isSelected = locale == languageService.currentLocale;
         final displayName = _getDisplayName(locale.languageCode);
@@ -101,133 +114,64 @@ class LanguageSwitcher extends StatelessWidget {
     LanguageService languageService,
     AppLocalizations l10n,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            languageService.currentLanguageFlag,
-            width: 20,
-            height: 14,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.language, size: 20, color: Colors.white);
-            },
-          ),
-          const SizedBox(width: 8),
-          Text(
-            languageService.currentLanguageDisplayName,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              fontFamily: 'SF Pro',
-            ),
-          ),
-          const SizedBox(width: 4),
-          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
-        ],
-      ),
-    );
-  }
-
-  String _getDisplayName(String languageCode) {
-    switch (languageCode) {
-      case 'el':
-        return 'Ελληνικά';
-      case 'en':
-        return 'English';
-      case 'de':
-        return 'Deutsch';
-      default:
-        return 'Deutsch';
-    }
-  }
-
-  String _getFlagPath(String languageCode) {
-    switch (languageCode) {
-      case 'el':
-        return 'assets/icons/flag_greece.png';
-      case 'en':
-        return 'assets/icons/flag_uk.png';
-      case 'de':
-        return 'assets/icons/flag_germany.png';
-      default:
-        return 'assets/icons/flag_germany.png';
-    }
-  }
-}
-
-// Erweiterte Language Switcher Variante für Settings
-class LanguageSwitcherTile extends StatelessWidget {
-  const LanguageSwitcherTile({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final languageService = context.watch<LanguageService>();
-
-    return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
+    return GestureDetector(
+      onTap: () => _showLanguageDialog(context, languageService, l10n),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF283A49).withValues(alpha: 0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
         ),
-        child: const Icon(Icons.language, color: Color(0xFF283A49), size: 20),
-      ),
-      title: const Text(
-        'Sprache / Language / Γλώσσα',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF283A49),
-          fontFamily: 'SF Pro',
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              languageService.currentLanguageFlag,
+              width: 20,
+              height: 14,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.language,
+                  size: 20,
+                  color: Colors.white,
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            Text(
+              languageService.currentLanguageDisplayName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'SF Pro',
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              color: Colors.white,
+              size: 16,
+            ),
+          ],
         ),
       ),
-      subtitle: Text(
-        languageService.currentLanguageDisplayName,
-        style: TextStyle(
-          fontSize: 14,
-          color: Colors.grey[600],
-          fontFamily: 'SF Pro',
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            languageService.currentLanguageFlag,
-            width: 24,
-            height: 16,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.language, size: 20);
-            },
-          ),
-          const SizedBox(width: 8),
-          Icon(Icons.chevron_right, color: Colors.grey[400]),
-        ],
-      ),
-      onTap: () => _showLanguageDialog(context, languageService),
     );
   }
 
   void _showLanguageDialog(
     BuildContext context,
     LanguageService languageService,
+    AppLocalizations l10n,
   ) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text(
-            'Sprache wählen / Choose Language / Επιλέξτε γλώσσα',
-            style: TextStyle(fontFamily: 'SF Pro'),
+          title: Text(
+            l10n.languageDialogTitle,
+            style: const TextStyle(fontFamily: 'SF Pro'),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -255,21 +199,191 @@ class LanguageSwitcherTile extends StatelessWidget {
                   ),
                 ),
                 trailing: isSelected
-                    ? Icon(Icons.check, color: Theme.of(context).primaryColor)
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(dialogContext).primaryColor,
+                      )
                     : null,
                 onTap: () {
-                  languageService.changeLanguage(locale);
-                  Navigator.of(context).pop();
+                  Navigator.of(dialogContext).pop();
+                  // EINFACHER SPRACHWECHSEL
+                  if (languageService.currentLocale != locale) {
+                    languageService.changeLanguage(locale);
+                  }
                 },
               );
             }).toList(),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Schließen / Close / Κλείσιμο',
-                style: TextStyle(fontFamily: 'SF Pro'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                l10n.languageDialogClose,
+                style: const TextStyle(fontFamily: 'SF Pro'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _getDisplayName(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'Ελληνικά';
+      case 'en':
+        return 'English';
+      case 'de':
+        return 'Deutsch';
+      default:
+        return 'Deutsch';
+    }
+  }
+
+  String _getFlagPath(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'assets/icons/flag_greece.png';
+      case 'en':
+        return 'assets/icons/flag_uk.png';
+      case 'de':
+        return 'assets/icons/flag_de.png';
+      default:
+        return 'assets/icons/flag_de.png';
+    }
+  }
+}
+
+// LanguageSwitcherTile für Settings
+class LanguageSwitcherTile extends StatelessWidget {
+  const LanguageSwitcherTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LanguageService>(
+      builder: (context, languageService, child) {
+        final l10n = AppLocalizations.of(context);
+
+        if (l10n == null) {
+          return const ListTile(
+            leading: Icon(Icons.language),
+            title: Text('Language'),
+            subtitle: Text('Loading...'),
+          );
+        }
+
+        return ListTile(
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFF283A49).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(
+              Icons.language,
+              color: Color(0xFF283A49),
+              size: 20,
+            ),
+          ),
+          title: Text(
+            l10n.languageSwitch,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF283A49),
+              fontFamily: 'SF Pro',
+            ),
+          ),
+          subtitle: Text(
+            languageService.currentLanguageDisplayName,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+              fontFamily: 'SF Pro',
+            ),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                languageService.currentLanguageFlag,
+                width: 24,
+                height: 16,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.language, size: 20);
+                },
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, color: Colors.grey[400]),
+            ],
+          ),
+          onTap: () => _showLanguageDialog(context, languageService, l10n),
+        );
+      },
+    );
+  }
+
+  void _showLanguageDialog(
+    BuildContext context,
+    LanguageService languageService,
+    AppLocalizations l10n,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            l10n.languageDialogTitle,
+            style: const TextStyle(fontFamily: 'SF Pro'),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: LanguageService.supportedLocales.map((locale) {
+              final isSelected = locale == languageService.currentLocale;
+              final displayName = _getDisplayName(locale.languageCode);
+              final flagPath = _getFlagPath(locale.languageCode);
+
+              return ListTile(
+                leading: Image.asset(
+                  flagPath,
+                  width: 32,
+                  height: 22,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.language, size: 24);
+                  },
+                ),
+                title: Text(
+                  displayName,
+                  style: TextStyle(
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    fontFamily: 'SF Pro',
+                  ),
+                ),
+                trailing: isSelected
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(dialogContext).primaryColor,
+                      )
+                    : null,
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  if (languageService.currentLocale != locale) {
+                    languageService.changeLanguage(locale);
+                  }
+                },
+              );
+            }).toList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                l10n.languageDialogClose,
+                style: const TextStyle(fontFamily: 'SF Pro'),
               ),
             ),
           ],
@@ -298,9 +412,9 @@ class LanguageSwitcherTile extends StatelessWidget {
       case 'en':
         return 'assets/icons/flag_uk.png';
       case 'de':
-        return 'assets/icons/flag_germany.png';
+        return 'assets/icons/flag_de.png';
       default:
-        return 'assets/icons/flag_germany.png';
+        return 'assets/icons/flag_de.png';
     }
   }
 }

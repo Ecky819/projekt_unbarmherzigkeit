@@ -57,11 +57,11 @@ class HomeScreen extends StatelessWidget {
                   width: 167,
                   margin: const EdgeInsets.only(right: 16),
                   child: QuicklinkCard(
-                    title: 'TIMELINE',
+                    title: 'ZEITLINIE',
                     text:
                         'Hier finden sie alle historischen Ereignisse in Griechenland von 1941 bis 1945.',
                     imagePath: 'assets/icons/more_info.png',
-                    onTap: () => navigateTo('Timeline'),
+                    onTap: () => navigateTo('Zeitlinie'),
                   ),
                 ),
                 SizedBox(

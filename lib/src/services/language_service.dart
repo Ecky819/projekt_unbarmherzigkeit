@@ -4,54 +4,71 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LanguageService extends ChangeNotifier {
   static const String _languageKey = 'selected_language';
 
-  // Erweiterte unterstützte Sprachen
+  // Unterstützte Sprachen
   static const List<Locale> supportedLocales = [
+    Locale('de', 'DE'), // Deutsch als Standard
     Locale('en', 'US'), // Englisch
     Locale('el', 'GR'), // Griechisch
-    Locale('de', 'DE'), // Deutsch
   ];
 
-  Locale _currentLocale = const Locale('de', 'DE'); // Standard: Deutsch
+  Locale _currentLocale = const Locale('de', 'DE');
 
   Locale get currentLocale => _currentLocale;
 
-  // Initialisierung - lädt gespeicherte Sprache
+  // Initialisierung
   Future<void> initialize() async {
-    final prefs = await SharedPreferences.getInstance();
-    final languageCode = prefs.getString(_languageKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final languageCode = prefs.getString(_languageKey);
 
-    if (languageCode != null) {
-      _currentLocale = supportedLocales.firstWhere(
-        (locale) => locale.languageCode == languageCode,
-        orElse: () => const Locale('de', 'DE'), // Fallback zu Deutsch
-      );
-      notifyListeners();
+      if (languageCode != null) {
+        final locale = supportedLocales.firstWhere(
+          (locale) => locale.languageCode == languageCode,
+          orElse: () => const Locale('de', 'DE'),
+        );
+        _currentLocale = locale;
+      }
+    } catch (e) {
+      debugPrint('Error loading language: $e');
+      _currentLocale = const Locale('de', 'DE');
     }
   }
 
-  // Sprache wechseln
+  // EINFACHER SPRACHWECHSEL - nur notifyListeners
   Future<void> changeLanguage(Locale newLocale) async {
-    if (!supportedLocales.contains(newLocale)) return;
+    if (!supportedLocales.contains(newLocale) || _currentLocale == newLocale) {
+      return;
+    }
 
-    _currentLocale = newLocale;
+    try {
+      // Sprache setzen
+      _currentLocale = newLocale;
 
-    // Speichern in SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_languageKey, newLocale.languageCode);
+      // UI sofort aktualisieren
+      notifyListeners();
 
-    notifyListeners();
+      // Asynchron speichern (nicht blockierend)
+      _saveLanguageAsync(newLocale);
+    } catch (e) {
+      debugPrint('Error changing language: $e');
+    }
   }
 
-  // Helper: Aktuelle Sprache ist Griechisch?
+  // Asynchrones Speichern ohne UI zu blockieren
+  Future<void> _saveLanguageAsync(Locale locale) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_languageKey, locale.languageCode);
+    } catch (e) {
+      debugPrint('Error saving language: $e');
+    }
+  }
+
+  // Helper-Methoden
   bool get isGreek => _currentLocale.languageCode == 'el';
-
-  // Helper: Aktuelle Sprache ist Englisch?
   bool get isEnglish => _currentLocale.languageCode == 'en';
-
-  // Helper: Aktuelle Sprache ist Deutsch?
   bool get isGerman => _currentLocale.languageCode == 'de';
 
-  // Helper: Sprache formatiert anzeigen
   String get currentLanguageDisplayName {
     switch (_currentLocale.languageCode) {
       case 'el':
@@ -65,7 +82,6 @@ class LanguageService extends ChangeNotifier {
     }
   }
 
-  // Helper: Flag-Icon Path
   String get currentLanguageFlag {
     switch (_currentLocale.languageCode) {
       case 'el':
@@ -73,13 +89,12 @@ class LanguageService extends ChangeNotifier {
       case 'en':
         return 'assets/icons/flag_uk.png';
       case 'de':
-        return 'assets/icons/flag_germany.png';
+        return 'assets/icons/flag_de.png';
       default:
-        return 'assets/icons/flag_germany.png';
+        return 'assets/icons/flag_de.png';
     }
   }
 
-  // Helper: Sprachspezifische Datum-Formatierung
   String formatDate(DateTime date) {
     switch (_currentLocale.languageCode) {
       case 'de':
@@ -93,7 +108,6 @@ class LanguageService extends ChangeNotifier {
     }
   }
 
-  // Helper: Sprachspezifische Zahlenformatierung
   String formatNumber(int number) {
     switch (_currentLocale.languageCode) {
       case 'de':

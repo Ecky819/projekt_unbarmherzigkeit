@@ -39,14 +39,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: languageService),
+        ChangeNotifierProvider<LanguageService>.value(value: languageService),
         Provider<DatabaseRepository>.value(value: repository),
       ],
       child: Consumer<LanguageService>(
         builder: (context, langService, child) {
           return MaterialApp(
             title: '#PROJEKT UNBARMHERZIGKEIT',
-
             locale: langService.currentLocale,
             localizationsDelegates: const [
               AppLocalizations.delegate,
@@ -55,12 +54,11 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: LanguageService.supportedLocales,
-
             theme: AppTheme.lightTheme,
             initialRoute: '/splash',
             routes: {
               '/splash': (context) => const SplashScreen(),
-              '/main': (context) => const MainNavigation(),
+              '/main': (context) => MainNavigation(repository: repository),
             },
             debugShowCheckedModeBanner: false,
           );

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_textstyles.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
-// import '../services/language_service.dart';
-// import '../common/language_switcher.dart';
-// import '../../l10n/generated/app_localizations.dart';
+import '../services/language_service.dart';
+import '../common/language_switcher.dart';
+import '../../l10n/app_localizations.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final BuildContext context;
@@ -45,6 +46,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   }
                 },
                 icon: Image.asset('assets/icons/back_button.png'),
+                tooltip: AppLocalizations.of(context)?.commonback ?? 'Back',
               )
             : null),
         title: (pageIndex == 0
@@ -64,6 +66,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   fontSize: 20,
                 ),
               )),
+        actions: [
+          // Language Switcher hinzufügen
+          const LanguageSwitcher(compact: true, showText: false),
+          const SizedBox(width: 8),
+          // Drawer Button hinzufügen
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              color: Colors.white,
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              tooltip: AppLocalizations.of(context)?.commonclose ?? 'Menu',
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
     );
   }
@@ -76,19 +93,20 @@ class CustomDrawer extends StatelessWidget {
   final void Function(String) navigateTo;
   final VoidCallback navigateToDatabase;
   final VoidCallback navigateToNews;
-  final VoidCallback? navigateToAdminDashboard; // Optional für Admin
+  final VoidCallback? navigateToAdminDashboard;
 
   const CustomDrawer({
     super.key,
     required this.navigateTo,
     required this.navigateToDatabase,
     required this.navigateToNews,
-    this.navigateToAdminDashboard, // Optional Parameter
+    this.navigateToAdminDashboard,
   });
 
   @override
   Widget build(BuildContext context) {
     final AuthService authService = AuthService();
+    final l10n = AppLocalizations.of(context)!;
 
     return SizedBox(
       width: 300,
@@ -176,7 +194,7 @@ class CustomDrawer extends StatelessWidget {
                             const SizedBox(height: 8),
                             // E-Mail des Users
                             Text(
-                              user.email ?? 'Unbekannte E-Mail',
+                              user.email ?? l10n.unknownEmail,
                               style: AppTextStyles.drawerUserName,
                               textAlign: TextAlign.center,
                               overflow: TextOverflow.ellipsis,
@@ -200,8 +218,8 @@ class CustomDrawer extends StatelessWidget {
                                   ),
                                   child: Text(
                                     user.emailVerified
-                                        ? 'Verifiziert'
-                                        : 'Nicht verifiziert',
+                                        ? l10n.profileverified
+                                        : l10n.profilenotVerified,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,
@@ -223,9 +241,9 @@ class CustomDrawer extends StatelessWidget {
                                       ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: const Text(
-                                      'ADMIN',
-                                      style: TextStyle(
+                                    child: Text(
+                                      l10n.adminBadge,
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
@@ -237,27 +255,27 @@ class CustomDrawer extends StatelessWidget {
                             ),
                           ],
                         )
-                      : const Column(
+                      : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.account_circle,
                               size: 72,
                               color: Colors.white54,
                             ),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Text(
-                              'Nicht angemeldet',
-                              style: TextStyle(
+                              l10n.drawernotLoggedIn,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              'Melden Sie sich an für mehr Funktionen',
-                              style: TextStyle(
+                              l10n.drawerloginForMoreFeatures,
+                              style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 12,
                               ),
@@ -278,16 +296,16 @@ class CustomDrawer extends StatelessWidget {
                       _drawerButton(
                         context,
                         icon: Icons.home_outlined,
-                        text: 'Home',
+                        text: l10n.drawerhome,
                         onTap: () {
                           Navigator.pop(context);
-                          navigateTo('Home');
+                          navigateTo('Startseite');
                         },
                       ),
                       _drawerButton(
                         context,
                         icon: Icons.data_usage,
-                        text: 'Datenbank',
+                        text: l10n.drawerdatabase,
                         onTap: () {
                           Navigator.pop(context);
                           navigateToDatabase();
@@ -296,7 +314,7 @@ class CustomDrawer extends StatelessWidget {
                       _drawerButton(
                         context,
                         icon: Icons.newspaper_outlined,
-                        text: 'News',
+                        text: l10n.drawernews,
                         onTap: () {
                           Navigator.pop(context);
                           navigateToNews();
@@ -305,17 +323,17 @@ class CustomDrawer extends StatelessWidget {
                       _drawerButton(
                         context,
                         icon: null,
-                        text: 'Timeline',
+                        text: l10n.drawertimeline,
                         iconAsset: 'assets/icons/timeline_icon.png',
                         onTap: () {
                           Navigator.pop(context);
-                          navigateTo('Timeline');
+                          navigateTo('Zeitlinie');
                         },
                       ),
                       _drawerButton(
                         context,
                         icon: Icons.map_outlined,
-                        text: 'Karte',
+                        text: l10n.drawermap,
                         onTap: () {
                           Navigator.pop(context);
                           navigateTo('Karte');
@@ -324,7 +342,7 @@ class CustomDrawer extends StatelessWidget {
                       _drawerButton(
                         context,
                         icon: Icons.bookmark_outline,
-                        text: 'Favoriten',
+                        text: l10n.drawerfavorites,
                         onTap: () {
                           Navigator.pop(context);
                           navigateTo('Favoriten');
@@ -333,12 +351,15 @@ class CustomDrawer extends StatelessWidget {
                       _drawerButton(
                         context,
                         icon: Icons.person_outline,
-                        text: 'Profil',
+                        text: l10n.drawerprofile,
                         onTap: () {
                           Navigator.pop(context);
                           navigateTo('Profil');
                         },
                       ),
+
+                      // Language Section
+                      _buildLanguageSection(context, l10n),
 
                       // Admin Section - nur wenn Admin und Dashboard verfügbar
                       if (isAdmin && navigateToAdminDashboard != null) ...[
@@ -360,19 +381,19 @@ class CustomDrawer extends StatelessWidget {
                         ),
 
                         // Admin Label
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.admin_panel_settings,
                                 size: 16,
                                 color: Colors.orange,
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Text(
-                                'ADMINISTRATOR',
-                                style: TextStyle(
+                                l10n.draweradministrator,
+                                style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.orange,
@@ -403,7 +424,7 @@ class CustomDrawer extends StatelessWidget {
                           child: _drawerButton(
                             context,
                             icon: Icons.dashboard_customize,
-                            text: 'Admin Dashboard',
+                            text: l10n.draweradminDashboard,
                             onTap: () {
                               Navigator.pop(context);
                               navigateToAdminDashboard!();
@@ -416,7 +437,7 @@ class CustomDrawer extends StatelessWidget {
                         if (isLoggedIn)
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: _buildAdminStats(authService),
+                            child: _buildAdminStats(context, authService, l10n),
                           ),
                       ],
                     ],
@@ -428,6 +449,122 @@ class CustomDrawer extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Language Section für Drawer
+  Widget _buildLanguageSection(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        Container(
+          height: 1,
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.transparent,
+                Colors.white.withValues(alpha: 0.3),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+        _drawerButton(
+          context,
+          icon: Icons.language,
+          text: l10n.languageSwitch,
+          onTap: () => _showLanguageDialog(context),
+        ),
+      ],
+    );
+  }
+
+  // Language Dialog
+  void _showLanguageDialog(BuildContext context) {
+    final languageService = context.read<LanguageService>();
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            l10n.languageDialogTitle,
+            style: const TextStyle(fontFamily: 'SF Pro'),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: LanguageService.supportedLocales.map((locale) {
+              final isSelected = locale == languageService.currentLocale;
+              final displayName = _getDisplayName(locale.languageCode);
+              final flagPath = _getFlagPath(locale.languageCode);
+
+              return ListTile(
+                leading: Image.asset(
+                  flagPath,
+                  width: 32,
+                  height: 22,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.language, size: 24);
+                  },
+                ),
+                title: Text(
+                  displayName,
+                  style: TextStyle(
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    fontFamily: 'SF Pro',
+                  ),
+                ),
+                trailing: isSelected
+                    ? Icon(Icons.check, color: Theme.of(context).primaryColor)
+                    : null,
+                onTap: () {
+                  languageService.changeLanguage(locale);
+                  Navigator.of(context).pop();
+                },
+              );
+            }).toList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                l10n.languageDialogClose,
+                style: const TextStyle(fontFamily: 'SF Pro'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _getDisplayName(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'Ελληνικά (Greek)';
+      case 'en':
+        return 'English';
+      case 'de':
+        return 'Deutsch (German)';
+      default:
+        return 'Deutsch';
+    }
+  }
+
+  String _getFlagPath(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'assets/icons/flag_greece.png';
+      case 'en':
+        return 'assets/icons/flag_uk.png';
+      case 'de':
+        return 'assets/icons/flag_germany.png';
+      default:
+        return 'assets/icons/flag_germany.png';
+    }
   }
 
   Widget _drawerButton(
@@ -462,7 +599,11 @@ class CustomDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminStats(AuthService authService) {
+  Widget _buildAdminStats(
+    BuildContext context,
+    AuthService authService,
+    AppLocalizations l10n,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -480,7 +621,7 @@ class CustomDrawer extends StatelessWidget {
               Icon(Icons.info_outline, size: 14, color: Colors.orange.shade700),
               const SizedBox(width: 8),
               Text(
-                'Admin-Berechtigung aktiv',
+                l10n.draweradminPermissionActive,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
@@ -491,7 +632,7 @@ class CustomDrawer extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Vollzugriff auf alle Verwaltungsfunktionen',
+            l10n.drawerfullAccess,
             style: TextStyle(fontSize: 10, color: Colors.orange.shade600),
           ),
         ],

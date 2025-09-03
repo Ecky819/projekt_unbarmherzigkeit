@@ -45,15 +45,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get hometimelineTitle => 'ΧΡΟΝΟΛΟΓΙΟ';
 
   @override
-  String get hometimelineDescription =>
-      'Εδώ μπορείτε να βρείτε όλα τα ιστορικά γεγονότα στην Ελλάδα από το 1941 έως το 1945.';
+  String get hometimelineDescription => 'Εδώ μπορείτε να βρείτε όλα τα ιστορικά γεγονότα στην Ελλάδα από το 1941 έως το 1945.';
 
   @override
   String get homemapTitle => 'ΧΑΡΤΗΣ';
 
   @override
-  String get homemapDescription =>
-      'Εδώ μπορείτε να βρείτε τον χάρτη μας όπου είναι σημειωμένες όλες οι τοποθεσίες των στρατοπέδων.';
+  String get homemapDescription => 'Εδώ μπορείτε να βρείτε τον χάρτη μας όπου είναι σημειωμένες όλες οι τοποθεσίες των στρατοπέδων.';
 
   @override
   String get authwelcomeBack => 'Καλώς ήρθατε πίσω';
@@ -137,16 +135,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get databasenameHint => 'Όνομα θυμάτων, διοικητών ή στρατοπέδων';
 
   @override
-  String get databaseplaceHint =>
-      'Τοποθεσία στρατοπέδου, τόπος γέννησης/θανάτου';
+  String get databaseplaceHint => 'Τοποθεσία στρατοπέδου, τόπος γέννησης/θανάτου';
 
   @override
-  String get databaseyearHint =>
-      'Έτος γέννησης/θανάτου/ανοίγματος/απελευθέρωσης';
+  String get databaseyearHint => 'Έτος γέννησης/θανάτου/ανοίγματος/απελευθέρωσης';
 
   @override
-  String get databaseeventHint =>
-      'Τύπος στρατοπέδου, μοίρα, επάγγελμα, θρησκεία';
+  String get databaseeventHint => 'Τύπος στρατοπέδου, μοίρα, επάγγελμα, θρησκεία';
 
   @override
   String databaseresults(num count) {
@@ -160,8 +155,7 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get databasenoresults =>
-      'Εισάγετε όρους αναζήτησης και πατήστε \'Αναζήτηση\'';
+  String get databasenoresults => 'Εισάγετε όρους αναζήτησης και πατήστε \'Αναζήτηση\'';
 
   @override
   String databasesortBy(Object option) {
@@ -193,12 +187,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get favoritesnoFavorites => 'Δεν υπάρχουν αγαπημένα ακόμη';
 
   @override
-  String get favoritesnoFavoritesDescription =>
-      'Σημειώστε καταχωρίσεις στη βάση δεδομένων ως αγαπημένα για να τα δείτε εδώ.';
+  String get favoritesnoFavoritesDescription => 'Σημειώστε καταχωρίσεις στη βάση δεδομένων ως αγαπημένα για να τα δείτε εδώ.';
 
   @override
-  String get favoritesloginRequired =>
-      'Πρέπει να είστε συνδεδεμένοι για να ορίσετε αγαπημένα.';
+  String get favoritesloginRequired => 'Πρέπει να είστε συνδεδεμένοι για να ορίσετε αγαπημένα.';
 
   @override
   String get favoritesaddedToFavorites => 'Προστέθηκε στα αγαπημένα';
@@ -255,8 +247,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get profilelogoutConfirm => 'Θέλετε πραγματικά να αποσυνδεθείτε;';
 
   @override
-  String get profiledeleteConfirm =>
-      'Είστε βέβαιοι ότι θέλετε να διαγράψετε τον λογαριασμό σας; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.';
+  String get profiledeleteConfirm => 'Είστε βέβαιοι ότι θέλετε να διαγράψετε τον λογαριασμό σας; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.';
 
   @override
   String get admindashboard => 'Πίνακας Ελέγχου Διαχειριστή';
@@ -286,33 +277,28 @@ class AppLocalizationsEl extends AppLocalizations {
   String get admincancel => 'Ακύρωση';
 
   @override
-  String get adminconfirmDelete =>
-      'Θέλετε πραγματικά να διαγράψετε αυτή την καταχώριση; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.';
+  String get adminconfirmDelete => 'Θέλετε πραγματικά να διαγράψετε αυτή την καταχώριση; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.';
 
   @override
   String get timelineeventsoct28_1940 => 'Ιταλική εισβολή στην Ελλάδα';
 
   @override
-  String get timelineeventsapr_1941 =>
-      'Η γερμανική Wehrmacht ξεκινά τη Βαλκανική εκστρατεία';
+  String get timelineeventsapr_1941 => 'Η γερμανική Wehrmacht ξεκινά τη Βαλκανική εκστρατεία';
 
   @override
   String get timelineeventssummer_1941 => 'Αρχή του Μεγάλου Λιμού';
 
   @override
-  String get timelineeventssep_1941 =>
-      'Σχηματισμός των πρώτων οργανωμένων ομάδων αντίστασης';
+  String get timelineeventssep_1941 => 'Σχηματισμός των πρώτων οργανωμένων ομάδων αντίστασης';
 
   @override
-  String get timelineeventsnov_1942 =>
-      'Επιχείρηση Harling: Καταστροφή της γέφυρας Γοργοπόταμου';
+  String get timelineeventsnov_1942 => 'Επιχείρηση Harling: Καταστροφή της γέφυρας Γοργοπόταμου';
 
   @override
   String get timelineeventsmar24_1943 => 'Σφαγή του Δομένικου (Θεσσαλία)';
 
   @override
-  String get timelineeventsaug17_1943 =>
-      'Καταστροφή της εβραϊκής κοινότητας της Θεσσαλονίκης';
+  String get timelineeventsaug17_1943 => 'Καταστροφή της εβραϊκής κοινότητας της Θεσσαλονίκης';
 
   @override
   String get timelineeventssep14_1943 => 'Ιταλική συνθηκολόγηση';
@@ -435,20 +421,16 @@ class AppLocalizationsEl extends AppLocalizations {
   String get validationrequired => 'Αυτό το πεδίο είναι απαραίτητο';
 
   @override
-  String get validationinvalidEmail =>
-      'Παρακαλώ εισάγετε μια έγκυρη διεύθυνση email';
+  String get validationinvalidEmail => 'Παρακαλώ εισάγετε μια έγκυρη διεύθυνση email';
 
   @override
-  String get validationpasswordTooShort =>
-      'Ο κωδικός πρόσβασης πρέπει να είναι τουλάχιστον 8 χαρακτήρες';
+  String get validationpasswordTooShort => 'Ο κωδικός πρόσβασης πρέπει να είναι τουλάχιστον 8 χαρακτήρες';
 
   @override
-  String get validationpasswordsDoNotMatch =>
-      'Οι κωδικοί πρόσβασης δεν ταιριάζουν';
+  String get validationpasswordsDoNotMatch => 'Οι κωδικοί πρόσβασης δεν ταιριάζουν';
 
   @override
-  String get validationusernameTooShort =>
-      'Το όνομα χρήστη πρέπει να είναι μεταξύ 4 και 10 χαρακτήρων';
+  String get validationusernameTooShort => 'Το όνομα χρήστη πρέπει να είναι μεταξύ 4 και 10 χαρακτήρων';
 
   @override
   String get drawerhome => 'Αρχική';
@@ -481,13 +463,109 @@ class AppLocalizationsEl extends AppLocalizations {
   String get draweradminPermissionActive => 'Άδεια διαχειριστή ενεργή';
 
   @override
-  String get drawerfullAccess =>
-      'Πλήρης πρόσβαση σε όλες τις διαχειριστικές λειτουργίες';
+  String get drawerfullAccess => 'Πλήρης πρόσβαση σε όλες τις διαχειριστικές λειτουργίες';
 
   @override
   String get drawernotLoggedIn => 'Δεν είστε συνδεδεμένοι';
 
   @override
-  String get drawerloginForMoreFeatures =>
-      'Συνδεθείτε για περισσότερες λειτουργίες';
+  String get drawerloginForMoreFeatures => 'Συνδεθείτε για περισσότερες λειτουργίες';
+
+  @override
+  String get loadingNavigation => 'Φόρτωση πλοήγησης...';
+
+  @override
+  String get loadingDatabase => 'Η βάση δεδομένων επαναφορτώνεται...';
+
+  @override
+  String get errorRetryButton => 'Προσπαθήστε ξανά';
+
+  @override
+  String errorLoadingNavigation(Object error) {
+    return 'Σφάλμα φόρτωσης πλοήγησης: $error';
+  }
+
+  @override
+  String get errorDatabaseLoginRequired => 'Πρέπει να συνδεθείτε για να αποκτήσετε πρόσβαση στη βάση δεδομένων.';
+
+  @override
+  String get errorAdminLoginRequired => 'Πρέπει να συνδεθείτε για να αποκτήσετε πρόσβαση στον πίνακα ελέγχου διαχειριστή.';
+
+  @override
+  String get errorAdminPermissionRequired => 'Δεν έχετε άδεια διαχειριστή για αυτή τη λειτουργία.';
+
+  @override
+  String get errorRepositoryUnavailable => 'Το αποθετήριο δεν είναι διαθέσιμο. Επαναφορτώστε την εφαρμογή.';
+
+  @override
+  String get userEmail => 'Email χρήστη';
+
+  @override
+  String get unknownEmail => 'Άγνωστο email';
+
+  @override
+  String get adminBadge => 'ΔΙΑΧΕΙΡΙΣΤΗΣ';
+
+  @override
+  String get adminPermissionActiveShort => 'Διαχειριστής ενεργός';
+
+  @override
+  String get languageSwitch => 'Γλώσσα';
+
+  @override
+  String get languageSwitchSubtitle => 'Αλλαγή γλώσσας εφαρμογής';
+
+  @override
+  String get languageDialogTitle => 'Επιλέξτε γλώσσα';
+
+  @override
+  String get languageDialogClose => 'Κλείσιμο';
+
+  @override
+  String get desktopUserInfo => 'Πληροφορίες Χρήστη';
+
+  @override
+  String get mobileDrawerTitle => 'Γρήγορη Πρόσβαση';
+
+  @override
+  String get tabletLayoutTitle => 'Προβολή Tablet';
+
+  @override
+  String get accessibilityNavigationHome => 'Πλοήγηση στην αρχική';
+
+  @override
+  String get accessibilityNavigationTimeline => 'Πλοήγηση στο χρονολόγιο';
+
+  @override
+  String get accessibilityNavigationMap => 'Πλοήγηση στον χάρτη';
+
+  @override
+  String get accessibilityNavigationFavorites => 'Πλοήγηση στα αγαπημένα';
+
+  @override
+  String get accessibilityNavigationProfile => 'Πλοήγηση στο προφίλ';
+
+  @override
+  String get accessibilityLanguageSwitch => 'Αλλαγή γλώσσας';
+
+  @override
+  String get accessibilityAdminPanel => 'Πρόσβαση πίνακα διαχειριστή';
+
+  @override
+  String get navigationRailExtend => 'Επέκταση πλοήγησης';
+
+  @override
+  String get navigationRailCollapse => 'Σύμπτυξη πλοήγησης';
+
+  @override
+  String get quickAccessTitle => 'Γρήγορη Πρόσβαση';
+
+  @override
+  String get adminStatsTitle => 'Στατιστικά Διαχειριστή';
+
+  @override
+  String get verificationStatus => 'Κατάσταση Επαλήθευσης';
+
+  @override
+  String get adminDashboardTooltip => 'Άνοιγμα πίνακα διαχειριστή';
 }

@@ -14,8 +14,10 @@ import '../data/firebaserepository.dart';
 import '../data/data_initialization.dart';
 import '../services/auth_service.dart';
 import '../services/platform_service.dart';
+import '../common/language_switcher.dart';
 import 'custom_appbar.dart';
 import 'bottom_navigation.dart';
+import '../../l10n/app_localizations.dart';
 
 class MainNavigation extends StatefulWidget {
   final DatabaseRepository? repository;
@@ -48,8 +50,6 @@ class _MainNavigationState extends State<MainNavigation> {
     // Auth-State-Listener mit Repository-Reload
     _authService.authStateChanges.listen((user) async {
       if (mounted) {
-        //print('Auth state changed: ${user?.email}');
-
         // Bei Logout: Navigation zum Home-Screen zurücksetzen
         if (user == null && _selectedIndex == 4) {
           setState(() {
@@ -81,7 +81,6 @@ class _MainNavigationState extends State<MainNavigation> {
     });
 
     try {
-      //print('Reloading repository due to auth state change...');
       final newRepository = await _initializeRepository();
 
       if (mounted) {
@@ -89,10 +88,8 @@ class _MainNavigationState extends State<MainNavigation> {
           _currentRepository = newRepository;
           _isLoadingRepository = false;
         });
-        //print('Repository successfully reloaded');
       }
     } catch (e) {
-      //print('Error reloading repository: $e');
       if (mounted) {
         setState(() {
           _isLoadingRepository = false;
@@ -106,8 +103,6 @@ class _MainNavigationState extends State<MainNavigation> {
       final firebaseRepo = FirebaseRepository();
       return firebaseRepo;
     } catch (e) {
-      // print('Firebase Repository konnte nicht initialisiert werden: $e');
-      // print('Verwende Mock Repository als Fallback');
       return await initializeMockData();
     }
   }
@@ -148,8 +143,32 @@ class _MainNavigationState extends State<MainNavigation> {
     }
   }
 
-  // Navigation Helper Methods
+  // Lokalisierte Screen-Titel
+  String _getLocalizedScreenTitle(
+    int index,
+    bool isLoggedIn,
+    AppLocalizations l10n,
+  ) {
+    switch (index) {
+      case 0:
+        return l10n.navigationhome;
+      case 1:
+        return l10n.navigationtimeline;
+      case 2:
+        return l10n.navigationmap;
+      case 3:
+        return l10n.navigationfavorites;
+      case 4:
+        return isLoggedIn ? l10n.navigationprofile : l10n.navigationlogin;
+      default:
+        return l10n.commonunknown;
+    }
+  }
+
+  // Navigation Helper Methods - Lokalisiert
   void navigateToDatabase() {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_authService.isLoggedIn) {
       if (_currentRepository != null) {
         Navigator.push(
@@ -160,15 +179,11 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         );
       } else {
-        _showErrorSnackBar(
-          'Repository nicht verfügbar. Laden Sie die App neu.',
-        );
+        _showErrorSnackBar(l10n.errorRepositoryUnavailable);
         _reloadRepositoryOnAuthChange();
       }
     } else {
-      _navigateToLogin(
-        'Sie müssen sich anmelden, um auf die Datenbank zugreifen zu können.',
-      );
+      _navigateToLogin(l10n.errorDatabaseLoginRequired);
     }
   }
 
@@ -180,32 +195,24 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   void navigateToAdminDashboard() {
-    // print('Admin Dashboard Navigation aufgerufen');
-    // print('User logged in: ${_authService.isLoggedIn}');
-    // print('User email: ${_authService.currentUser?.email}');
-    // print('Is admin: ${_authService.isAdmin}');
+    final l10n = AppLocalizations.of(context)!;
 
     if (!_authService.isLoggedIn) {
-      _navigateToLogin(
-        'Sie müssen sich anmelden, um auf das Admin-Dashboard zugreifen zu können.',
-      );
+      _navigateToLogin(l10n.errorAdminLoginRequired);
       return;
     }
 
     if (!_authService.isAdmin) {
-      _showErrorSnackBar(
-        'Sie haben keine Admin-Berechtigung für diese Funktion.',
-      );
+      _showErrorSnackBar(l10n.errorAdminPermissionRequired);
       return;
     }
 
     if (_currentRepository == null) {
-      _showErrorSnackBar('Repository nicht verfügbar. Laden Sie die App neu.');
+      _showErrorSnackBar(l10n.errorRepositoryUnavailable);
       _reloadRepositoryOnAuthChange();
       return;
     }
 
-    //print('Navigiere zum Admin Dashboard...');
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -218,15 +225,15 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   void navigateToProfile() {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_authService.isLoggedIn) {
       _addToHistory();
       setState(() {
         _selectedIndex = 4;
       });
     } else {
-      _navigateToLogin(
-        'Melden Sie sich an, um auf Ihr Profil zugreifen zu können.',
-      );
+      _navigateToLogin(l10n.errorDatabaseLoginRequired);
     }
   }
 
@@ -238,11 +245,7 @@ class _MainNavigationState extends State<MainNavigation> {
       if (mounted) {
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
-            setState(() {
-              // print(
-              //   'UI nach Login aktualisiert - Admin status: ${_authService.isAdmin}',
-              // );
-            });
+            setState(() {});
           }
         });
       }
@@ -273,50 +276,151 @@ class _MainNavigationState extends State<MainNavigation> {
     }
   }
 
-  String _getScreenTitle(int index, bool isLoggedIn) {
-    const List<String> baseTitles = ['Home', 'Timeline', 'Karte', 'Favoriten'];
-
-    if (index < baseTitles.length) {
-      return baseTitles[index];
-    } else if (index == 4) {
-      return isLoggedIn ? 'Profil' : 'Anmelden';
-    }
-    return 'Unknown';
+  // Loading State - Lokalisiert
+  Widget _buildLoadingState(AppLocalizations l10n) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFE9E5DD),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(color: Color(0xFF283A49)),
+            const SizedBox(height: 16),
+            Text(
+              l10n.loadingNavigation,
+              style: const TextStyle(
+                fontSize: 16,
+                fontFamily: 'SF Pro',
+                color: Color(0xFF283A49),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  // Build Navigation Destinations für Rail/Drawer
-  List<NavigationDestination> _buildNavigationDestinations() {
+  // Error State - Lokalisiert
+  Widget _buildErrorState(AppLocalizations l10n, Object error) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFE9E5DD),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              l10n.errorLoadingNavigation(error.toString()),
+              style: const TextStyle(fontSize: 16, fontFamily: 'SF Pro'),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {});
+              },
+              child: Text(l10n.errorRetryButton),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Database Loading State - Lokalisiert
+  Widget _buildDatabaseLoadingState(AppLocalizations l10n) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(color: Color(0xFF283A49)),
+          const SizedBox(height: 16),
+          Text(
+            l10n.loadingDatabase,
+            style: const TextStyle(
+              color: Color(0xFF283A49),
+              fontSize: 16,
+              fontFamily: 'SF Pro',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build Navigation Destinations für Rail/Drawer - Lokalisiert
+  List<NavigationDestination> _buildNavigationDestinations(
+    AppLocalizations l10n,
+  ) {
     return [
-      const NavigationDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
-        label: 'Home',
+      NavigationDestination(
+        icon: const Icon(Icons.home_outlined),
+        selectedIcon: const Icon(Icons.home),
+        label: l10n.navigationhome,
       ),
-      const NavigationDestination(
-        icon: ImageIcon(AssetImage('assets/icons/timeline_icon.png')),
-        selectedIcon: ImageIcon(AssetImage('assets/icons/timeline_icon.png')),
-        label: 'Timeline',
+      NavigationDestination(
+        icon: const ImageIcon(AssetImage('assets/icons/timeline_icon.png')),
+        selectedIcon: const ImageIcon(
+          AssetImage('assets/icons/timeline_icon.png'),
+        ),
+        label: l10n.navigationtimeline,
       ),
-      const NavigationDestination(
-        icon: Icon(Icons.map_outlined),
-        selectedIcon: Icon(Icons.map),
-        label: 'Karte',
+      NavigationDestination(
+        icon: const Icon(Icons.map_outlined),
+        selectedIcon: const Icon(Icons.map),
+        label: l10n.navigationmap,
       ),
-      const NavigationDestination(
-        icon: Icon(Icons.bookmark_outline),
-        selectedIcon: Icon(Icons.bookmark),
-        label: 'Favoriten',
+      NavigationDestination(
+        icon: const Icon(Icons.bookmark_outline),
+        selectedIcon: const Icon(Icons.bookmark),
+        label: l10n.navigationfavorites,
       ),
       NavigationDestination(
         icon: const Icon(Icons.person_outline),
         selectedIcon: const Icon(Icons.person),
-        label: _authService.isLoggedIn ? 'Profil' : 'Anmelden',
+        label: _authService.isLoggedIn
+            ? l10n.navigationprofile
+            : l10n.navigationlogin,
       ),
     ];
   }
 
-  // Desktop/Web Layout mit Navigation Rail
-  Widget _buildDesktopLayout(List<Map<String, dynamic>> screens) {
+  // User Info Badge - Lokalisiert
+  Widget _buildUserInfoBadge(AppLocalizations l10n) {
+    if (_authService.isLoggedIn) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF283A49).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              _authService.isAdmin ? Icons.admin_panel_settings : Icons.person,
+              size: 20,
+              color: _authService.isAdmin
+                  ? Colors.orange
+                  : const Color(0xFF283A49),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _authService.currentUser?.email ?? l10n.unknownEmail,
+              style: const TextStyle(fontSize: 14, fontFamily: 'SF Pro'),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  // Desktop Layout mit Navigation Rail - Lokalisiert
+  Widget _buildDesktopLayout(
+    List<Map<String, dynamic>> screens,
+    AppLocalizations l10n,
+  ) {
     return Scaffold(
       backgroundColor: const Color(0xFFE9E5DD),
       body: Row(
@@ -399,6 +503,9 @@ class _MainNavigationState extends State<MainNavigation> {
                             : Icons.menu,
                         color: Colors.white,
                       ),
+                      tooltip: _isNavigationRailExtended
+                          ? l10n.navigationRailCollapse
+                          : l10n.navigationRailExtend,
                       onPressed: () {
                         setState(() {
                           _isNavigationRailExtended =
@@ -418,16 +525,33 @@ class _MainNavigationState extends State<MainNavigation> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (_authService.isAdmin) _buildAdminButton(),
+                              if (_authService.isAdmin) _buildAdminButton(l10n),
                               const Divider(color: Colors.white24),
-                              _buildQuickAccessButtons(),
+                              _buildQuickAccessButtons(l10n),
+                              const SizedBox(height: 16),
+                              // Language Switcher für Desktop
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                child: const LanguageSwitcher(
+                                  compact: true,
+                                  showText: true,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ),
                     )
-                  : null,
-              destinations: _buildNavigationDestinations()
+                  : Container(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: const LanguageSwitcher(
+                        compact: true,
+                        showText: false,
+                      ),
+                    ),
+              destinations: _buildNavigationDestinations(l10n)
                   .map(
                     (dest) => NavigationRailDestination(
                       icon: dest.icon,
@@ -463,9 +587,10 @@ class _MainNavigationState extends State<MainNavigation> {
                       child: Row(
                         children: [
                           Text(
-                            _getScreenTitle(
+                            _getLocalizedScreenTitle(
                               _selectedIndex,
                               _authService.isLoggedIn,
+                              l10n,
                             ),
                             style: const TextStyle(
                               fontSize: 24,
@@ -476,40 +601,7 @@ class _MainNavigationState extends State<MainNavigation> {
                           ),
                           const Spacer(),
                           // User Info Badge
-                          if (_authService.isLoggedIn)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFF283A49,
-                                ).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _authService.isAdmin
-                                        ? Icons.admin_panel_settings
-                                        : Icons.person,
-                                    size: 20,
-                                    color: _authService.isAdmin
-                                        ? Colors.orange
-                                        : const Color(0xFF283A49),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    _authService.currentUser?.email ?? 'Gast',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontFamily: 'SF Pro',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          _buildUserInfoBadge(l10n),
                         ],
                       ),
                     ),
@@ -518,25 +610,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   // Main Content
                   Expanded(
                     child: _isLoadingRepository
-                        ? const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircularProgressIndicator(
-                                  color: Color(0xFF283A49),
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Datenbank wird neu geladen...',
-                                  style: TextStyle(
-                                    color: Color(0xFF283A49),
-                                    fontSize: 16,
-                                    fontFamily: 'SF Pro',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
+                        ? _buildDatabaseLoadingState(l10n)
                         : IndexedStack(
                             index: _selectedIndex,
                             children: screens
@@ -553,8 +627,11 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  // Tablet Layout - Kompakte Navigation
-  Widget _buildTabletLayout(List<Map<String, dynamic>> screens) {
+  // Tablet Layout - Kompakte Navigation - Lokalisiert
+  Widget _buildTabletLayout(
+    List<Map<String, dynamic>> screens,
+    AppLocalizations l10n,
+  ) {
     return Scaffold(
       backgroundColor: const Color(0xFFE9E5DD),
       body: Row(
@@ -577,7 +654,7 @@ class _MainNavigationState extends State<MainNavigation> {
             selectedIconTheme: const IconThemeData(color: Colors.white),
             unselectedIconTheme: const IconThemeData(color: Colors.white70),
             indicatorColor: const Color(0xFF283A49).withValues(alpha: 0.2),
-            destinations: _buildNavigationDestinations()
+            destinations: _buildNavigationDestinations(l10n)
                 .map(
                   (dest) => NavigationRailDestination(
                     icon: dest.icon,
@@ -595,23 +672,27 @@ class _MainNavigationState extends State<MainNavigation> {
                 backgroundColor: const Color(0xFF283A49),
                 foregroundColor: Colors.white,
                 title: Text(
-                  _getScreenTitle(_selectedIndex, _authService.isLoggedIn),
+                  _getLocalizedScreenTitle(
+                    _selectedIndex,
+                    _authService.isLoggedIn,
+                    l10n,
+                  ),
                 ),
                 actions: [
                   if (_authService.isAdmin)
                     IconButton(
                       icon: const Icon(Icons.admin_panel_settings),
                       onPressed: navigateToAdminDashboard,
-                      tooltip: 'Admin Dashboard',
+                      tooltip: l10n.adminDashboardTooltip,
                     ),
                   IconButton(
                     icon: const Icon(Icons.menu),
-                    onPressed: () => _showMobileDrawer(context),
+                    onPressed: () => _showMobileDrawer(context, l10n),
                   ),
                 ],
               ),
               body: _isLoadingRepository
-                  ? const Center(child: CircularProgressIndicator())
+                  ? _buildDatabaseLoadingState(l10n)
                   : IndexedStack(
                       index: _selectedIndex,
                       children: screens
@@ -625,14 +706,21 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  // Mobile Layout - Original
-  Widget _buildMobileLayout(List<Map<String, dynamic>> screens) {
+  // Mobile Layout - Original - Lokalisiert
+  Widget _buildMobileLayout(
+    List<Map<String, dynamic>> screens,
+    AppLocalizations l10n,
+  ) {
     return Scaffold(
       backgroundColor: const Color(0xFFE9E5DD),
       appBar: CustomAppBar(
         context: context,
         pageIndex: _selectedIndex,
-        title: _getScreenTitle(_selectedIndex, _authService.isLoggedIn),
+        title: _getLocalizedScreenTitle(
+          _selectedIndex,
+          _authService.isLoggedIn,
+          l10n,
+        ),
         navigateTo: navigateTo,
         nav: screens.map((screen) => screen['screen']).toList(),
         onBackPressed: _navigationHistory.isNotEmpty ? goBack : null,
@@ -651,23 +739,7 @@ class _MainNavigationState extends State<MainNavigation> {
         navigateToAdminDashboard: navigateToAdminDashboard,
       ),
       body: _isLoadingRepository
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Color(0xFF283A49)),
-                  SizedBox(height: 16),
-                  Text(
-                    'Datenbank wird neu geladen...',
-                    style: TextStyle(
-                      color: Color(0xFF283A49),
-                      fontSize: 16,
-                      fontFamily: 'SF Pro',
-                    ),
-                  ),
-                ],
-              ),
-            )
+          ? _buildDatabaseLoadingState(l10n)
           : IndexedStack(
               index: _selectedIndex,
               children: screens
@@ -690,8 +762,8 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  // Helper Widgets
-  Widget _buildAdminButton() {
+  // Helper Widgets - Lokalisiert
+  Widget _buildAdminButton(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: ElevatedButton.icon(
@@ -703,36 +775,48 @@ class _MainNavigationState extends State<MainNavigation> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         icon: const Icon(Icons.admin_panel_settings),
-        label: const Text(
-          'Admin Dashboard',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        label: Text(
+          l10n.admindashboard,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 
-  Widget _buildQuickAccessButtons() {
+  Widget _buildQuickAccessButtons(AppLocalizations l10n) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        Text(
+          l10n.quickAccessTitle,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
         TextButton.icon(
           onPressed: navigateToDatabase,
           icon: const Icon(Icons.data_usage, color: Colors.white70),
-          label: const Text(
-            'Datenbank',
-            style: TextStyle(color: Colors.white70),
+          label: Text(
+            l10n.navigationdatabase,
+            style: const TextStyle(color: Colors.white70),
           ),
         ),
         TextButton.icon(
           onPressed: navigateToNews,
           icon: const Icon(Icons.newspaper, color: Colors.white70),
-          label: const Text('News', style: TextStyle(color: Colors.white70)),
+          label: Text(
+            l10n.navigationnews,
+            style: const TextStyle(color: Colors.white70),
+          ),
         ),
       ],
     );
   }
 
-  void _showMobileDrawer(BuildContext context) {
+  void _showMobileDrawer(BuildContext context, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -740,9 +824,18 @@ class _MainNavigationState extends State<MainNavigation> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Text(
+              l10n.mobileDrawerTitle,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'SF Pro',
+              ),
+            ),
+            const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.data_usage),
-              title: const Text('Datenbank'),
+              title: Text(l10n.navigationdatabase),
               onTap: () {
                 Navigator.pop(context);
                 navigateToDatabase();
@@ -750,7 +843,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
             ListTile(
               leading: const Icon(Icons.newspaper),
-              title: const Text('News'),
+              title: Text(l10n.navigationnews),
               onTap: () {
                 Navigator.pop(context);
                 navigateToNews();
@@ -762,7 +855,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   Icons.admin_panel_settings,
                   color: Colors.orange,
                 ),
-                title: const Text('Admin Dashboard'),
+                title: Text(l10n.admindashboard),
                 onTap: () {
                   Navigator.pop(context);
                   navigateToAdminDashboard();
@@ -776,64 +869,24 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<User?>(
       stream: _authService.authStateChanges,
       builder: (context, authSnapshot) {
         // Loading State
         if (authSnapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            backgroundColor: Color(0xFFE9E5DD),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Color(0xFF283A49)),
-                  SizedBox(height: 16),
-                  Text(
-                    'Lade Navigation...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: 'SF Pro',
-                      color: Color(0xFF283A49),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return _buildLoadingState(l10n);
         }
 
         // Error State
         if (authSnapshot.hasError) {
-          return Scaffold(
-            backgroundColor: const Color(0xFFE9E5DD),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Fehler beim Laden der Navigation: ${authSnapshot.error}',
-                    style: const TextStyle(fontSize: 16, fontFamily: 'SF Pro'),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {});
-                    },
-                    child: const Text('Erneut versuchen'),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return _buildErrorState(l10n, authSnapshot.error!);
         }
 
         final isLoggedIn = authSnapshot.data != null;
 
-        // Screens basierend auf Auth-Status definieren
+        // Screens basierend auf Auth-Status definieren - Lokalisiert
         List<Map<String, dynamic>> screens = [
           {
             'screen': HomeScreen(
@@ -841,17 +894,17 @@ class _MainNavigationState extends State<MainNavigation> {
               navigateToNews: navigateToNews,
               navigateToDatabase: navigateToDatabase,
             ),
-            'title': 'Home',
+            'title': l10n.navigationhome,
           },
-          {'screen': const TimelineScreen(), 'title': 'Timeline'},
-          {'screen': const MapScreen(), 'title': 'Karte'},
+          {'screen': const TimelineScreen(), 'title': l10n.navigationtimeline},
+          {'screen': const MapScreen(), 'title': l10n.navigationmap},
           {
             'screen': FavoriteScreen(repository: _currentRepository),
-            'title': 'Favoriten',
+            'title': l10n.navigationfavorites,
           },
           {
             'screen': isLoggedIn ? const ProfileScreen() : const LoginScreen(),
-            'title': isLoggedIn ? 'Profil' : 'Anmelden',
+            'title': isLoggedIn ? l10n.navigationprofile : l10n.navigationlogin,
           },
         ];
 
@@ -867,15 +920,15 @@ class _MainNavigationState extends State<MainNavigation> {
           builder: (context, constraints) {
             // Desktop Layout (>= 1200px)
             if (PlatformService.isLargeScreen(context)) {
-              return _buildDesktopLayout(screens);
+              return _buildDesktopLayout(screens, l10n);
             }
             // Tablet Layout (600-1200px)
             else if (PlatformService.isMediumScreen(context)) {
-              return _buildTabletLayout(screens);
+              return _buildTabletLayout(screens, l10n);
             }
             // Mobile Layout (< 600px)
             else {
-              return _buildMobileLayout(screens);
+              return _buildMobileLayout(screens, l10n);
             }
           },
         );
