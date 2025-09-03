@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/language_service.dart';
 import '../../l10n/app_localizations.dart';
 
-class LanguageSwitcher extends StatelessWidget {
+class LanguageSwitcher extends StatefulWidget {
   final bool showText;
   final bool compact;
 
@@ -14,9 +14,17 @@ class LanguageSwitcher extends StatelessWidget {
   });
 
   @override
+  State<LanguageSwitcher> createState() => _LanguageSwitcherState();
+}
+
+class _LanguageSwitcherState extends State<LanguageSwitcher> {
+  @override
   Widget build(BuildContext context) {
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
+        // WICHTIG: l10n nur abrufen wenn Widget mounted ist
+        if (!mounted) return const SizedBox.shrink();
+
         final l10n = AppLocalizations.of(context);
 
         // Fallback falls l10n noch nicht verfügbar
@@ -24,7 +32,7 @@ class LanguageSwitcher extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        if (compact) {
+        if (widget.compact) {
           return _buildCompactSwitcher(context, languageService);
         } else {
           return _buildFullSwitcher(context, languageService, l10n);
@@ -49,7 +57,7 @@ class LanguageSwitcher extends StatelessWidget {
               return const Icon(Icons.language, size: 20, color: Colors.white);
             },
           ),
-          if (showText) ...[
+          if (widget.showText) ...[
             const SizedBox(width: 6),
             Text(
               languageService.currentLanguageDisplayName,
@@ -62,50 +70,62 @@ class LanguageSwitcher extends StatelessWidget {
           ],
         ],
       ),
-      // EINFACHER SPRACHWECHSEL - Nur Service-Call
       onSelected: (locale) {
+        if (!mounted) return;
+
         if (languageService.currentLocale != locale) {
-          languageService.changeLanguage(locale);
+          // Verzögerter Sprachwechsel um Widget-Dispose zu vermeiden
+          Future.microtask(() {
+            if (mounted) {
+              languageService.changeLanguage(locale);
+            }
+          });
         }
       },
-      itemBuilder: (context) => LanguageService.supportedLocales.map((locale) {
-        final isSelected = locale == languageService.currentLocale;
-        final displayName = _getDisplayName(locale.languageCode);
-        final flagPath = _getFlagPath(locale.languageCode);
+      itemBuilder: (BuildContext itemContext) {
+        return LanguageService.supportedLocales.map((locale) {
+          final isSelected = locale == languageService.currentLocale;
+          final displayName = _getDisplayName(locale.languageCode);
+          final flagPath = _getFlagPath(locale.languageCode);
 
-        return PopupMenuItem<Locale>(
-          value: locale,
-          child: Row(
-            children: [
-              Image.asset(
-                flagPath,
-                width: 24,
-                height: 16,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.language, size: 16);
-                },
-              ),
-              const SizedBox(width: 12),
-              Text(
-                displayName,
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Theme.of(context).primaryColor : null,
-                  fontFamily: 'SF Pro',
+          return PopupMenuItem<Locale>(
+            value: locale,
+            child: Row(
+              children: [
+                Image.asset(
+                  flagPath,
+                  width: 24,
+                  height: 16,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.language, size: 16);
+                  },
                 ),
-              ),
-              if (isSelected) ...[
-                const Spacer(),
-                Icon(
-                  Icons.check,
-                  size: 18,
-                  color: Theme.of(context).primaryColor,
+                const SizedBox(width: 12),
+                Text(
+                  displayName,
+                  style: TextStyle(
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: isSelected
+                        ? Theme.of(itemContext).primaryColor
+                        : null,
+                    fontFamily: 'SF Pro',
+                  ),
                 ),
+                if (isSelected) ...[
+                  const Spacer(),
+                  Icon(
+                    Icons.check,
+                    size: 18,
+                    color: Theme.of(itemContext).primaryColor,
+                  ),
+                ],
               ],
-            ],
-          ),
-        );
-      }).toList(),
+            ),
+          );
+        }).toList();
+      },
     );
   }
 
@@ -115,7 +135,11 @@ class LanguageSwitcher extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     return GestureDetector(
-      onTap: () => _showLanguageDialog(context, languageService, l10n),
+      onTap: () {
+        if (mounted) {
+          _showLanguageDialog(context, languageService, l10n);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -206,10 +230,13 @@ class LanguageSwitcher extends StatelessWidget {
                     : null,
                 onTap: () {
                   Navigator.of(dialogContext).pop();
-                  // EINFACHER SPRACHWECHSEL
-                  if (languageService.currentLocale != locale) {
-                    languageService.changeLanguage(locale);
-                  }
+
+                  // Verzögerter Sprachwechsel nach Dialog-Schließung
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    if (mounted && languageService.currentLocale != locale) {
+                      languageService.changeLanguage(locale);
+                    }
+                  });
                 },
               );
             }).toList(),
@@ -255,14 +282,21 @@ class LanguageSwitcher extends StatelessWidget {
   }
 }
 
-// LanguageSwitcherTile für Settings
-class LanguageSwitcherTile extends StatelessWidget {
+// LanguageSwitcherTile für Settings mit sicherem State-Handling
+class LanguageSwitcherTile extends StatefulWidget {
   const LanguageSwitcherTile({super.key});
 
+  @override
+  State<LanguageSwitcherTile> createState() => _LanguageSwitcherTileState();
+}
+
+class _LanguageSwitcherTileState extends State<LanguageSwitcherTile> {
   @override
   Widget build(BuildContext context) {
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
+        if (!mounted) return const SizedBox.shrink();
+
         final l10n = AppLocalizations.of(context);
 
         if (l10n == null) {
@@ -319,7 +353,11 @@ class LanguageSwitcherTile extends StatelessWidget {
               Icon(Icons.chevron_right, color: Colors.grey[400]),
             ],
           ),
-          onTap: () => _showLanguageDialog(context, languageService, l10n),
+          onTap: () {
+            if (mounted) {
+              _showLanguageDialog(context, languageService, l10n);
+            }
+          },
         );
       },
     );
@@ -371,9 +409,13 @@ class LanguageSwitcherTile extends StatelessWidget {
                     : null,
                 onTap: () {
                   Navigator.of(dialogContext).pop();
-                  if (languageService.currentLocale != locale) {
-                    languageService.changeLanguage(locale);
-                  }
+
+                  // Verzögerter Sprachwechsel
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    if (mounted && languageService.currentLocale != locale) {
+                      languageService.changeLanguage(locale);
+                    }
+                  });
                 },
               );
             }).toList(),

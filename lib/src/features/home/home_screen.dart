@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 import '../../common/news_card.dart';
 import '../../common/quicklink_card.dart';
+import '../../../l10n/app_localizations.dart';
+//import '../../services/platform_service.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(String) navigateTo;
-  /*final VoidCallback navigateToTimeline;
-  final VoidCallback navigateToMap;*/
   final VoidCallback navigateToNews;
   final VoidCallback navigateToDatabase;
 
   const HomeScreen({
     super.key,
     required this.navigateTo,
-    /*
-    required this.navigateToTimeline,
-    required this.navigateToMap,*/
     required this.navigateToNews,
     required this.navigateToDatabase,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    if (l10n == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Center(
       child: ListView(
         physics: const NeverScrollableScrollPhysics(),
@@ -32,13 +34,13 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 children: [
                   NewsCard(
-                    title: '80 Jahre Kriegsende in Athen',
+                    title: l10n.homenewsCard1Title,
                     imagePath: 'assets/images/athen_home.jpg',
                     articleId: 'article1', // Hinzugefügt: ID für Athen-Artikel
                     navigateToNews: navigateToNews,
                   ),
                   NewsCard(
-                    title: '80 Jahre Kriegsende in Thessalonikki',
+                    title: l10n.homenewsCard2Title,
                     imagePath: 'assets/images/thessaloniki_home.jpg',
                     articleId:
                         'article2', // Hinzugefügt: ID für Thessaloniki-Artikel
@@ -57,21 +59,19 @@ class HomeScreen extends StatelessWidget {
                   width: 167,
                   margin: const EdgeInsets.only(right: 16),
                   child: QuicklinkCard(
-                    title: 'ZEITLINIE',
-                    text:
-                        'Hier finden sie alle historischen Ereignisse in Griechenland von 1941 bis 1945.',
+                    title: l10n.hometimelineTitle,
+                    text: l10n.hometimelineDescription,
                     imagePath: 'assets/icons/more_info.png',
-                    onTap: () => navigateTo('Zeitlinie'),
+                    onTap: () => navigateTo('Timeline'),
                   ),
                 ),
                 SizedBox(
                   width: 167,
                   child: QuicklinkCard(
-                    title: 'KARTE',
-                    text:
-                        'Hier finden sie unsere Karte auf der alle Lagerstandorte verzeichnet sind.',
+                    title: l10n.homemapTitle,
+                    text: l10n.homemapDescription,
                     imagePath: 'assets/icons/more_info.png',
-                    onTap: () => navigateTo('Karte'),
+                    onTap: () => navigateTo('Map'),
                   ),
                 ),
               ],
