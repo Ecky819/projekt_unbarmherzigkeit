@@ -100,7 +100,7 @@ abstract class AppLocalizations {
   /// The title of the application
   ///
   /// In en, this message translates to:
-  /// **'#PROJEKT UNBARMHERZIGKEIT'**
+  /// **'#PROJECT MERCILESSNESS'**
   String get appTitle;
 
   /// No description provided for @navigationhome.
@@ -184,8 +184,14 @@ abstract class AppLocalizations {
   /// No description provided for @homemapDescription.
   ///
   /// In en, this message translates to:
-  /// **'Here you can find our map with all camp locations marked.'**
+  /// **'Here you can find our map with all camp and memorial locations marked.'**
   String get homemapDescription;
+
+  /// No description provided for @mapsearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get mapsearchHint;
 
   /// No description provided for @authwelcomeBack.
   ///
@@ -367,11 +373,11 @@ abstract class AppLocalizations {
   /// **'Camp type, fate, profession, religion'**
   String get databaseeventHint;
 
-  /// No description provided for @databaseresults.
+  /// Anzahl der Suchergebnisse
   ///
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{result} other{results}} found'**
-  String databaseresults(num count);
+  String databaseresults(int count);
 
   /// No description provided for @databasenoresults.
   ///
@@ -383,7 +389,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Sort by: {option}'**
-  String databasesortBy(Object option);
+  String databasesortBy(String option);
 
   /// No description provided for @databasesortOptionsnameAsc.
   ///
@@ -1025,7 +1031,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Error loading navigation: {error}'**
-  String errorLoadingNavigation(Object error);
+  String errorLoadingNavigation(String error);
 
   /// No description provided for @errorDatabaseLoginRequired.
   ///

@@ -268,6 +268,7 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
     }
   }
 
+  // KORRIGIERT: Konsistente Flag-Pfade
   String _getFlagPath(String languageCode) {
     switch (languageCode) {
       case 'el':
@@ -275,9 +276,9 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
       case 'en':
         return 'assets/icons/flag_uk.png';
       case 'de':
-        return 'assets/icons/flag_de.png';
+        return 'assets/icons/flag_de.png'; // ← KORRIGIERT
       default:
-        return 'assets/icons/flag_de.png';
+        return 'assets/icons/flag_de.png'; // ← KORRIGIERT
     }
   }
 }
@@ -447,6 +448,7 @@ class _LanguageSwitcherTileState extends State<LanguageSwitcherTile> {
     }
   }
 
+  // KORRIGIERT: Konsistente Flag-Pfade
   String _getFlagPath(String languageCode) {
     switch (languageCode) {
       case 'el':
@@ -454,9 +456,9 @@ class _LanguageSwitcherTileState extends State<LanguageSwitcherTile> {
       case 'en':
         return 'assets/icons/flag_uk.png';
       case 'de':
-        return 'assets/icons/flag_de.png';
+        return 'assets/icons/flag_de.png'; // ← KORRIGIERT
       default:
-        return 'assets/icons/flag_de.png';
+        return 'assets/icons/flag_de.png'; // ← KORRIGIERT
     }
   }
 }

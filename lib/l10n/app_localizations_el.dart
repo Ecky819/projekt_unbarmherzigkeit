@@ -51,7 +51,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get homemapTitle => 'ΧΑΡΤΗΣ';
 
   @override
-  String get homemapDescription => 'Εδώ μπορείτε να βρείτε τον χάρτη μας όπου είναι σημειωμένες όλες οι τοποθεσίες των στρατοπέδων.';
+  String get homemapDescription => 'Εδώ μπορείτε να βρείτε το χάρτη μας με σημειωμένες όλες τις τοποθεσίες των κατασκηνώσεων';
+
+  @override
+  String get mapsearchHint => 'Αναζήτηση';
 
   @override
   String get authwelcomeBack => 'Καλώς ήρθατε πίσω';
@@ -144,7 +147,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get databaseeventHint => 'Τύπος στρατοπέδου, μοίρα, επάγγελμα, θρησκεία';
 
   @override
-  String databaseresults(num count) {
+  String databaseresults(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -158,7 +161,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get databasenoresults => 'Εισάγετε όρους αναζήτησης και πατήστε \'Αναζήτηση\'';
 
   @override
-  String databasesortBy(Object option) {
+  String databasesortBy(String option) {
     return 'Ταξινόμηση κατά: $option';
   }
 
@@ -481,7 +484,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get errorRetryButton => 'Προσπαθήστε ξανά';
 
   @override
-  String errorLoadingNavigation(Object error) {
+  String errorLoadingNavigation(String error) {
     return 'Σφάλμα φόρτωσης πλοήγησης: $error';
   }
 

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => '#PROJEKT UNBARMHERZIGKEIT';
+  String get appTitle => '#PROJECT MERCILESSNESS';
 
   @override
   String get navigationhome => 'Home';
@@ -51,7 +51,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homemapTitle => 'MAP';
 
   @override
-  String get homemapDescription => 'Here you can find our map with all camp locations marked.';
+  String get homemapDescription => 'Here you can find our map with all camp and memorial locations marked.';
+
+  @override
+  String get mapsearchHint => 'Search';
 
   @override
   String get authwelcomeBack => 'Welcome back';
@@ -144,7 +147,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databaseeventHint => 'Camp type, fate, profession, religion';
 
   @override
-  String databaseresults(num count) {
+  String databaseresults(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -158,7 +161,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databasenoresults => 'Enter search terms and press \'Search\'';
 
   @override
-  String databasesortBy(Object option) {
+  String databasesortBy(String option) {
     return 'Sort by: $option';
   }
 
@@ -481,7 +484,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorRetryButton => 'Try again';
 
   @override
-  String errorLoadingNavigation(Object error) {
+  String errorLoadingNavigation(String error) {
     return 'Error loading navigation: $error';
   }
 

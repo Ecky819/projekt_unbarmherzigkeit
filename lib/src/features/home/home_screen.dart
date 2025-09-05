@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../common/news_card.dart';
 import '../../common/quicklink_card.dart';
 import '../../../l10n/app_localizations.dart';
-//import '../../services/platform_service.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(String) navigateTo;
@@ -18,14 +17,10 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: ListView(
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(16),
         children: [
           Center(
@@ -62,7 +57,7 @@ class HomeScreen extends StatelessWidget {
                     title: l10n.hometimelineTitle,
                     text: l10n.hometimelineDescription,
                     imagePath: 'assets/icons/more_info.png',
-                    onTap: () => navigateTo('Timeline'),
+                    onTap: () => navigateTo(l10n.navigationtimeline),
                   ),
                 ),
                 SizedBox(
@@ -71,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                     title: l10n.homemapTitle,
                     text: l10n.homemapDescription,
                     imagePath: 'assets/icons/more_info.png',
-                    onTap: () => navigateTo('Map'),
+                    onTap: () => navigateTo(l10n.navigationmap),
                   ),
                 ),
               ],

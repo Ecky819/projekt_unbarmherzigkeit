@@ -179,7 +179,7 @@ class _SplashScreenState extends State<SplashScreen>
                     colors: [Color(0xFF2C3E50), Color(0xFF34495E)],
                   ).createShader(bounds),
                   child: const Text(
-                    '#Unbarmherzigkeit',
+                    '#Projekt Unbarmherzigkeit',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,

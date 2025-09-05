@@ -10,7 +10,7 @@ import 'package:projekt_unbarmherzigkeit/src/features/profiles/login_screen.dart
 import 'package:projekt_unbarmherzigkeit/src/features/profiles/profile_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/features/admin/admin_dashboard_screen.dart';
 import '../data/database_repository.dart';
-import '../data/firebaserepository.dart';
+import '../data/firebase_repository.dart';
 import '../data/data_initialization.dart';
 import '../services/auth_service.dart';
 import '../services/platform_service.dart';

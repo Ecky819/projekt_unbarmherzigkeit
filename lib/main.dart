@@ -9,7 +9,7 @@ import 'src/theme/app_theme.dart';
 import 'src/services/language_service.dart';
 import 'l10n/app_localizations.dart';
 import 'src/data/database_repository.dart';
-import 'src/data/FirebaseRepository.dart';
+import 'src/data/firebase_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,8 +44,9 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<LanguageService>(
         builder: (context, langService, child) {
+          final l10n = AppLocalizations.of(context);
           return MaterialApp(
-            title: '#PROJEKT UNBARMHERZIGKEIT',
+            title: l10n?.appTitle,
             locale: langService.currentLocale,
             localizationsDelegates: const [
               AppLocalizations.delegate,

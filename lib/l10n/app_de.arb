@@ -32,6 +32,8 @@
     "@homemapTitle": {},
     "homemapDescription": "Hier finden Sie unsere Karte mit allen markierten Lagerstandorten.",
     "@homemapDescription": {},
+    "mapsearchHint": "Suche",
+    "@mapsearchHint": {},
     "authwelcomeBack": "Willkommen zurück",
     "@authwelcomeBack": {},
     "authloginSubtitle": "Anmelden um fortzufahren",

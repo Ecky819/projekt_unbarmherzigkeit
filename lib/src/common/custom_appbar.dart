@@ -5,7 +5,6 @@ import '../theme/app_textstyles.dart';
 import '../theme/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/language_service.dart';
-import '../common/language_switcher.dart';
 import '../../l10n/app_localizations.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -67,10 +66,35 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               )),
         actions: [
-          // Language Switcher hinzufügen
-          const LanguageSwitcher(compact: true, showText: false),
+          // Language Switcher Button - ruft denselben Dialog auf
+          Consumer<LanguageService>(
+            builder: (context, languageService, child) {
+              return IconButton(
+                onPressed: () => _showLanguageDialog(context),
+                icon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      languageService.currentLanguageFlag,
+                      width: 20,
+                      height: 14,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.language,
+                          size: 20,
+                          color: Colors.white,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                tooltip:
+                    AppLocalizations.of(context)?.languageSwitch ?? 'Language',
+              );
+            },
+          ),
           const SizedBox(width: 8),
-          // Drawer Button hinzufügen
+          // Drawer Button
           Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.menu),
@@ -83,6 +107,98 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
     );
+  }
+
+  // Zentrale Language Dialog Methode - wird von AppBar und Drawer verwendet
+  static void _showLanguageDialog(BuildContext context) {
+    final languageService = context.read<LanguageService>();
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            l10n.languageDialogTitle,
+            style: const TextStyle(fontFamily: 'SF Pro'),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: LanguageService.supportedLocales.map((locale) {
+              final isSelected = locale == languageService.currentLocale;
+              final displayName = _getDisplayName(locale.languageCode);
+              final flagPath = _getFlagPath(locale.languageCode);
+
+              return ListTile(
+                leading: Image.asset(
+                  flagPath,
+                  width: 32,
+                  height: 22,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.language, size: 24);
+                  },
+                ),
+                title: Text(
+                  displayName,
+                  style: TextStyle(
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    fontFamily: 'SF Pro',
+                  ),
+                ),
+                trailing: isSelected
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(dialogContext).primaryColor,
+                      )
+                    : null,
+                onTap: () {
+                  languageService.changeLanguage(locale);
+                  Navigator.of(dialogContext).pop();
+                },
+              );
+            }).toList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                l10n.languageDialogClose,
+                style: const TextStyle(fontFamily: 'SF Pro'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Helper-Methoden für Language Dialog
+  static String _getDisplayName(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'Ελληνικά (Greek)';
+      case 'en':
+        return 'English';
+      case 'de':
+        return 'Deutsch (German)';
+      default:
+        return 'Deutsch';
+    }
+  }
+
+  static String _getFlagPath(String languageCode) {
+    switch (languageCode) {
+      case 'el':
+        return 'assets/icons/flag_greece.png';
+      case 'en':
+        return 'assets/icons/flag_uk.png';
+      case 'de':
+        return 'assets/icons/flag_de.png';
+      default:
+        return 'assets/icons/flag_de.png';
+    }
   }
 
   @override
@@ -299,7 +415,7 @@ class CustomDrawer extends StatelessWidget {
                         text: l10n.drawerhome,
                         onTap: () {
                           Navigator.pop(context);
-                          navigateTo('Startseite');
+                          navigateTo(l10n.navigationhome);
                         },
                       ),
                       _drawerButton(
@@ -327,7 +443,7 @@ class CustomDrawer extends StatelessWidget {
                         iconAsset: 'assets/icons/timeline_icon.png',
                         onTap: () {
                           Navigator.pop(context);
-                          navigateTo('Zeitlinie');
+                          navigateTo(l10n.navigationtimeline);
                         },
                       ),
                       _drawerButton(
@@ -336,7 +452,7 @@ class CustomDrawer extends StatelessWidget {
                         text: l10n.drawermap,
                         onTap: () {
                           Navigator.pop(context);
-                          navigateTo('Karte');
+                          navigateTo(l10n.navigationmap);
                         },
                       ),
                       _drawerButton(
@@ -345,7 +461,7 @@ class CustomDrawer extends StatelessWidget {
                         text: l10n.drawerfavorites,
                         onTap: () {
                           Navigator.pop(context);
-                          navigateTo('Favoriten');
+                          navigateTo(l10n.navigationfavorites);
                         },
                       ),
                       _drawerButton(
@@ -354,13 +470,9 @@ class CustomDrawer extends StatelessWidget {
                         text: l10n.drawerprofile,
                         onTap: () {
                           Navigator.pop(context);
-                          navigateTo('Profil');
+                          navigateTo(l10n.navigationprofile);
                         },
                       ),
-
-                      // Language Section
-                      _buildLanguageSection(context, l10n),
-
                       // Admin Section - nur wenn Admin und Dashboard verfügbar
                       if (isAdmin && navigateToAdminDashboard != null) ...[
                         const SizedBox(height: 16),
@@ -451,121 +563,7 @@ class CustomDrawer extends StatelessWidget {
     );
   }
 
-  // Language Section für Drawer
-  Widget _buildLanguageSection(BuildContext context, AppLocalizations l10n) {
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        Container(
-          height: 1,
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.transparent,
-                Colors.white.withValues(alpha: 0.3),
-                Colors.transparent,
-              ],
-            ),
-          ),
-        ),
-        _drawerButton(
-          context,
-          icon: Icons.language,
-          text: l10n.languageSwitch,
-          onTap: () => _showLanguageDialog(context),
-        ),
-      ],
-    );
-  }
-
-  // Language Dialog
-  void _showLanguageDialog(BuildContext context) {
-    final languageService = context.read<LanguageService>();
-    final l10n = AppLocalizations.of(context)!;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            l10n.languageDialogTitle,
-            style: const TextStyle(fontFamily: 'SF Pro'),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: LanguageService.supportedLocales.map((locale) {
-              final isSelected = locale == languageService.currentLocale;
-              final displayName = _getDisplayName(locale.languageCode);
-              final flagPath = _getFlagPath(locale.languageCode);
-
-              return ListTile(
-                leading: Image.asset(
-                  flagPath,
-                  width: 32,
-                  height: 22,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.language, size: 24);
-                  },
-                ),
-                title: Text(
-                  displayName,
-                  style: TextStyle(
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    fontFamily: 'SF Pro',
-                  ),
-                ),
-                trailing: isSelected
-                    ? Icon(Icons.check, color: Theme.of(context).primaryColor)
-                    : null,
-                onTap: () {
-                  languageService.changeLanguage(locale);
-                  Navigator.of(context).pop();
-                },
-              );
-            }).toList(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                l10n.languageDialogClose,
-                style: const TextStyle(fontFamily: 'SF Pro'),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _getDisplayName(String languageCode) {
-    switch (languageCode) {
-      case 'el':
-        return 'Ελληνικά (Greek)';
-      case 'en':
-        return 'English';
-      case 'de':
-        return 'Deutsch (German)';
-      default:
-        return 'Deutsch';
-    }
-  }
-
-  String _getFlagPath(String languageCode) {
-    switch (languageCode) {
-      case 'el':
-        return 'assets/icons/flag_greece.png';
-      case 'en':
-        return 'assets/icons/flag_uk.png';
-      case 'de':
-        return 'assets/icons/flag_germany.png';
-      default:
-        return 'assets/icons/flag_germany.png';
-    }
-  }
+  // Language Section für Drawer - verwendet denselben Dialog wie AppBar
 
   Widget _drawerButton(
     BuildContext context, {

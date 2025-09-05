@@ -1,6 +1,6 @@
 {
     "@@locale": "en",
-    "appTitle": "#PROJEKT UNBARMHERZIGKEIT",
+    "appTitle": "#PROJECT MERCILESSNESS",
     "@appTitle": {
         "description": "The title of the application"
     },
@@ -30,8 +30,10 @@
     "@hometimelineDescription": {},
     "homemapTitle": "MAP",
     "@homemapTitle": {},
-    "homemapDescription": "Here you can find our map with all camp locations marked.",
+    "homemapDescription": "Here you can find our map with all camp and memorial locations marked.",
     "@homemapDescription": {},
+    "mapsearchHint": "Search",
+    "@mapsearchHint": {},
     "authwelcomeBack": "Welcome back",
     "@authwelcomeBack": {},
     "authloginSubtitle": "Sign in to continue",

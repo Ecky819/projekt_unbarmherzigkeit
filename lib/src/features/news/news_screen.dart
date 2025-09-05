@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/data_news.dart';
+import '../../../l10n/app_localizations.dart';
 
 class NewsScreen extends StatefulWidget {
   final String? initialArticleId;
@@ -60,9 +61,10 @@ class _NewsScreenState extends State<NewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('News'),
+        title: Text(l10n?.newstitle ?? ''),
         backgroundColor: const Color.fromRGBO(40, 58, 73, 1.0),
         foregroundColor: Colors.white,
         elevation: 1,
@@ -71,7 +73,7 @@ class _NewsScreenState extends State<NewsScreen> {
           PopupMenuButton<String>(
             color: const Color.fromRGBO(40, 58, 73, 1.0),
             icon: const Icon(Icons.list_alt, color: Colors.white),
-            tooltip: 'Zu Artikel springen',
+            tooltip: l10n?.newsjumpToArticle,
             onSelected: _scrollToArticle,
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -173,7 +175,7 @@ class _NewsScreenState extends State<NewsScreen> {
                   curve: Curves.easeInOut,
                 );
               },
-              tooltip: 'Zum Anfang',
+              tooltip: l10n?.newsscrollToTop,
               child: const Icon(Icons.vertical_align_top),
             ),
           if (widget.initialArticleId != null) const SizedBox(height: 8),
@@ -189,7 +191,7 @@ class _NewsScreenState extends State<NewsScreen> {
                   : 'article1';
               _scrollToArticle(targetArticle);
             },
-            tooltip: 'Zum anderen Artikel',
+            tooltip: l10n?.newstoggleArticle,
             child: const Icon(Icons.swap_vert),
           ),
         ],

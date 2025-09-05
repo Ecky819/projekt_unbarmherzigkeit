@@ -54,6 +54,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homemapDescription => 'Hier finden Sie unsere Karte mit allen markierten Lagerstandorten.';
 
   @override
+  String get mapsearchHint => 'Suche';
+
+  @override
   String get authwelcomeBack => 'Willkommen zurück';
 
   @override
@@ -144,7 +147,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get databaseeventHint => 'Lagertyp, Schicksal, Beruf, Religion';
 
   @override
-  String databaseresults(num count) {
+  String databaseresults(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -158,7 +161,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get databasenoresults => 'Suchbegriffe eingeben und \'Suchen\' drücken';
 
   @override
-  String databasesortBy(Object option) {
+  String databasesortBy(String option) {
     return 'Sortieren nach: $option';
   }
 
@@ -481,7 +484,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get errorRetryButton => 'Erneut versuchen';
 
   @override
-  String errorLoadingNavigation(Object error) {
+  String errorLoadingNavigation(String error) {
     return 'Fehler beim Laden der Navigation: $error';
   }
 

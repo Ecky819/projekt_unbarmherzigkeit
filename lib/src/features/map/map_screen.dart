@@ -4,7 +4,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:provider/provider.dart';
 import '../../data/profile.dart';
 import '../../data/database_repository.dart';
-import '../database/widgets/camp_detail_view.dart'; // Wir erstellen diese View gleich
+import '../database/widgets/camp_detail_view.dart';
+import '../../../l10n/app_localizations.dart'; 
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -31,6 +32,7 @@ class _MapScreenState extends State<MapScreen> {
   late BitmapDescriptor _memoryIcon;
 
   // Mapping von Marker-IDs zu Camp-Namen für Suche in der Datenbank
+  // WICHTIG: Diese Namen müssen exakt mit den Namen in der Datenbank übereinstimmen!
   final Map<String, String> _markerToCampName = {
     '1': 'Neuengamme',
     '2': 'Dachau',
@@ -57,6 +59,12 @@ class _MapScreenState extends State<MapScreen> {
     _loadCustomMarkers().then((_) => _addFixedMarkers());
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadCustomMarkers() async {
     try {
       _customIcon = await BitmapDescriptor.asset(
@@ -64,6 +72,7 @@ class _MapScreenState extends State<MapScreen> {
         'assets/icons/custom_marker.png',
       );
     } catch (e) {
+      print('Error loading custom marker: $e');
       _customIcon = BitmapDescriptor.defaultMarker;
     }
 
@@ -73,7 +82,10 @@ class _MapScreenState extends State<MapScreen> {
         'assets/icons/secondary_marker.png',
       );
     } catch (e) {
-      _secondaryIcon = BitmapDescriptor.defaultMarker;
+      print('Error loading secondary marker: $e');
+      _secondaryIcon = BitmapDescriptor.defaultMarkerWithHue(
+        BitmapDescriptor.hueBlue,
+      );
     }
 
     try {
@@ -82,6 +94,7 @@ class _MapScreenState extends State<MapScreen> {
         'assets/icons/memory_marker.png',
       );
     } catch (e) {
+      print('Error loading memory marker: $e');
       _memoryIcon = BitmapDescriptor.defaultMarkerWithHue(
         BitmapDescriptor.hueGreen,
       );
@@ -91,7 +104,6 @@ class _MapScreenState extends State<MapScreen> {
   void _loadCampFromDatabase(String markerId) async {
     final campName = _markerToCampName[markerId];
     if (campName == null) {
-      // Für Marker ohne Datenbank-Eintrag (z.B. Cap Arcona Mahnmal)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Keine Detailinformationen verfügbar')),
       );
@@ -100,44 +112,142 @@ class _MapScreenState extends State<MapScreen> {
 
     // Repository aus dem Provider holen
     final repository = Provider.of<DatabaseRepository>(context, listen: false);
+    
+    // Debug-Ausgabe um zu sehen welches Repository verwendet wird
+    print('Using repository: ${repository.runtimeType}');
+    print('Searching for camp: $campName');
 
-    // Lade alle Lager und suche nach dem Namen
-    final result = await repository.getConcentrationCamps();
-
-    if (result.isSuccess && result.data != null && mounted) {
-      // Finde das Lager mit dem passenden Namen
-      ConcentrationCamp? camp;
-      try {
-        camp = result.data!.firstWhere((c) => c.name == campName);
-      } catch (e) {
-        // Kein passendes Lager gefunden
-        camp = null;
-      }
-
-      if (camp != null) {
-        // Zeige die Camp-Detail-Ansicht
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CampDetailScreen(camp: camp!),
-          ),
+    // Zeige Ladeindikator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
         );
-      } else {
+      },
+    );
+
+    try {
+      // Versuche zuerst die direkte Suche mit verschiedenen Namensformaten
+      final searchVariants = [
+        campName,
+        'KZ $campName',
+        'Außenlager $campName',
+        'Konzentrationslager $campName',
+      ];
+      
+      SearchResult? foundResult;
+      
+      // Durchsuche mit verschiedenen Namensvarianten
+      for (final searchName in searchVariants) {
+        print('Trying search variant: $searchName');
+        final searchResult = await repository.search(
+          nameQuery: searchName,
+        );
+        
+        if (searchResult.isSuccess && 
+            searchResult.data != null && 
+            searchResult.data!.isNotEmpty) {
+          print('Found ${searchResult.data!.length} results for "$searchName"');
+          // Prüfe ob ein Camp gefunden wurde
+          for (final result in searchResult.data!) {
+            if (result.type == 'camp') {
+              foundResult = result;
+              print('Found camp: ${result.title}');
+              break;
+            }
+          }
+          if (foundResult != null) break;
+        }
+      }
+      
+      // Wenn nichts gefunden, versuche Teilstring-Suche
+      if (foundResult == null) {
+        print('No exact match found, trying partial search...');
+        // Suche auch nach Teilstrings (für den Fall von Rechtschreibunterschieden)
+        final allCampsResult = await repository.getConcentrationCamps();
+        
+        if (allCampsResult.isSuccess && allCampsResult.data != null) {
+          print('Searching through ${allCampsResult.data!.length} camps');
+          for (final camp in allCampsResult.data!) {
+            // Case-insensitive Suche mit contains
+            if (camp.name.toLowerCase().contains(campName.toLowerCase()) ||
+                campName.toLowerCase().contains(camp.name.toLowerCase())) {
+              foundResult = SearchResult.fromCamp(camp);
+              print('Found camp by partial match: ${camp.name}');
+              break;
+            }
+          }
+        }
+      }
+      
+      // Verstecke Ladeindikator
+      if (mounted) {
+        Navigator.pop(context);
+      }
+      
+      if (foundResult != null && foundResult.item is ConcentrationCamp) {
+        final camp = foundResult.item as ConcentrationCamp;
+        
+        if (mounted) {
+          // Wichtig: Übergebe das Repository an CampDetailScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CampDetailScreen(
+                camp: camp,
+                repository: repository, // Repository übergeben!
+              ),
+            ),
+          );
+        }
+      } else if (mounted) {
+        // Keine Ergebnisse gefunden
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Lager "$campName" nicht in der Datenbank gefunden'),
+            action: SnackBarAction(
+              label: 'Details',
+              onPressed: () {
+                // Zeige Dialog mit Debug-Informationen
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Keine Daten gefunden'),
+                    content: Text(
+                      'Das Lager "$campName" konnte nicht in der Datenbank gefunden werden.\n\n'
+                      'Verwendetes Repository: ${repository.runtimeType}\n'
+                      'Hinweis: Stellen Sie sicher, dass die Datenbank initialisiert wurde.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         );
       }
-    } else if (mounted) {
-      // Fehlerbehandlung
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result.error?.message ?? 'Lager konnten nicht geladen werden',
+    } catch (e) {
+      // Verstecke Ladeindikator bei Fehler
+      if (mounted) {
+        Navigator.pop(context);
+      }
+      
+      if (mounted) {
+        print('Error loading camp: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler beim Laden: ${e.toString()}'),
+            backgroundColor: Colors.red,
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -259,16 +369,36 @@ class _MapScreenState extends State<MapScreen> {
           infoWindow: const InfoWindow(title: 'Außenlager Hamburg-Hammerbrook'),
           onTap: () => _loadCampFromDatabase('17'),
         ),
+        
         // Mahnmale
         Marker(
           markerId: const MarkerId('4'),
           position: const LatLng(54.09143087671109, 10.818427949630182),
           icon: _memoryIcon,
           infoWindow: const InfoWindow(title: 'Cap Arcona Mahnmal'),
-          onTap: () => _loadCampFromDatabase('4'),
+          onTap: () => _showMemorialInfo('Cap Arcona Mahnmal'),
         ),
       ]);
     });
+  }
+
+  void _showMemorialInfo(String memorialName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(memorialName),
+        content: const Text(
+          'Dieses Mahnmal erinnert an die Opfer der Cap Arcona Tragödie. '
+          'Für detaillierte Informationen besuchen Sie bitte die Gedenkstätte.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _zoomIn() {
@@ -280,6 +410,13 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _searchLocation(BuildContext context, String location) async {
+    if (location.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitte geben Sie einen Ort ein.')),
+      );
+      return;
+    }
+
     try {
       List<Location> locations = await locationFromAddress(location);
       if (locations.isNotEmpty) {
@@ -287,25 +424,39 @@ class _MapScreenState extends State<MapScreen> {
           locations.first.latitude,
           locations.first.longitude,
         );
-        mapController.animateCamera(CameraUpdate.newLatLng(newPosition));
+        mapController.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: newPosition,
+              zoom: 12,
+            ),
+          ),
+        );
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Ort nicht gefunden.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ort nicht gefunden.')),
+          );
         }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fehler bei der Ortssuche.')),
+          SnackBar(content: Text('Fehler bei der Ortssuche: ${e.toString()}')),
         );
       }
     }
   }
 
+  void _resetCameraPosition() {
+    mapController.animateCamera(
+      CameraUpdate.newCameraPosition(_initialCameraPosition),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -315,9 +466,15 @@ class _MapScreenState extends State<MapScreen> {
             markers: _markers,
             onMapCreated: (controller) => mapController = controller,
             zoomControlsEnabled: false,
+            myLocationEnabled: false,
+            myLocationButtonEnabled: false,
+            compassEnabled: true,
+            mapToolbarEnabled: false,
           ),
+          
+          // Suchleiste
           Positioned(
-            top: 10,
+            top: MediaQuery.of(context).padding.top + 10,
             left: 10,
             right: 10,
             child: Container(
@@ -339,14 +496,25 @@ class _MapScreenState extends State<MapScreen> {
                   FocusScope.of(context).unfocus();
                 },
                 decoration: InputDecoration(
-                  hintText: 'Suche',
+                  hintText: l10n?.mapsearchHint ?? 'Ort suchen...',
                   hintStyle: const TextStyle(color: Colors.grey),
                   border: InputBorder.none,
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.mic, color: Colors.grey),
-                    onPressed: () {},
-                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                            });
+                          },
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.mic, color: Colors.grey),
+                          onPressed: () {
+                            // Mikrofon-Funktion (optional zu implementieren)
+                          },
+                        ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 15,
@@ -355,11 +523,45 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
+          
+          // Zoom-Kontrollen und Reset-Button
           Positioned(
             right: 15,
             bottom: 100,
             child: Column(
               children: [
+                // Reset Camera Position Button
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 3,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: _resetCameraPosition,
+                      child: const SizedBox(
+                        width: 45,
+                        height: 45,
+                        child: Icon(
+                          Icons.my_location,
+                          color: Colors.black87,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Zoom In Button
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -386,6 +588,7 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
+                // Zoom Out Button
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -416,6 +619,61 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          
+          // Legende
+          Positioned(
+            left: 10,
+            bottom: 30,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 3,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Legende:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: Colors.red, size: 16),
+                      const SizedBox(width: 4),
+                      const Text('Hauptlager', style: TextStyle(fontSize: 11)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: Colors.blue, size: 16),
+                      const SizedBox(width: 4),
+                      const Text('Außenlager', style: TextStyle(fontSize: 11)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: Colors.green, size: 16),
+                      const SizedBox(width: 4),
+                      const Text('Mahnmal', style: TextStyle(fontSize: 11)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],

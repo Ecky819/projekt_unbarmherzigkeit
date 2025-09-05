@@ -4,6 +4,7 @@ import '../../data/database_repository.dart';
 import '../../data/mockdatabase_repository.dart';
 import '../../common/custom_appbar.dart';
 import '../../common/favorite_button.dart';
+import '../../../l10n/app_localizations.dart';
 import 'detail_screen.dart';
 
 // Enum für Sortieroptionen
@@ -578,12 +579,13 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
       appBar: CustomAppBar(
         context: context,
         pageIndex: 1,
-        title: 'Datenbank',
+        title: l10n.databasetitle,
         navigateTo: (desc) {},
         nav: const [],
         onBackPressed: () => Navigator.pop(context),
