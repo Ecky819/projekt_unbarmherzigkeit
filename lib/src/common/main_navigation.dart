@@ -174,8 +174,68 @@ class _MainNavigationState extends State<MainNavigation> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                DatabaseScreen(repository: _currentRepository),
+            builder: (context) => DatabaseScreen(
+              repository: _currentRepository,
+              // WICHTIG: Übergebe alle Navigation-Callbacks!
+              navigateTo: (String destination) {
+                // Navigation zu den Hauptscreens
+                if (destination == l10n.navigationhome) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                  setState(() {
+                    _selectedIndex = 0;
+                  });
+                } else if (destination == l10n.navigationtimeline) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                  setState(() {
+                    _selectedIndex = 1;
+                  });
+                } else if (destination == l10n.navigationmap) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                  setState(() {
+                    _selectedIndex = 2;
+                  });
+                } else if (destination == l10n.navigationfavorites) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                  setState(() {
+                    _selectedIndex = 3;
+                  });
+                } else if (destination == l10n.navigationprofile) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                  if (_authService.isLoggedIn) {
+                    setState(() {
+                      _selectedIndex = 4;
+                    });
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
+                  }
+                }
+              },
+              navigateToNews: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NewsScreen()),
+                );
+              },
+              navigateToAdminDashboard: _authService.isAdmin
+                  ? () {
+                      if (_currentRepository != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AdminDashboardScreen(
+                              repository: _currentRepository!,
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  : null, // NULL wenn User kein Admin ist!
+            ),
           ),
         );
       } else {

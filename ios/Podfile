@@ -50,7 +50,7 @@ post_install do |installer|
 
     # Erzwinge arm64 / x86_64 Kompatibilität
     target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0'
     end
   end
 end
