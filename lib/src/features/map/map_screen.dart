@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../data/profile.dart';
 import '../../data/database_repository.dart';
 import '../database/widgets/camp_detail_view.dart';
-import '../../../l10n/app_localizations.dart'; 
+import '../../../l10n/app_localizations.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -72,7 +72,7 @@ class _MapScreenState extends State<MapScreen> {
         'assets/icons/custom_marker.png',
       );
     } catch (e) {
-      print('Error loading custom marker: $e');
+      //print('Error loading custom marker: $e');
       _customIcon = BitmapDescriptor.defaultMarker;
     }
 
@@ -82,7 +82,7 @@ class _MapScreenState extends State<MapScreen> {
         'assets/icons/secondary_marker.png',
       );
     } catch (e) {
-      print('Error loading secondary marker: $e');
+      //print('Error loading secondary marker: $e');
       _secondaryIcon = BitmapDescriptor.defaultMarkerWithHue(
         BitmapDescriptor.hueBlue,
       );
@@ -94,7 +94,7 @@ class _MapScreenState extends State<MapScreen> {
         'assets/icons/memory_marker.png',
       );
     } catch (e) {
-      print('Error loading memory marker: $e');
+      //print('Error loading memory marker: $e');
       _memoryIcon = BitmapDescriptor.defaultMarkerWithHue(
         BitmapDescriptor.hueGreen,
       );
@@ -112,19 +112,17 @@ class _MapScreenState extends State<MapScreen> {
 
     // Repository aus dem Provider holen
     final repository = Provider.of<DatabaseRepository>(context, listen: false);
-    
+
     // Debug-Ausgabe um zu sehen welches Repository verwendet wird
-    print('Using repository: ${repository.runtimeType}');
-    print('Searching for camp: $campName');
+    //print('Using repository: ${repository.runtimeType}');
+    //print('Searching for camp: $campName');
 
     // Zeige Ladeindikator
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+        return const Center(child: CircularProgressIndicator());
       },
     );
 
@@ -136,60 +134,58 @@ class _MapScreenState extends State<MapScreen> {
         'Außenlager $campName',
         'Konzentrationslager $campName',
       ];
-      
+
       SearchResult? foundResult;
-      
+
       // Durchsuche mit verschiedenen Namensvarianten
       for (final searchName in searchVariants) {
-        print('Trying search variant: $searchName');
-        final searchResult = await repository.search(
-          nameQuery: searchName,
-        );
-        
-        if (searchResult.isSuccess && 
-            searchResult.data != null && 
+        //print('Trying search variant: $searchName');
+        final searchResult = await repository.search(nameQuery: searchName);
+
+        if (searchResult.isSuccess &&
+            searchResult.data != null &&
             searchResult.data!.isNotEmpty) {
-          print('Found ${searchResult.data!.length} results for "$searchName"');
+          //print('Found ${searchResult.data!.length} results for "$searchName"');
           // Prüfe ob ein Camp gefunden wurde
           for (final result in searchResult.data!) {
             if (result.type == 'camp') {
               foundResult = result;
-              print('Found camp: ${result.title}');
+              //print('Found camp: ${result.title}');
               break;
             }
           }
           if (foundResult != null) break;
         }
       }
-      
+
       // Wenn nichts gefunden, versuche Teilstring-Suche
       if (foundResult == null) {
-        print('No exact match found, trying partial search...');
+        //print('No exact match found, trying partial search...');
         // Suche auch nach Teilstrings (für den Fall von Rechtschreibunterschieden)
         final allCampsResult = await repository.getConcentrationCamps();
-        
+
         if (allCampsResult.isSuccess && allCampsResult.data != null) {
-          print('Searching through ${allCampsResult.data!.length} camps');
+          //print('Searching through ${allCampsResult.data!.length} camps');
           for (final camp in allCampsResult.data!) {
             // Case-insensitive Suche mit contains
             if (camp.name.toLowerCase().contains(campName.toLowerCase()) ||
                 campName.toLowerCase().contains(camp.name.toLowerCase())) {
               foundResult = SearchResult.fromCamp(camp);
-              print('Found camp by partial match: ${camp.name}');
+              //print('Found camp by partial match: ${camp.name}');
               break;
             }
           }
         }
       }
-      
+
       // Verstecke Ladeindikator
       if (mounted) {
         Navigator.pop(context);
       }
-      
+
       if (foundResult != null && foundResult.item is ConcentrationCamp) {
         final camp = foundResult.item as ConcentrationCamp;
-        
+
         if (mounted) {
           // Wichtig: Übergebe das Repository an CampDetailScreen
           Navigator.push(
@@ -238,9 +234,9 @@ class _MapScreenState extends State<MapScreen> {
       if (mounted) {
         Navigator.pop(context);
       }
-      
+
       if (mounted) {
-        print('Error loading camp: $e');
+        //print('Error loading camp: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Fehler beim Laden: ${e.toString()}'),
@@ -369,7 +365,7 @@ class _MapScreenState extends State<MapScreen> {
           infoWindow: const InfoWindow(title: 'Außenlager Hamburg-Hammerbrook'),
           onTap: () => _loadCampFromDatabase('17'),
         ),
-        
+
         // Mahnmale
         Marker(
           markerId: const MarkerId('4'),
@@ -426,17 +422,14 @@ class _MapScreenState extends State<MapScreen> {
         );
         mapController.animateCamera(
           CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: newPosition,
-              zoom: 12,
-            ),
+            CameraPosition(target: newPosition, zoom: 12),
           ),
         );
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ort nicht gefunden.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Ort nicht gefunden.')));
         }
       }
     } catch (e) {
@@ -471,7 +464,7 @@ class _MapScreenState extends State<MapScreen> {
             compassEnabled: true,
             mapToolbarEnabled: false,
           ),
-          
+
           // Suchleiste
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
@@ -523,7 +516,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
-          
+
           // Zoom-Kontrollen und Reset-Button
           Positioned(
             right: 15,
@@ -621,7 +614,7 @@ class _MapScreenState extends State<MapScreen> {
               ],
             ),
           ),
-          
+
           // Legende
           Positioned(
             left: 10,
@@ -629,7 +622,7 @@ class _MapScreenState extends State<MapScreen> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: const [
                   BoxShadow(
@@ -639,37 +632,46 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Legende:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.red, size: 16),
-                      const SizedBox(width: 4),
-                      const Text('Hauptlager', style: TextStyle(fontSize: 11)),
+                      Icon(
+                        Icons.location_on,
+                        color: Color(0xFFA45F37),
+                        size: 16,
+                      ),
+                      SizedBox(width: 4),
+                      Text('Hauptlager', style: TextStyle(fontSize: 11)),
                     ],
                   ),
                   Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.blue, size: 16),
-                      const SizedBox(width: 4),
-                      const Text('Außenlager', style: TextStyle(fontSize: 11)),
+                      Icon(
+                        Icons.location_on,
+                        color: Color(0xFFF08547),
+                        size: 16,
+                      ),
+                      SizedBox(width: 4),
+                      Text('Außenlager', style: TextStyle(fontSize: 11)),
                     ],
                   ),
                   Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.green, size: 16),
-                      const SizedBox(width: 4),
-                      const Text('Mahnmal', style: TextStyle(fontSize: 11)),
+                      Icon(
+                        Icons.location_on,
+                        color: Color(0xFF74683A),
+                        size: 16,
+                      ),
+                      SizedBox(width: 4),
+                      Text('Mahnmal', style: TextStyle(fontSize: 11)),
                     ],
                   ),
                 ],

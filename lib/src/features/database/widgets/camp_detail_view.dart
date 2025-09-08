@@ -61,7 +61,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
         });
       }
     } catch (e) {
-      print('Error loading related data: $e');
+      //print('Error loading related data: $e');
     } finally {
       setState(() {
         _isLoadingRelatedData = false;
@@ -96,8 +96,8 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
 
   void _handleDatabaseButtonPress() {
     // Debug-Ausgabe
-    print('Repository available: ${widget.repository != null}');
-    print('Repository type: ${widget.repository?.runtimeType}');
+    //print('Repository available: ${widget.repository != null}');
+    //print('Repository type: ${widget.repository?.runtimeType}');
 
     // Prüfe ob User angemeldet ist
     if (_authService.isLoggedIn) {
@@ -237,7 +237,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -270,7 +270,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
+                                  color: Colors.black.withValues(alpha: 0.6),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: const Icon(
@@ -556,10 +556,10 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.1),
+                      color: AppColors.accent.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.accent.withOpacity(0.3),
+                        color: AppColors.accent.withValues(alpha: 0.3),
                       ),
                     ),
                     child: const Row(
