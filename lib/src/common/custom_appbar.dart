@@ -118,6 +118,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
+          backgroundColor: AppColors.background,
           title: Text(
             l10n.languageDialogTitle,
             style: const TextStyle(fontFamily: 'SF Pro'),
@@ -165,7 +166,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
                 l10n.languageDialogClose,
-                style: const TextStyle(fontFamily: 'SF Pro'),
+                style: const TextStyle(
+                  fontFamily: 'SF Pro',
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ],

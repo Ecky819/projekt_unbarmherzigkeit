@@ -54,7 +54,11 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
             width: 20,
             height: 14,
             errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.language, size: 20, color: Colors.white);
+              return const Icon(
+                Icons.language,
+                size: 20,
+                color: Color.fromARGB(255, 197, 16, 16),
+              );
             },
           ),
           if (widget.showText) ...[
