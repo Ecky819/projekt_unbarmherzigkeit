@@ -7,7 +7,7 @@ import 'details/detail_sommer1941.dart';
 import 'details/detail_14september1943.dart';
 import 'details/detail_12oktober1944.dart';
 import 'details/detail_17august1943.dart';
-import 'details/detail_24maerz1943.dart';
+import 'details/detail_16februar1943.dart';
 import 'details/detail_12februar1945.dart';
 import 'details/detail_28dezember1944.dart';
 import 'details/detail_29juni1944.dart';
@@ -28,7 +28,7 @@ class TimelineScreen extends StatelessWidget {
             date: '28.Oktober 1940',
             title: 'Der italienische Einmarsch in Griechenland',
             description:
-                'Der italienische Einmarsch in Griechenland am 28. Oktober 1940 markierte den Beginn des Balkanfeldzugs im Zweiten Weltkrieg...',
+                'Der italienische Einmarsch in Griechenland am 28. Oktober 1940 markierte den Beginn des Balkanfeldzugs im Zweiten Weltkrieg.',
             isFirst: true,
             onPressed: () {
               Navigator.push(
@@ -71,7 +71,7 @@ class TimelineScreen extends StatelessWidget {
             date: 'September 1941',
             title: 'Gründung der ersten organisierten Widerstandsgruppen',
             description:
-                'Gründung der ersten organisierten Widerstandsgruppen (EDES, EAM/ELAS) – Sabotageaktionen beginnen, deutsche Repressalien gegen Zivilbevölkerung folg...',
+                'Gründung der ersten organisierten Widerstandsgruppen (EDES, EAM/ELAS) – Sabotageaktionen beginnen, deutsche Repressalien gegen Zivilbevölkerung folgt.',
             onPressed: () {
               Navigator.push(
                 context,
@@ -85,7 +85,7 @@ class TimelineScreen extends StatelessWidget {
             date: 'November 1942',
             title: 'Operation Harling: Sprengung der Gorgopotamos-Brücke',
             description:
-                'Operation Harling: Sprengung der Gorgopotamos-Brücke durch britisch-griechische Partisanen – deutsche Vergeltungsaktionen in umliegenden Dörf...',
+                'Operation Harling: Sprengung der Gorgopotamos-Brücke durch britisch-griechische Partisanen – deutsche Vergeltungsaktionen in umliegenden Dörfern.',
             onPressed: () {
               Navigator.push(
                 context,
@@ -96,15 +96,15 @@ class TimelineScreen extends StatelessWidget {
             },
           ),
           TimelineEntry(
-            date: '24. März 1943',
+            date: '16-17. Februar 1943',
             title: 'Massaker von Domeniko (Thessalien)',
             description:
-                'SS-Einsatzgruppe exekutiert über 150 Männer als Vergeltung für Partisanenangriffe.',
+                'SS-Einsatzgruppe exekutiert 175 Männer als Vergeltung für Partisanenangriffe.',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const Detail24Maerz1943(),
+                  builder: (context) => const Detail16Februar1943(),
                 ),
               );
             },
@@ -197,7 +197,7 @@ class TimelineScreen extends StatelessWidget {
             date: '12. Februar 1945',
             title: 'Varkiza-Abkommen',
             description:
-                'Formeller Waffenstillstand zwischen ELAS und der offiziellen griechischen Regierung; jedoch Beginn politis...',
+                'Formeller Waffenstillstand zwischen ELAS und der offiziellen griechischen Regierung; jedoch Beginn politischer Unruhen.',
             isLast: true,
             onPressed: () {
               Navigator.push(
