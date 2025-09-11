@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Für temporäre geteilte Dateien -->
+    <cache-path name="shared_images" path="images/" />
+    <!-- Für externe Speicher-Zugriff -->
+    <external-path name="external_files" path="."/>
+    <!-- Für interne App-Dateien -->
+    <files-path name="internal_files" path="." />
+    <!-- Für geteilte Dokumente -->
+    <cache-path name="shared_docs" path="docs/" />
+</paths>

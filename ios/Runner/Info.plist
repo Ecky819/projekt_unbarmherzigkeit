@@ -56,5 +56,75 @@
 				</array>
 			</dict>
 		</array>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Diese App benötigt Zugriff auf die Fotobibliothek, um Bilder zu teilen.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Diese App benötigt Zugriff auf die Kamera, um Fotos für das Teilen aufzunehmen.</string>
+		<!-- NEU HINZUFÜGEN: URL Schemes für externe Apps -->
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<!-- WhatsApp -->
+			<string>whatsapp</string>
+			<!-- Telegram -->
+			<string>telegram</string>
+			<string>tg</string>
+			<!-- Twitter -->
+			<string>twitter</string>
+			<string>twitterrific</string>
+			<!-- Facebook -->
+			<string>fb</string>
+			<string>facebook</string>
+			<!-- E-Mail -->
+			<string>mailto</string>
+			<!-- Safari/Browser -->
+			<string>http</string>
+			<string>https</string>
+			<!-- SMS -->
+			<string>sms</string>
+			<!-- Instagram -->
+			<string>instagram</string>
+			<!-- LinkedIn -->
+			<string>linkedin</string>
+		</array>
+		<!-- NEU HINZUFÜGEN: Share Extension Support -->
+		<key>CFBundleDocumentTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeIconFiles</key>
+				<array/>
+				<key>CFBundleTypeName</key>
+				<string>Text Files</string>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>LSHandlerRank</key>
+				<string>Alternate</string>
+				<key>LSItemContentTypes</key>
+				<array>
+					<string>public.plain-text</string>
+				</array>
+			</dict>
+		</array>
+		<!-- NEU HINZUFÜGEN: Exported Type Identifiers -->
+		<key>UTExportedTypeDeclarations</key>
+		<array>
+			<dict>
+				<key>UTTypeConformsTo</key>
+				<array>
+					<string>public.data</string>
+				</array>
+				<key>UTTypeDescription</key>
+				<string>Historical Data</string>
+				<key>UTTypeIdentifier</key>
+				<string>com.example.projekt-unbarmherzigkeit.historical-data</string>
+				<key>UTTypeTagSpecification</key>
+				<dict>
+					<key>public.filename-extension</key>
+					<array>
+						<string>json</string>
+						<string>txt</string>
+					</array>
+				</dict>
+			</dict>
+		</array>
 	</dict>
 </plist>

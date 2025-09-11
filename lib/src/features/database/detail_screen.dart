@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/profile.dart';
 import '../../common/favorite_button.dart';
+import '../../services/share_service.dart'; // Neuer Import
 
 class DetailScreen extends StatelessWidget {
   final dynamic item;
@@ -20,8 +21,7 @@ class DetailScreen extends StatelessWidget {
 
   String _getItemId() {
     if (item is Victim) {
-      return item.victimId
-          .toString(); // Jetzt schon String, aber toString() für Sicherheit
+      return item.victimId.toString();
     } else if (item is ConcentrationCamp) {
       return item.campId.toString();
     } else if (item is Commander) {
@@ -96,7 +96,6 @@ class DetailScreen extends StatelessWidget {
     return null;
   }
 
-  // Utility method für Altersberechnung
   String? _getAgeInfo() {
     if (item is Victim) {
       final victim = item as Victim;
@@ -112,7 +111,72 @@ class DetailScreen extends StatelessWidget {
     return null;
   }
 
-  // Utility method für Vollname
+  /// Behandelt das Teilen mit Fehlerbehandlung
+  Future<void> _handleShare(BuildContext context) async {
+    try {
+      // Zeige Teilen-Optionen Modal
+      await ShareService.shareItemWithOptions(context, item);
+    } catch (e) {
+      if (context.mounted) {
+        // Fallback: Einfaches Teilen wenn Modal fehlschlägt
+        try {
+          await ShareService.shareItem(item);
+        } catch (fallbackError) {
+          // Zeige Fehlermeldung
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Teilen fehlgeschlagen: $fallbackError'),
+              backgroundColor: Colors.red,
+              action: SnackBarAction(
+                label: 'Erneut versuchen',
+                textColor: Colors.white,
+                onPressed: () => _handleShare(context),
+              ),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  /// Zeigt Bestätigung vor dem Teilen (optional, für sensible Inhalte)
+  Future<void> _showShareConfirmation(BuildContext context) async {
+    final shouldShare = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.share, color: Color(0xFF283A49)),
+            SizedBox(width: 8),
+            Text('Inhalte teilen'),
+          ],
+        ),
+        content: Text(
+          'Möchten Sie Informationen über "${_getTitle()}" teilen?\n\n'
+          'Diese Inhalte dokumentieren historische Ereignisse der NS-Zeit.',
+          style: const TextStyle(fontFamily: 'SF Pro'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF283A49),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Teilen'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldShare == true && context.mounted) {
+      await _handleShare(context);
+    }
+  }
 
   Widget _buildImageWithCaption() {
     final imagePath = _getImagePath();
@@ -122,10 +186,8 @@ class DetailScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Das Bild
         _buildImageWidget(),
 
-        // Bildbeschreibung und Quelle (falls vorhanden)
         if (imagePath != null && imagePath.isNotEmpty) ...[
           const SizedBox(height: 12),
           Material(
@@ -141,7 +203,6 @@ class DetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Bildbeschreibung
                   if (imageDescription != null &&
                       imageDescription.isNotEmpty) ...[
                     const SizedBox(height: 4),
@@ -155,7 +216,6 @@ class DetailScreen extends StatelessWidget {
                     ),
                   ],
 
-                  // Quellenangabe
                   if (imageSource != null && imageSource.isNotEmpty) ...[
                     if (imageDescription != null && imageDescription.isNotEmpty)
                       const SizedBox(height: 8),
@@ -192,16 +252,13 @@ class DetailScreen extends StatelessWidget {
   Widget _buildImageWidget() {
     final imagePath = _getImagePath();
 
-    // Bestimme Abmessungen basierend auf dem Typ
     double imageHeight;
     double? imageWidth;
 
     if (item is Victim || item is Commander) {
-      // Hochformat für Porträts (3:4 Verhältnis)
       imageHeight = 280;
       imageWidth = 210;
     } else {
-      // Querformat für Lager (Landschaftsbilder)
       imageHeight = 200;
       imageWidth = double.infinity;
     }
@@ -390,18 +447,10 @@ class DetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          // Share Button
+          // Share Button - AKTUALISIERT
           IconButton(
             icon: const Icon(Icons.share),
-            onPressed: () {
-              // Hier könnte eine Share-Funktionalität implementiert werden
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Teilen-Funktion noch nicht implementiert'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
+            onPressed: () => _showShareConfirmation(context), // Mit Bestätigung
             tooltip: 'Teilen',
           ),
 
@@ -423,11 +472,9 @@ class DetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Bild mit Beschriftung
               _buildImageWithCaption(),
               const SizedBox(height: 24),
 
-              // Header mit Icon, Titel und Info-Cards
               Container(
                 margin: const EdgeInsets.only(bottom: 24),
                 padding: const EdgeInsets.all(20),
@@ -482,26 +529,9 @@ class DetailScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // Großer Favoriten-Button im Header
-                        // Container(
-                        //   padding: const EdgeInsets.all(8),
-                        //   decoration: BoxDecoration(
-                        //     color: Colors.grey[100],
-                        //     borderRadius: BorderRadius.circular(12),
-                        //   ),
-                        //   child: FavoriteButton(
-                        //     itemId: _getItemId(),
-                        //     itemType: _getItemType(),
-                        //     itemTitle: _getTitle(),
-                        //     size: 32.0,
-                        //     favoriteColor: Colors.red,
-                        //     notFavoriteColor: Colors.grey[500],
-                        //   ),
-                        // ),
                       ],
                     ),
 
-                    // Zusätzliche Info-Cards je nach Typ
                     const SizedBox(height: 16),
                     if (item is Victim) ...[
                       _buildInfoCard(
@@ -536,7 +566,6 @@ class DetailScreen extends StatelessWidget {
                 ),
               ),
 
-              // Details basierend auf Typ
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
