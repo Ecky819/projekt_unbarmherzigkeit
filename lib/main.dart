@@ -13,13 +13,12 @@ import 'src/data/firebase_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  //Verbindung zu Firebase herstellen
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
+  //Verbindung zum Language Service erstellen und initialisieren
   final languageService = LanguageService();
   await languageService.initialize();
-
-  // Erstelle das Repository
+  //Verbindung zur Datenbank erstellen
   final DatabaseRepository repository = FirebaseRepository();
 
   runApp(MyApp(languageService: languageService, repository: repository));

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projekt_unbarmherzigkeit/src/theme/app_colors.dart';
 import '../../data/profile.dart';
 import '../../common/favorite_button.dart';
 import '../../services/share_service.dart'; // Neuer Import
@@ -144,6 +145,7 @@ class DetailScreen extends StatelessWidget {
     final shouldShare = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: AppColors.secondary,
         title: const Row(
           children: [
             Icon(Icons.share, color: Color(0xFF283A49)),
@@ -159,7 +161,10 @@ class DetailScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen'),
+            child: const Text(
+              'Abbrechen',
+              style: TextStyle(color: AppColors.primary, fontFamily: 'SF Pro'),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
