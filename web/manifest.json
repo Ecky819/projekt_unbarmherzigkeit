@@ -1,13 +1,20 @@
 {
-    "name": "projekt_unbarmherzigkeit",
-    "short_name": "projekt_unbarmherzigkeit",
-    "start_url": ".",
+    "name": "Projekt Unbarmherzigkeit",
+    "short_name": "Unbarmherzigkeit",
+    "start_url": "/",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#E9E5DD",
+    "theme_color": "#283A49",
+    "description": "Dokumentation und Gedenken der NS-Zeit - Eine digitale Gedenkstätte",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "categories": [
+        "education",
+        "history",
+        "reference"
+    ],
+    "lang": "de",
+    "scope": "/",
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -30,6 +37,20 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "screenshots/desktop-1.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "screenshots/mobile-1.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow"
         }
     ]
 }

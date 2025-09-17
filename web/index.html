@@ -1,38 +1,138 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Projekt Unbarmherzigkeit - Dokumentation der NS-Zeit">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO Meta Tags -->
+  <meta name="keywords" content="NS-Zeit, Holocaust, Dokumentation, Gedenken">
+  <meta name="author" content="Projekt Unbarmherzigkeit">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Projekt Unbarmherzigkeit">
+  <meta property="og:description" content="Dokumentation und Gedenken der NS-Zeit">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="icons/Icon-512.png">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="projekt_unbarmherzigkeit">
+  <meta name="apple-mobile-web-app-title" content="Projekt Unbarmherzigkeit">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="favicon.png" />
 
-  <title>projekt_unbarmherzigkeit</title>
+  <title>Projekt Unbarmherzigkeit</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Firebase SDK v9 (modular) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- Google Maps API (ersetzen Sie YOUR_API_KEY) -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
 </head>
+
 <body>
+  <!-- Loading Spinner mit Ihrem Logo -->
+  <div id="loading">
+    <div class="logo-container">
+      <img src="icons/Icon-192.png" alt="Projekt Unbarmherzigkeit Logo" class="logo">
+    </div>
+    <div class="spinner"></div>
+    <p>Projekt Unbarmherzigkeit wird geladen...</p>
+  </div>
+
+  <style>
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #E9E5DD;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .logo-container {
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(40, 58, 73, 0.2);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #283A49;
+      border-top: 4px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    #loading p {
+      color: #283A49;
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0;
+    }
+  </style>
+
+  <script>
+    // Firebase Konfiguration für Ihr Projekt
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY", // Aus Firebase Console
+      authDomain: "unbarmherzigkeit-auth.firebaseapp.com",
+      projectId: "unbarmherzigkeit-auth",
+      storageBucket: "unbarmherzigkeit-auth.appspot.com",
+      messagingSenderId: "330428788627",
+      appId: "1:330428788627:web:93a715d892b8909bf24266"
+    };
+
+    // Firebase initialisieren
+    if (firebase.apps.length === 0) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    // Loading Spinner entfernen wenn Flutter geladen ist
+    window.addEventListener('flutter-first-frame', function () {
+      const loading = document.getElementById('loading');
+      if (loading) {
+        loading.style.opacity = '0';
+        loading.style.transition = 'opacity 0.5s ease-out';
+        setTimeout(() => loading.remove(), 500);
+      }
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
+
 </html>

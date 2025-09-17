@@ -118,24 +118,28 @@ class DetailScreen extends StatelessWidget {
       // Zeige Teilen-Optionen Modal
       await ShareService.shareItemWithOptions(context, item);
     } catch (e) {
-      if (context.mounted) {
-        // Fallback: Einfaches Teilen wenn Modal fehlschlägt
-        try {
-          await ShareService.shareItem(item);
-        } catch (fallbackError) {
-          // Zeige Fehlermeldung
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Teilen fehlgeschlagen: $fallbackError'),
-              backgroundColor: Colors.red,
-              action: SnackBarAction(
-                label: 'Erneut versuchen',
-                textColor: Colors.white,
-                onPressed: () => _handleShare(context),
-              ),
+      // Fallback: Einfaches Teilen wenn Modal fehlschlägt
+      try {
+        await ShareService.shareItem(item);
+      } catch (fallbackError) {
+        // Guard: Kontext nur verwenden, wenn noch gemounted
+        if (!context.mounted) return;
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        messenger?.showSnackBar(
+          SnackBar(
+            content: Text('Teilen fehlgeschlagen: $fallbackError'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Erneut versuchen',
+              textColor: Colors.white,
+              onPressed: () {
+                if (context.mounted) {
+                  _handleShare(context);
+                }
+              },
             ),
-          );
-        }
+          ),
+        );
       }
     }
   }
