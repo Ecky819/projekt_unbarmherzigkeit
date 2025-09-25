@@ -56,6 +56,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get mapsearchHint => 'Suche';
 
+    @override
+  String get mapLegend => 'Legende';
+
+    @override
+  String get mapMainCamp => 'Hauptlager';
+
+    @override
+  String get mapAuxCamp => 'Außenlager';
+
+    @override
+  String get mapReminder => 'Mahnmal';
+
   @override
   String get authwelcomeBack => 'Willkommen zurück';
 

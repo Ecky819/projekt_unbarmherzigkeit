@@ -42,6 +42,7 @@ class _MapScreenState extends State<MapScreen> {
     '9': 'Sachsenhausen',
     '10': 'Buchenwald',
     '16': 'Pavlos Melas',
+    '18': 'Lublin-Majdanek',
     // Außenlager zum KZ Neuengamme
     '5': 'Salzgitter-Drütte',
     '6': 'Hannover-Stöcken',
@@ -302,10 +303,18 @@ class _MapScreenState extends State<MapScreen> {
         ),
         Marker(
           markerId: const MarkerId('16'),
-          position: const LatLng(40.66228644935668, 22.936220486263025),
+          position: const LatLng(40.662292, 22.936237),
           icon: _customIcon,
           infoWindow: const InfoWindow(title: 'KZ Pavlos Melas'),
           onTap: () => _loadCampFromDatabase('16'),
+        ),
+
+        Marker(
+          markerId: const MarkerId('18'),
+          position: const LatLng(51.219167, 22.605833),
+          icon: _customIcon,
+          infoWindow: const InfoWindow(title: 'KZ Lublin-Majdanek'),
+          onTap: () => _loadCampFromDatabase('18'),
         ),
 
         // Außenlager
@@ -632,46 +641,58 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Legende:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    l10n?.mapLegend ?? '',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.location_on,
                         color: Color(0xFFA45F37),
                         size: 16,
                       ),
-                      SizedBox(width: 4),
-                      Text('Hauptlager', style: TextStyle(fontSize: 11)),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n?.mapMainCamp ?? '',
+                        style: const TextStyle(fontSize: 11),
+                      ),
                     ],
                   ),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.location_on,
                         color: Color(0xFFF08547),
                         size: 16,
                       ),
-                      SizedBox(width: 4),
-                      Text('Außenlager', style: TextStyle(fontSize: 11)),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n?.mapAuxCamp ?? '',
+                        style: const TextStyle(fontSize: 11),
+                      ),
                     ],
                   ),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.location_on,
                         color: Color(0xFF74683A),
                         size: 16,
                       ),
-                      SizedBox(width: 4),
-                      Text('Mahnmal', style: TextStyle(fontSize: 11)),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n?.mapReminder ?? '',
+                        style: const TextStyle(fontSize: 11),
+                      ),
                     ],
                   ),
                 ],

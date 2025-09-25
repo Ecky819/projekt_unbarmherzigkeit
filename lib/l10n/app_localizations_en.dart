@@ -45,16 +45,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hometimelineTitle => 'TIMELINE';
 
   @override
-  String get hometimelineDescription => 'Here you can find all historical events in Greece from 1941 to 1945.';
+  String get hometimelineDescription =>
+      'Here you can find all historical events in Greece from 1941 to 1945.';
 
   @override
   String get homemapTitle => 'MAP';
 
   @override
-  String get homemapDescription => 'Here you can find our map with all camp and memorial locations marked.';
+  String get homemapDescription =>
+      'Here you can find our map with all camp and memorial locations marked.';
 
   @override
   String get mapsearchHint => 'Search';
+
+  @override
+  String get mapLegend => 'Legend';
+
+  @override
+  String get mapMainCamp => 'Main camp';
+
+  @override
+  String get mapAuxCamp => 'Satellite camp';
+
+  @override
+  String get mapReminder => 'Reminder';
 
   @override
   String get authwelcomeBack => 'Welcome back';
@@ -190,10 +204,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get favoritesnoFavorites => 'No favorites yet';
 
   @override
-  String get favoritesnoFavoritesDescription => 'Mark entries in the database as favorites to see them here.';
+  String get favoritesnoFavoritesDescription =>
+      'Mark entries in the database as favorites to see them here.';
 
   @override
-  String get favoritesloginRequired => 'You must be logged in to set favorites.';
+  String get favoritesloginRequired =>
+      'You must be logged in to set favorites.';
 
   @override
   String get favoritesaddedToFavorites => 'Added to favorites';
@@ -250,7 +266,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilelogoutConfirm => 'Do you really want to log out?';
 
   @override
-  String get profiledeleteConfirm => 'Are you sure you want to delete your account? This action cannot be undone.';
+  String get profiledeleteConfirm =>
+      'Are you sure you want to delete your account? This action cannot be undone.';
 
   @override
   String get admindashboard => 'Admin Dashboard';
@@ -280,28 +297,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get admincancel => 'Cancel';
 
   @override
-  String get adminconfirmDelete => 'Do you really want to delete this entry? This action cannot be undone.';
+  String get adminconfirmDelete =>
+      'Do you really want to delete this entry? This action cannot be undone.';
 
   @override
   String get timelineeventsoct28_1940 => 'Italian invasion of Greece';
 
   @override
-  String get timelineeventsapr_1941 => 'German Wehrmacht starts the Balkan campaign';
+  String get timelineeventsapr_1941 =>
+      'German Wehrmacht starts the Balkan campaign';
 
   @override
   String get timelineeventssummer_1941 => 'Beginning of the Great Famine';
 
   @override
-  String get timelineeventssep_1941 => 'Formation of the first organized resistance groups';
+  String get timelineeventssep_1941 =>
+      'Formation of the first organized resistance groups';
 
   @override
-  String get timelineeventsnov_1942 => 'Operation Harling: Destruction of Gorgopotamos Bridge';
+  String get timelineeventsnov_1942 =>
+      'Operation Harling: Destruction of Gorgopotamos Bridge';
 
   @override
   String get timelineeventsmar24_1943 => 'Domeniko massacre (Thessaly)';
 
   @override
-  String get timelineeventsaug17_1943 => 'Destruction of the Jewish community of Thessaloniki';
+  String get timelineeventsaug17_1943 =>
+      'Destruction of the Jewish community of Thessaloniki';
 
   @override
   String get timelineeventssep14_1943 => 'Italian capitulation';
@@ -316,7 +338,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timelineeventsoct12_1944 => 'Liberation of Athens';
 
   @override
-  String get timelineeventsdec28_1944 => 'Dekemvriana: Street battles in Athens';
+  String get timelineeventsdec28_1944 =>
+      'Dekemvriana: Street battles in Athens';
 
   @override
   String get timelineeventsfeb12_1945 => 'Varkiza Agreement';
@@ -427,13 +450,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get validationinvalidEmail => 'Please enter a valid email address';
 
   @override
-  String get validationpasswordTooShort => 'Password must be at least 8 characters long';
+  String get validationpasswordTooShort =>
+      'Password must be at least 8 characters long';
 
   @override
   String get validationpasswordsDoNotMatch => 'Passwords do not match';
 
   @override
-  String get validationusernameTooShort => 'Username must be between 4 and 10 characters long';
+  String get validationusernameTooShort =>
+      'Username must be between 4 and 10 characters long';
 
   @override
   String get drawerhome => 'Home';
@@ -489,16 +514,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get errorDatabaseLoginRequired => 'You must log in to access the database.';
+  String get errorDatabaseLoginRequired =>
+      'You must log in to access the database.';
 
   @override
-  String get errorAdminLoginRequired => 'You must log in to access the admin dashboard.';
+  String get errorAdminLoginRequired =>
+      'You must log in to access the admin dashboard.';
 
   @override
-  String get errorAdminPermissionRequired => 'You don\'t have admin permission for this feature.';
+  String get errorAdminPermissionRequired =>
+      'You don\'t have admin permission for this feature.';
 
   @override
-  String get errorRepositoryUnavailable => 'Repository not available. Please reload the app.';
+  String get errorRepositoryUnavailable =>
+      'Repository not available. Please reload the app.';
 
   @override
   String get userEmail => 'User email';
