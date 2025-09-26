@@ -33,6 +33,9 @@ dependencies:
   # Cloud Storage
   firebase_storage: ^13.0.1
 
+  # Cloud Functions - NEU für Custom Claims
+  cloud_functions: ^6.0.1
+
   # Optional: Push-Notifications
   firebase_messaging: ^16.0.1
 

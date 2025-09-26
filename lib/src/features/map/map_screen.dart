@@ -8,7 +8,7 @@ import '../database/widgets/camp_detail_view.dart';
 import '../../../l10n/app_localizations.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  const MapScreen({super.key, DatabaseRepository? repository});
 
   String get desc => 'Map';
 
