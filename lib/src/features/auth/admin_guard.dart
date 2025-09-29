@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth_service.dart';
+
+enum AdminLevel { moderator, admin, super_ }
 
 class AdminGuard extends StatelessWidget {
   final Widget child;
   final String? redirectMessage;
+  final AdminLevel minRequiredLevel;
+  final List<String>? requiredActions;
 
-  const AdminGuard({super.key, required this.child, this.redirectMessage});
+  const AdminGuard({
+    super.key,
+    required this.child,
+    this.redirectMessage,
+    this.minRequiredLevel = AdminLevel.moderator,
+    this.requiredActions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -45,13 +54,8 @@ class AdminGuard extends StatelessWidget {
           return _AdminErrorScreen(
             error: snapshot.error.toString(),
             onRetry: () {
-              // Trigger a rebuild by navigating back and forth
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdminGuard(child: child),
-                ),
-              );
+              // Clear cache and trigger rebuild
+              authService.clearClaimsCache();
             },
           );
         }
@@ -61,21 +65,105 @@ class AdminGuard extends StatelessWidget {
           return _AdminLoginRequiredScreen();
         }
 
-        // User ist Admin - zeige geschützten Content
-        if (authService.isAdmin) {
-          return child;
-        }
+        // Async Admin-Check mit FutureBuilder
+        return FutureBuilder<bool>(
+          future: _checkAdminAccess(authService),
+          builder: (context, adminSnapshot) {
+            if (adminSnapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                backgroundColor: Color.fromRGBO(233, 229, 221, 1.0),
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: Color(0xFF283A49)),
+                      SizedBox(height: 16),
+                      Text(
+                        'Berechtigungen werden geprüft...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'SF Pro',
+                          color: Color(0xFF283A49),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
 
-        // User ist nicht Admin - zeige Fehlermeldung
-        return _AdminDeniedScreen(
-          user: snapshot.data!,
-          message:
-              redirectMessage ??
-              'Sie haben keine Admin-Berechtigung für diese Funktion.',
-          authService: authService,
+            if (adminSnapshot.hasError) {
+              return _AdminErrorScreen(
+                error: adminSnapshot.error.toString(),
+                onRetry: () {
+                  authService.clearClaimsCache();
+                },
+              );
+            }
+
+            final hasAccess = adminSnapshot.data ?? false;
+
+            if (hasAccess) {
+              return child;
+            } else {
+              return FutureBuilder<Map<String, dynamic>>(
+                future: authService.getAdminStatus(),
+                builder: (context, statusSnapshot) {
+                  return _AdminDeniedScreen(
+                    user: snapshot.data!,
+                    message:
+                        redirectMessage ??
+                        'Sie haben keine ausreichende Admin-Berechtigung für diese Funktion.',
+                    adminStatus: statusSnapshot.data,
+                    requiredLevel: minRequiredLevel,
+                  );
+                },
+              );
+            }
+          },
         );
       },
     );
+  }
+
+  Future<bool> _checkAdminAccess(AuthService authService) async {
+    try {
+      // Basis Admin-Check
+      if (!(await authService.isAdmin)) {
+        return false;
+      }
+
+      // Level-basierte Berechtigung prüfen
+      final claims = await authService.getCustomClaims();
+      final userAdminLevel = claims['adminLevel']?.toString();
+
+      switch (minRequiredLevel) {
+        case AdminLevel.super_:
+          if (userAdminLevel != 'super') return false;
+          break;
+        case AdminLevel.admin:
+          if (!['admin', 'super'].contains(userAdminLevel)) return false;
+          break;
+        case AdminLevel.moderator:
+          if (!['moderator', 'admin', 'super'].contains(userAdminLevel))
+            return false;
+          break;
+      }
+
+      // Aktions-basierte Berechtigung prüfen (falls spezifiziert)
+      if (requiredActions != null) {
+        for (final action in requiredActions!) {
+          if (!(await authService.canPerformAdminAction(action))) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    } catch (e) {
+      print('Fehler beim Admin-Access-Check: $e');
+      return false;
+    }
   }
 }
 
@@ -88,49 +176,36 @@ class _AdminErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE9E5DD),
-      appBar: AppBar(
-        title: const Text('Fehler'),
-        backgroundColor: const Color(0xFF283A49),
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 80, color: Colors.red.shade400),
+              Icon(Icons.error_outline, color: Colors.red[400], size: 64),
               const SizedBox(height: 24),
-              Text(
-                'Authentifizierungsfehler',
+              const Text(
+                'Fehler beim Laden der Admin-Berechtigung',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.red.shade700,
+                  color: Color(0xFF283A49),
                   fontFamily: 'SF Pro',
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
+              const SizedBox(height: 12),
+              Text(
+                error,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.red[700],
+                  fontFamily: 'SF Pro',
                 ),
-                child: Text(
-                  'Ein Fehler ist bei der Überprüfung der Admin-Berechtigung aufgetreten:\n\n$error',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.red.shade700,
-                    fontFamily: 'SF Pro',
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -141,13 +216,19 @@ class _AdminErrorScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF283A49),
                       foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
+                  const SizedBox(width: 12),
+                  TextButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Zurück'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF283A49),
+                    ),
                   ),
                 ],
               ),
@@ -163,79 +244,62 @@ class _AdminLoginRequiredScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE9E5DD),
-      appBar: AppBar(
-        title: const Text('Anmeldung erforderlich'),
-        backgroundColor: const Color(0xFF283A49),
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.login, size: 80, color: Colors.orange.shade400),
+              Icon(Icons.login, color: const Color(0xFF283A49), size: 64),
               const SizedBox(height: 24),
-              Text(
+              const Text(
                 'Anmeldung erforderlich',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange.shade700,
+                  color: Color(0xFF283A49),
                   fontFamily: 'SF Pro',
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.shade200),
+              const SizedBox(height: 12),
+              const Text(
+                'Sie müssen sich anmelden, um auf das Admin-Panel zuzugreifen.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF283A49),
+                  fontFamily: 'SF Pro',
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.orange.shade600),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Sie müssen sich als Administrator anmelden, um auf diese Funktion zugreifen zu können.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.orange.shade700,
-                          fontFamily: 'SF Pro',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/login',
-                        (route) => false,
-                      );
+                      // Navigation zur Login-Seite
+                      Navigator.pushReplacementNamed(context, '/login');
                     },
                     icon: const Icon(Icons.login),
-                    label: const Text('Zur Anmeldung'),
+                    label: const Text('Anmelden'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF283A49),
                       foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
+                  const SizedBox(width: 12),
+                  TextButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Zurück'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF283A49),
+                    ),
                   ),
                 ],
               ),
@@ -250,200 +314,76 @@ class _AdminLoginRequiredScreen extends StatelessWidget {
 class _AdminDeniedScreen extends StatelessWidget {
   final User user;
   final String message;
-  final AuthService authService;
+  final Map<String, dynamic>? adminStatus;
+  final AdminLevel requiredLevel;
 
   const _AdminDeniedScreen({
     required this.user,
     required this.message,
-    required this.authService,
+    this.adminStatus,
+    required this.requiredLevel,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Debug-Informationen für bessere Fehlerbehebung
-    final debugInfo = authService.debugAdminStatus();
-
     return Scaffold(
-      backgroundColor: const Color(0xFFE9E5DD),
-      appBar: AppBar(
-        title: const Text('Zugriff verweigert'),
-        backgroundColor: const Color(0xFF283A49),
-        foregroundColor: Colors.white,
-        actions: [
-          // Debug-Button nur in Debug-Builds anzeigen
-          if (const bool.fromEnvironment('dart.vm.product') == false)
-            IconButton(
-              onPressed: () => _showDebugInfo(context, debugInfo),
-              icon: const Icon(Icons.bug_report),
-              tooltip: 'Debug-Informationen',
-            ),
-        ],
-      ),
+      backgroundColor: const Color.fromRGBO(233, 229, 221, 1.0),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.admin_panel_settings_outlined,
-                size: 80,
-                color: Colors.red.shade400,
-              ),
+              Icon(Icons.block, color: Colors.red[400], size: 64),
               const SizedBox(height: 24),
-              Text(
-                'Admin-Berechtigung erforderlich',
+              const Text(
+                'Zugriff verweigert',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.red.shade700,
+                  color: Color(0xFF283A49),
                   fontFamily: 'SF Pro',
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-
-              // User Info
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF283A49),
+                  fontFamily: 'SF Pro',
                 ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.person, color: Colors.grey.shade600),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Angemeldet als: ${user.email ?? 'Unbekannt'}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade700,
-                              fontFamily: 'SF Pro',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (user.displayName != null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.badge, color: Colors.grey.shade600),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Name: ${user.displayName}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade700,
-                                fontFamily: 'SF Pro',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
+                textAlign: TextAlign.center,
               ),
-
-              // Error Message
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning_outlined, color: Colors.red.shade600),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            message,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.red.shade700,
-                              fontFamily: 'SF Pro',
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Nur der Administrator (marcoeggert73@gmail.com) kann auf diese Funktion zugreifen.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.red.shade600,
-                              fontStyle: FontStyle.italic,
-                              fontFamily: 'SF Pro',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Action Buttons
-              Column(
+              const SizedBox(height: 20),
+              if (adminStatus != null) _buildAccessInfoCard(),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back),
-                      label: const Text('Zurück'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF283A49),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // Kontakt zu Administrator aufnehmen
+                      _showContactAdminDialog(context);
+                    },
+                    icon: const Icon(Icons.contact_support),
+                    label: const Text('Admin kontaktieren'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF283A49),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 12),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        try {
-                          await authService.logout();
-                          if (context.mounted) {
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              '/login',
-                              (route) => false,
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Fehler beim Abmelden: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Abmelden und neu anmelden'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
+                  const SizedBox(width: 12),
+                  TextButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Zurück'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF283A49),
                     ),
                   ),
                 ],
@@ -455,44 +395,106 @@ class _AdminDeniedScreen extends StatelessWidget {
     );
   }
 
-  void _showDebugInfo(BuildContext context, Map<String, dynamic> debugInfo) {
+  Widget _buildAccessInfoCard() {
+    final isAdmin = adminStatus?['isAdmin'] == true;
+    final currentLevel = adminStatus?['adminLevel']?.toString() ?? 'user';
+    final requiredLevelString = requiredLevel
+        .toString()
+        .split('.')
+        .last
+        .replaceAll('_', '');
+
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ihre aktuellen Berechtigungen:',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Color(0xFF283A49),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow('E-Mail', user.email ?? 'Unbekannt'),
+            _buildInfoRow('Status', isAdmin ? 'Admin' : 'Normaler Benutzer'),
+            if (isAdmin) _buildInfoRow('Admin-Level', currentLevel),
+            _buildInfoRow('Benötigtes Level', requiredLevelString),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.red[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.red[600], size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      isAdmin
+                          ? 'Ihr Admin-Level "$currentLevel" ist nicht ausreichend für diese Funktion.'
+                          : 'Sie benötigen Admin-Rechte für diese Funktion.',
+                      style: TextStyle(color: Colors.red[700], fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Color(0xFF283A49), fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showContactAdminDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Debug-Informationen'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: debugInfo.entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      child: Text(
-                        '${entry.key}:',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '${entry.value}',
-                        style: const TextStyle(fontFamily: 'monospace'),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
+        title: const Text('Administrator kontaktieren'),
+        content: const Text(
+          'Wenn Sie der Meinung sind, dass Sie Admin-Rechte benötigen, '
+          'wenden Sie sich bitte an den Systemadministrator. '
+          'Geben Sie dabei Ihre E-Mail-Adresse und den gewünschten Zugriff an.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Schließen'),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Verstanden'),
           ),
         ],
       ),

@@ -1,10 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseFunctions _functions = FirebaseFunctions.instance;
+
+  // Cache für Custom Claims
+  Map<String, dynamic>? _cachedCustomClaims;
+  DateTime? _claimsLastRefresh;
+  static const Duration _claimsCacheDuration = Duration(minutes: 5);
 
   // Stream für Auth State Changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -15,14 +23,6 @@ class AuthService {
   // Ist User eingeloggt
   bool get isLoggedIn => currentUser != null;
 
-  // Check if current user is admin
-  bool get isAdmin {
-    final user = currentUser;
-    final result = user != null && user.email == 'marcoeggert73@gmail.com';
-    //print('AuthService.isAdmin - User: ${user?.email}, Result: $result');
-    return result;
-  }
-
   // Check if user signed in with Google
   bool get isGoogleUser {
     final user = currentUser;
@@ -31,6 +31,274 @@ class AuthService {
     return user.providerData.any(
       (provider) => provider.providerId == 'google.com',
     );
+  }
+
+  // NEUE: Custom Claims abrufen mit Caching
+  Future<Map<String, dynamic>> getCustomClaims() async {
+    // Prüfe Cache
+    if (_cachedCustomClaims != null &&
+        _claimsLastRefresh != null &&
+        DateTime.now().difference(_claimsLastRefresh!) < _claimsCacheDuration) {
+      return _cachedCustomClaims!;
+    }
+
+    try {
+      final user = currentUser;
+      if (user == null) return {};
+
+      // Token neu laden um aktuelle Claims zu erhalten
+      final idTokenResult = await user.getIdTokenResult(true);
+      final claims = idTokenResult.claims ?? {};
+
+      // Cache aktualisieren
+      _cachedCustomClaims = Map<String, dynamic>.from(claims);
+      _claimsLastRefresh = DateTime.now();
+
+      return _cachedCustomClaims!;
+    } catch (e) {
+      print('Fehler beim Abrufen der Custom Claims: $e');
+      return {};
+    }
+  }
+
+  // Cache leeren (nach Änderungen der Claims)
+  void clearClaimsCache() {
+    _cachedCustomClaims = null;
+    _claimsLastRefresh = null;
+  }
+
+  // NEUE: Admin-Status basierend auf Custom Claims
+  Future<bool> get isAdmin async {
+    try {
+      final claims = await getCustomClaims();
+      final isAdminClaim = claims['admin'] == true;
+
+      // Fallback für Migration - prüfe auch Legacy-Admin
+      if (!isAdminClaim) {
+        return _isLegacyAdmin();
+      }
+
+      return isAdminClaim;
+    } catch (e) {
+      print('Fehler bei Admin-Check: $e');
+      // Fallback auf Legacy-System
+      return _isLegacyAdmin();
+    }
+  }
+
+  // NEUE: Super-Admin-Status prüfen
+  Future<bool> get isSuperAdmin async {
+    try {
+      final claims = await getCustomClaims();
+      return claims['admin'] == true && claims['adminLevel'] == 'super';
+    } catch (e) {
+      print('Fehler bei Super-Admin-Check: $e');
+      return false;
+    }
+  }
+
+  // NEUE: Moderator-Status prüfen
+  Future<bool> get isModerator async {
+    try {
+      final claims = await getCustomClaims();
+      return claims['admin'] == true &&
+          (claims['adminLevel'] == 'moderator' ||
+              claims['adminLevel'] == 'admin' ||
+              claims['adminLevel'] == 'super');
+    } catch (e) {
+      print('Fehler bei Moderator-Check: $e');
+      return false;
+    }
+  }
+
+  // NEUE: Rolle abrufen
+  Future<String> get userRole async {
+    try {
+      if (!isLoggedIn) return 'guest';
+
+      final claims = await getCustomClaims();
+      return claims['role']?.toString() ?? 'user';
+    } catch (e) {
+      print('Fehler beim Abrufen der Rolle: $e');
+      return 'user';
+    }
+  }
+
+  // Legacy-Admin-Check (für Migration)
+  bool _isLegacyAdmin() {
+    final user = currentUser;
+    return user != null && user.email == 'marcoeggert73@gmail.com';
+  }
+
+  // NEUE: Cloud Function aufrufen - User zu Admin machen
+  Future<Map<String, dynamic>> makeUserAdmin(
+    String uid, {
+    String adminLevel = 'admin',
+  }) async {
+    try {
+      final callable = _functions.httpsCallable('makeUserAdmin');
+      final result = await callable.call({
+        'uid': uid,
+        'adminLevel': adminLevel,
+      });
+
+      // Cache leeren da sich Claims geändert haben könnten
+      clearClaimsCache();
+
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      throw 'Fehler beim Erstellen des Admins: $e';
+    }
+  }
+
+  // NEUE: Cloud Function aufrufen - Admin-Status entfernen
+  Future<Map<String, dynamic>> removeUserAdmin(String uid) async {
+    try {
+      final callable = _functions.httpsCallable('removeUserAdmin');
+      final result = await callable.call({'uid': uid});
+
+      // Cache leeren da sich Claims geändert haben könnten
+      clearClaimsCache();
+
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      throw 'Fehler beim Entfernen des Admin-Status: $e';
+    }
+  }
+
+  // NEUE: Alle Admins auflisten
+  Future<List<Map<String, dynamic>>> listAdmins() async {
+    try {
+      final callable = _functions.httpsCallable('listAdmins');
+      final result = await callable.call();
+
+      final data = Map<String, dynamic>.from(result.data);
+      return List<Map<String, dynamic>>.from(data['admins'] ?? []);
+    } catch (e) {
+      throw 'Fehler beim Auflisten der Admins: $e';
+    }
+  }
+
+  // NEUE: Eigene Claims abrufen
+  Future<Map<String, dynamic>> getUserClaims([String? uid]) async {
+    try {
+      final callable = _functions.httpsCallable('getUserClaims');
+      final result = await callable.call({if (uid != null) 'uid': uid});
+
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      throw 'Fehler beim Abrufen der Claims: $e';
+    }
+  }
+
+  // NEUE: Custom Claims setzen (nur für Super-Admins)
+  Future<Map<String, dynamic>> setUserClaims(
+    String uid,
+    Map<String, dynamic> claims,
+  ) async {
+    try {
+      final callable = _functions.httpsCallable('setUserClaims');
+      final result = await callable.call({'uid': uid, 'claims': claims});
+
+      // Cache leeren da sich Claims geändert haben könnten
+      clearClaimsCache();
+
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      throw 'Fehler beim Setzen der Claims: $e';
+    }
+  }
+
+  // Admin-Berechtigung prüfen (async Version)
+  Future<void> requireAdmin() async {
+    if (!(await isAdmin)) {
+      throw Exception('Admin-Berechtigung erforderlich');
+    }
+  }
+
+  // Super-Admin-Berechtigung prüfen
+  Future<void> requireSuperAdmin() async {
+    if (!(await isSuperAdmin)) {
+      throw Exception('Super-Admin-Berechtigung erforderlich');
+    }
+  }
+
+  // Admin-Status abrufen (erweiterte Version)
+  Future<Map<String, dynamic>> getAdminStatus() async {
+    final user = currentUser;
+    final claims = await getCustomClaims();
+
+    return {
+      'isLoggedIn': isLoggedIn,
+      'isAdmin': await isAdmin,
+      'isSuperAdmin': await isSuperAdmin,
+      'isModerator': await isModerator,
+      'userEmail': user?.email,
+      'userRole': await userRole,
+      'customClaims': claims,
+      'hasPermission': await isAdmin,
+      'adminLevel': claims['adminLevel'],
+      'assignedAt': claims['assignedAt'],
+      'assignedBy': claims['assignedBy'],
+    };
+  }
+
+  // Admin-Aktion-Berechtigung prüfen (async Version)
+  Future<bool> canPerformAdminAction(String action) async {
+    if (!(await isAdmin)) return false;
+
+    final claims = await getCustomClaims();
+    final adminLevel = claims['adminLevel']?.toString();
+
+    switch (action) {
+      case 'create_victim':
+      case 'update_victim':
+      case 'delete_victim':
+      case 'create_camp':
+      case 'update_camp':
+      case 'delete_camp':
+      case 'create_commander':
+      case 'update_commander':
+      case 'delete_commander':
+      case 'view_admin_dashboard':
+        return ['moderator', 'admin', 'super'].contains(adminLevel);
+
+      case 'manage_users':
+      case 'create_admin':
+      case 'delete_admin':
+        return ['admin', 'super'].contains(adminLevel);
+
+      case 'system_settings':
+      case 'manage_super_admins':
+        return adminLevel == 'super';
+
+      default:
+        return false;
+    }
+  }
+
+  // Debug Admin-Status (erweitert)
+  Future<Map<String, dynamic>> debugAdminStatus() async {
+    final user = currentUser;
+    final claims = await getCustomClaims();
+
+    return {
+      'currentUser': user?.email,
+      'isLoggedIn': isLoggedIn,
+      'isAdmin': await isAdmin,
+      'isSuperAdmin': await isSuperAdmin,
+      'isModerator': await isModerator,
+      'userRole': await userRole,
+      'customClaims': claims,
+      'legacyAdmin': _isLegacyAdmin(),
+      'userProviders': user?.providerData.map((p) => p.providerId).toList(),
+      'userUid': user?.uid,
+      'emailVerified': user?.emailVerified,
+      'creationTime': user?.metadata.creationTime?.toIso8601String(),
+      'lastSignInTime': user?.metadata.lastSignInTime?.toIso8601String(),
+      'claimsCached': _cachedCustomClaims != null,
+      'claimsLastRefresh': _claimsLastRefresh?.toIso8601String(),
+    };
   }
 
   // VERBESSERTE E-Mail-Verifizierung
@@ -45,10 +313,7 @@ class AuthService {
         throw Exception('E-Mail-Adresse ist bereits verifiziert');
       }
 
-      // Sende Verifizierungs-E-Mail mit verbessertem Error Handling
       await user.sendEmailVerification();
-
-      // print('E-Mail-Verifizierung gesendet an: ${user.email}');
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'too-many-requests':
@@ -77,9 +342,12 @@ class AuthService {
       // Aktuellen User nach Reload erneut abrufen
       final refreshedUser = _auth.currentUser;
 
+      // Cache leeren da sich User-Daten geändert haben könnten
+      clearClaimsCache();
+
       return refreshedUser?.emailVerified ?? false;
     } catch (e) {
-      //print('Fehler beim Prüfen des Verifizierungsstatus: $e');
+      print('Fehler beim Prüfen des Verifizierungsstatus: $e');
       return false;
     }
   }
@@ -96,12 +364,10 @@ class AuthService {
       if (result.user != null && !result.user!.emailVerified) {
         try {
           await result.user!.sendEmailVerification();
-          // print('Verifizierungs-E-Mail automatisch gesendet');
         } catch (e) {
-          // print(
-          //   'Fehler beim automatischen Senden der Verifizierungs-E-Mail: $e',
-          // );
-          // Registrierung trotzdem erfolgreich, nur Verifizierung fehlgeschlagen
+          print(
+            'Fehler beim automatischen Senden der Verifizierungs-E-Mail: $e',
+          );
         }
       }
 
@@ -118,6 +384,10 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      // Cache leeren um neue Claims zu laden
+      clearClaimsCache();
+
       return result;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -130,7 +400,7 @@ class AuthService {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        return null;
+        throw Exception('Google Sign-In wurde abgebrochen');
       }
 
       final GoogleSignInAuthentication googleAuth =
@@ -141,190 +411,49 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      return await _auth.signInWithCredential(credential);
+      UserCredential result = await _auth.signInWithCredential(credential);
+
+      // Cache leeren um neue Claims zu laden
+      clearClaimsCache();
+
+      return result;
+    } on PlatformException catch (e) {
+      if (e.code == 'sign_in_canceled') {
+        throw 'Anmeldung wurde abgebrochen';
+      }
+      throw 'Google Sign-In Fehler: ${e.message}';
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw 'Google Sign-In fehlgeschlagen: $e';
+      throw 'Unerwarteter Fehler bei Google Sign-In: $e';
     }
   }
 
   // Logout
   Future<void> logout() async {
-    List<String> errors = [];
-    bool hasLoggedOut = false;
-
     try {
-      if (isGoogleUser) {
-        try {
-          final isSignedIn = await _googleSignIn.isSignedIn();
-          if (isSignedIn) {
-            await _googleSignIn.signOut();
-            //print('Google Sign-Out erfolgreich');
-          }
-        } on PlatformException catch (e) {
-          // print('Google Sign-Out PlatformException: ${e.message}');
-          errors.add('Google Sign-Out: ${e.message}');
-        } catch (e) {
-          // print('Google Sign-Out Fehler: $e');
-          errors.add('Google Sign-Out: $e');
-        }
+      // Cache leeren
+      clearClaimsCache();
+
+      // Google Sign-Out
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.signOut();
       }
 
-      try {
-        await _auth.signOut();
-        hasLoggedOut = true;
-        //  print('Firebase Auth Sign-Out erfolgreich');
-      } on FirebaseAuthException catch (e) {
-        //  print('Firebase Auth Sign-Out FirebaseAuthException: ${e.message}');
-        errors.add('Firebase: ${e.message}');
-        throw _handleAuthException(e);
-      } on PlatformException catch (e) {
-        // print('Firebase Auth Sign-Out PlatformException: ${e.message}');
-        errors.add('Firebase Platform: ${e.message}');
-
-        if (e.code == 'channel-error' || e.code == 'network_error') {
-          hasLoggedOut = true;
-          // print('Logout trotz PlatformException als erfolgreich gewertet');
-        } else {
-          throw 'Firebase Logout PlatformException: ${e.message}';
-        }
-      } catch (e) {
-        // print('Firebase Auth Sign-Out unbekannter Fehler: $e');
-        errors.add('Firebase unbekannt: $e');
-        throw 'Firebase Logout Fehler: $e';
-      }
-
-      if (isGoogleUser && !hasLoggedOut) {
-        try {
-          await _googleSignIn.disconnect();
-          //print('Google disconnect als Fallback ausgeführt');
-        } catch (e) {
-          //print('Google disconnect Fallback Fehler: $e');
-        }
-      }
-
-      if (hasLoggedOut) {
-        //print('Logout erfolgreich abgeschlossen');
-        if (errors.isNotEmpty) {
-          //print('Logout mit Warnungen: ${errors.join(', ')}');
-        }
-      } else {
-        throw 'Logout konnte nicht abgeschlossen werden';
-      }
-    } catch (e) {
-      if (e is String) {
-        rethrow;
-      } else {
-        throw 'Unerwarteter Logout-Fehler: $e';
-      }
-    }
-  }
-
-  // Vereinfachter Logout (Fallback)
-  Future<void> simpleLogout() async {
-    try {
+      // Firebase Sign-Out
       await _auth.signOut();
     } catch (e) {
-      //print('Simple logout Fehler: $e');
-      rethrow;
+      throw 'Fehler beim Logout: $e';
     }
   }
 
-  // Forcierter Logout
-  Future<void> forceLogout() async {
-    try {
-      await Future.wait([
-        _auth.signOut().catchError(
-          // ignore: avoid_print
-          (e) => print('Force Firebase logout error: $e'),
-        ),
-        _googleSignIn.signOut().catchError((e) {
-          //print('Force Google logout error: $e');
-          return null;
-        }),
-        _googleSignIn.disconnect().catchError((e) {
-          //print('Force Google disconnect error: $e');
-          return null;
-        }),
-      ]);
-    } catch (e) {
-      //print('Force logout error: $e');
-    }
-  }
-
-  // Passwort zurücksetzen
-  Future<void> sendPasswordResetEmail(String email) async {
+  // Passwort-Reset
+  Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
-  }
-
-  // Admin-Berechtigung prüfen
-  void requireAdmin() {
-    if (!isAdmin) {
-      throw Exception('Admin-Berechtigung erforderlich');
-    }
-  }
-
-  // Admin-Status abrufen
-  Map<String, dynamic> getAdminStatus() {
-    final user = currentUser;
-    return {
-      'isLoggedIn': isLoggedIn,
-      'isAdmin': isAdmin,
-      'userEmail': user?.email,
-      'adminEmail': 'marcoeggert73@gmail.com',
-      'hasPermission': isAdmin,
-    };
-  }
-
-  // User-Rolle bestimmen
-  String getUserRole() {
-    if (!isLoggedIn) return 'guest';
-    if (isAdmin) return 'admin';
-    return 'user';
-  }
-
-  // Admin-Aktion-Berechtigung prüfen
-  bool canPerformAdminAction(String action) {
-    if (!isAdmin) return false;
-
-    switch (action) {
-      case 'create_victim':
-      case 'update_victim':
-      case 'delete_victim':
-      case 'create_camp':
-      case 'update_camp':
-      case 'delete_camp':
-      case 'create_commander':
-      case 'update_commander':
-      case 'delete_commander':
-      case 'view_admin_dashboard':
-      case 'manage_users':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  // Debug Admin-Status
-  Map<String, dynamic> debugAdminStatus() {
-    final user = currentUser;
-    return {
-      'currentUser': user?.email,
-      'isLoggedIn': isLoggedIn,
-      'isAdmin': isAdmin,
-      'adminEmail': 'marcoeggert73@gmail.com',
-      'emailMatch': user?.email == 'marcoeggert73@gmail.com',
-      'userProviders': user?.providerData.map((p) => p.providerId).toList(),
-      'userUid': user?.uid,
-      'emailVerified': user?.emailVerified,
-      'creationTime': user?.metadata.creationTime?.toIso8601String(),
-      'lastSignInTime': user?.metadata.lastSignInTime?.toIso8601String(),
-    };
   }
 
   // Fehlerbehandlung für FirebaseAuthException
@@ -354,32 +483,8 @@ class AuthService {
         return 'Diese Anmeldedaten werden bereits von einem anderen Konto verwendet.';
       case 'network-request-failed':
         return 'Netzwerkfehler. Überprüfen Sie Ihre Internetverbindung.';
-      case 'channel-error':
-        return 'Kommunikationsfehler. Versuchen Sie es erneut.';
-      case 'unauthorized-domain':
-        return 'Die Domain ist nicht für dieses Projekt autorisiert. Kontaktieren Sie den Administrator.';
       default:
         return 'Ein unbekannter Fehler ist aufgetreten: ${e.message}';
-    }
-  }
-
-  // PlatformException Behandlung
-  String handlePlatformException(PlatformException e) {
-    switch (e.code) {
-      case 'channel-error':
-        return 'Verbindungsfehler zur nativen Plattform. Das kann bei schwacher Internetverbindung auftreten.';
-      case 'network_error':
-        return 'Netzwerkfehler. Überprüfen Sie Ihre Internetverbindung.';
-      case 'sign_in_failed':
-        return 'Anmeldung fehlgeschlagen. Versuchen Sie es erneut.';
-      case 'sign_in_canceled':
-        return 'Anmeldung wurde abgebrochen.';
-      case 'sign_in_required':
-        return 'Anmeldung erforderlich.';
-      case 'ERROR_UNAUTHORIZED_DOMAIN':
-        return 'Domain nicht autorisiert. Kontaktieren Sie den Administrator.';
-      default:
-        return 'Plattform-Fehler: ${e.message ?? e.code}';
     }
   }
 }
