@@ -20,74 +20,80 @@ class CustomNavigationBar extends StatelessWidget {
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
         final isLoggedIn = snapshot.data != null;
-        final isAdmin = authService.isAdmin;
 
-        return NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: onDestinationSelected,
-          height: 55,
-          backgroundColor: const Color.fromRGBO(40, 58, 73, 1.0),
-          indicatorColor: Colors.transparent,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          destinations: [
-            // Home
-            NavigationDestination(
-              icon: ImageIcon(
-                const AssetImage('assets/icons/home_icon.png'),
-                size: 35,
-                color: selectedIndex == 0
-                    ? const Color.fromRGBO(131, 132, 140, 1.0)
-                    : Colors.white,
-              ),
-              label: '',
-            ),
+        return FutureBuilder<bool>(
+          future: authService.isAdmin,
+          builder: (context, adminSnapshot) {
+            final isAdmin = adminSnapshot.data ?? false;
 
-            // Timeline
-            NavigationDestination(
-              icon: ImageIcon(
-                const AssetImage('assets/icons/timeline_icon.png'),
-                size: 35,
-                color: selectedIndex == 1
-                    ? const Color.fromRGBO(131, 132, 140, 1.0)
-                    : Colors.white,
-              ),
-              label: '',
-            ),
+            return NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: onDestinationSelected,
+              height: 55,
+              backgroundColor: const Color.fromRGBO(40, 58, 73, 1.0),
+              indicatorColor: Colors.transparent,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+              destinations: [
+                // Home
+                NavigationDestination(
+                  icon: ImageIcon(
+                    const AssetImage('assets/icons/home_icon.png'),
+                    size: 35,
+                    color: selectedIndex == 0
+                        ? const Color.fromRGBO(131, 132, 140, 1.0)
+                        : Colors.white,
+                  ),
+                  label: '',
+                ),
 
-            // Map
-            NavigationDestination(
-              icon: ImageIcon(
-                const AssetImage('assets/icons/map_icon.png'),
-                size: 35,
-                color: selectedIndex == 2
-                    ? const Color.fromRGBO(131, 132, 140, 1.0)
-                    : Colors.white,
-              ),
-              label: '',
-            ),
+                // Timeline
+                NavigationDestination(
+                  icon: ImageIcon(
+                    const AssetImage('assets/icons/timeline_icon.png'),
+                    size: 35,
+                    color: selectedIndex == 1
+                        ? const Color.fromRGBO(131, 132, 140, 1.0)
+                        : Colors.white,
+                  ),
+                  label: '',
+                ),
 
-            // Bookmarks
-            NavigationDestination(
-              icon: ImageIcon(
-                const AssetImage('assets/icons/bookmark_icon.png'),
-                size: 30,
-                color: selectedIndex == 3
-                    ? const Color.fromRGBO(131, 132, 140, 1.0)
-                    : Colors.white,
-              ),
-              label: '',
-            ),
+                // Map
+                NavigationDestination(
+                  icon: ImageIcon(
+                    const AssetImage('assets/icons/map_icon.png'),
+                    size: 35,
+                    color: selectedIndex == 2
+                        ? const Color.fromRGBO(131, 132, 140, 1.0)
+                        : Colors.white,
+                  ),
+                  label: '',
+                ),
 
-            // Profile mit User-Status-Indikator
-            NavigationDestination(
-              icon: _buildProfileIconWithStatus(
-                isLoggedIn: isLoggedIn,
-                isAdmin: isAdmin,
-                isSelected: selectedIndex == 4,
-              ),
-              label: '',
-            ),
-          ],
+                // Bookmarks
+                NavigationDestination(
+                  icon: ImageIcon(
+                    const AssetImage('assets/icons/bookmark_icon.png'),
+                    size: 30,
+                    color: selectedIndex == 3
+                        ? const Color.fromRGBO(131, 132, 140, 1.0)
+                        : Colors.white,
+                  ),
+                  label: '',
+                ),
+
+                // Profile mit User-Status-Indikator
+                NavigationDestination(
+                  icon: _buildProfileIconWithStatus(
+                    isLoggedIn: isLoggedIn,
+                    isAdmin: isAdmin,
+                    isSelected: selectedIndex == 4,
+                  ),
+                  label: '',
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -119,10 +125,7 @@ class CustomNavigationBar extends StatelessWidget {
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: isAdmin
-                    ? Colors
-                          .orange // Orange für Admin
-                    : Colors.green, // Grün für normale User
+                color: isAdmin ? Colors.orange : Colors.green,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: const Color.fromRGBO(40, 58, 73, 1.0),

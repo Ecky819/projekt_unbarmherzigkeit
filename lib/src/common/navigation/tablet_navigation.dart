@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:projekt_unbarmherzigkeit/src/data/database_repository.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/admin/admin_dashboard_screen.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/database/database_screen.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/news/news_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/admin/admin_dashboard_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/database/database_screen.dart';
+import 'package:projekt_unbarmherzigkeit/src/features/news/news_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/services/auth_service.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../common/custom_appbar.dart';
 
 class TabletNavigation extends StatefulWidget {
   final int selectedIndex;
@@ -47,25 +48,135 @@ class TabletNavigation extends StatefulWidget {
 }
 
 class _TabletNavigationState extends State<TabletNavigation> {
+  bool _isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminStatus();
+    // Listen to auth changes and update admin status
+    widget.authService.authStateChanges.listen((_) {
+      _checkAdminStatus();
+    });
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final isAdmin = await widget.authService.isAdmin;
+    if (mounted) {
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+    }
+  }
+
   void navigateToDatabase() {
-    // ...
+    if (widget.authService.isLoggedIn) {
+      if (widget.repository != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DatabaseScreen(
+              repository: widget.repository,
+              navigateTo: (String destination) {
+                Navigator.popUntil(context, (route) => route.isFirst);
+                widget.navigateTo(destination);
+              },
+              navigateToNews: navigateToNews,
+              navigateToAdminDashboard: _isAdmin
+                  ? navigateToAdminDashboard
+                  : null,
+            ),
+          ),
+        );
+      } else {
+        _showErrorSnackBar(widget.l10n.errorRepositoryUnavailable);
+        widget.onReloadRepository();
+      }
+    } else {
+      _showErrorSnackBar(widget.l10n.errorDatabaseLoginRequired);
+    }
   }
 
   void navigateToNews() {
-    // ...
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const NewsScreen()),
+    );
   }
 
   void navigateToAdminDashboard() {
-    // ...
+    if (!widget.authService.isLoggedIn) {
+      _showErrorSnackBar(widget.l10n.errorAdminLoginRequired);
+      return;
+    }
+    if (!_isAdmin) {
+      _showErrorSnackBar(widget.l10n.errorAdminPermissionRequired);
+      return;
+    }
+    if (widget.repository == null) {
+      _showErrorSnackBar(widget.l10n.errorRepositoryUnavailable);
+      widget.onReloadRepository();
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AdminDashboardScreen(repository: widget.repository!),
+      ),
+    );
   }
 
   void _showMobileDrawer() {
-    // ...
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Color(0xFF283A49),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: CustomDrawer(
+          navigateTo: (desc) {
+            Navigator.pop(context);
+            if (desc == widget.l10n.navigationprofile) {
+              widget.navigateToProfile();
+            } else {
+              widget.onAddToHistory();
+              widget.navigateTo(desc);
+            }
+          },
+          navigateToDatabase: () {
+            Navigator.pop(context);
+            navigateToDatabase();
+          },
+          navigateToNews: () {
+            Navigator.pop(context);
+            navigateToNews();
+          },
+          navigateToAdminDashboard: _isAdmin
+              ? () {
+                  Navigator.pop(context);
+                  navigateToAdminDashboard();
+                }
+              : null,
+        ),
+      ),
+    );
   }
 
-  // ignore: unused_element
   void _showErrorSnackBar(String message) {
-    // ...
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   List<NavigationDestination> _buildNavigationDestinations() {
@@ -139,7 +250,7 @@ class _TabletNavigationState extends State<TabletNavigation> {
                   ),
                 ),
                 actions: [
-                  if (widget.authService.isAdmin)
+                  if (_isAdmin)
                     IconButton(
                       icon: const Icon(Icons.admin_panel_settings),
                       onPressed: navigateToAdminDashboard,
@@ -165,4 +276,17 @@ class _TabletNavigationState extends State<TabletNavigation> {
       ),
     );
   }
+}
+
+// Navigation Destination Helper Class
+class NavigationDestination {
+  final Widget icon;
+  final Widget selectedIcon;
+  final String label;
+
+  const NavigationDestination({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+  });
 }

@@ -145,8 +145,9 @@ class AdminGuard extends StatelessWidget {
           if (!['admin', 'super'].contains(userAdminLevel)) return false;
           break;
         case AdminLevel.moderator:
-          if (!['moderator', 'admin', 'super'].contains(userAdminLevel))
+          if (!['moderator', 'admin', 'super'].contains(userAdminLevel)) {
             return false;
+          }
           break;
       }
 
@@ -251,7 +252,7 @@ class _AdminLoginRequiredScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.login, color: const Color(0xFF283A49), size: 64),
+              const Icon(Icons.login, color: Color(0xFF283A49), size: 64),
               const SizedBox(height: 24),
               const Text(
                 'Anmeldung erforderlich',

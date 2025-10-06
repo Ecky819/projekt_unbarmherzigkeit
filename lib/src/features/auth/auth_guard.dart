@@ -270,7 +270,10 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: const Color(0xFFC0200E),
+          ),
         );
       }
     } finally {
@@ -280,27 +283,59 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
     }
   }
 
+  // FIX: Verbesserte Google Sign-In Methode
   Future<void> _signInWithGoogle() async {
     setState(() => _isGoogleLoading = true);
 
     try {
       final result = await _authService.signInWithGoogle();
 
-      if (result != null && mounted) {
+      // Prüfe ob result null ist (Benutzer hat Anmeldung abgebrochen)
+      if (result == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Google-Anmeldung abgebrochen'),
+              backgroundColor: Colors.grey,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return; // Früher Return bei Abbruch
+      }
+
+      // Erfolgreiche Anmeldung
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Erfolgreich mit Google angemeldet!'),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF759607),
           ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Google Anmeldung fehlgeschlagen';
+
+        // Spezifische Fehlermeldungen
+        if (e.toString().contains('network-request-failed')) {
+          errorMessage =
+              'Netzwerkfehler. Bitte prüfen Sie Ihre Internetverbindung.';
+        } else if (e.toString().contains('popup-closed-by-user')) {
+          errorMessage = 'Anmeldung abgebrochen';
+        } else if (e.toString().contains(
+          'account-exists-with-different-credential',
+        )) {
+          errorMessage =
+              'Ein Konto mit dieser E-Mail existiert bereits mit einem anderen Anbieter.';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Google Anmeldung fehlgeschlagen: $e'),
-            backgroundColor: Colors.red,
+            content: Text(errorMessage),
+            backgroundColor: const Color(0xFFC0200E),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -311,33 +346,60 @@ class _LoginScreenBodyState extends State<_LoginScreenBody> {
     }
   }
 
+  // FIX: Korrekte Passwort-Reset Methode
   Future<void> _forgotPassword() async {
-    if (_emailController.text.trim().isEmpty) {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Bitte geben Sie Ihre E-Mail-Adresse ein.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Color(0xFFC0200E),
+        ),
+      );
+      return;
+    }
+
+    if (!email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bitte geben Sie eine gültige E-Mail-Adresse ein.'),
+          backgroundColor: Color(0xFFC0200E),
         ),
       );
       return;
     }
 
     try {
-      await _authService.sendPasswordResetEmail(_emailController.text.trim());
+      await _authService.resetPassword(email);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'E-Mail zum Zurücksetzen des Passworts wurde gesendet.',
+              'E-Mail zum Zurücksetzen des Passworts wurde gesendet. Bitte überprüfen Sie Ihren Posteingang.',
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF759607),
+            duration: Duration(seconds: 5),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Fehler beim Zurücksetzen des Passworts';
+
+        if (e.toString().contains('user-not-found')) {
+          errorMessage =
+              'Es wurde kein Konto mit dieser E-Mail-Adresse gefunden.';
+        } else if (e.toString().contains('invalid-email')) {
+          errorMessage = 'Ungültige E-Mail-Adresse.';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: const Color(0xFFC0200E),
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }

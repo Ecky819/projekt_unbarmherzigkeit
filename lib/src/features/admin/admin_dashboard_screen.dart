@@ -1395,7 +1395,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     }
   }
 
-  // Navigation Methods - Angepasst für DatabaseResult
+  // Navigation Methods
   void _navigateToVictimForm([Victim? victim]) async {
     final result = await Navigator.push<bool>(
       context,
@@ -1500,7 +1500,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  // Delete Methods - Angepasst für DatabaseResult
+  // Delete Methods
   Future<void> _deleteVictim(Victim victim) async {
     try {
       final result = await widget.repository.deleteVictim(victim.victimId);

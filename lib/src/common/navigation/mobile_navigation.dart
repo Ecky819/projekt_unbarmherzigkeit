@@ -7,7 +7,6 @@ import 'package:projekt_unbarmherzigkeit/src/services/auth_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../common/custom_appbar.dart';
 import '../../common/bottom_navigation.dart';
-//import '../main_navigation.dart';
 
 class MobileNavigation extends StatefulWidget {
   final int selectedIndex;
@@ -50,6 +49,27 @@ class MobileNavigation extends StatefulWidget {
 }
 
 class _MobileNavigationState extends State<MobileNavigation> {
+  bool _isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminStatus();
+    // Listen to auth changes and update admin status
+    widget.authService.authStateChanges.listen((_) {
+      _checkAdminStatus();
+    });
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final isAdmin = await widget.authService.isAdmin;
+    if (mounted) {
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+    }
+  }
+
   void navigateToDatabase() {
     if (widget.authService.isLoggedIn) {
       if (widget.repository != null) {
@@ -63,7 +83,7 @@ class _MobileNavigationState extends State<MobileNavigation> {
                 widget.navigateTo(destination);
               },
               navigateToNews: navigateToNews,
-              navigateToAdminDashboard: widget.authService.isAdmin
+              navigateToAdminDashboard: _isAdmin
                   ? navigateToAdminDashboard
                   : null,
             ),
@@ -90,7 +110,7 @@ class _MobileNavigationState extends State<MobileNavigation> {
       _showErrorSnackBar(widget.l10n.errorAdminLoginRequired);
       return;
     }
-    if (!widget.authService.isAdmin) {
+    if (!_isAdmin) {
       _showErrorSnackBar(widget.l10n.errorAdminPermissionRequired);
       return;
     }
@@ -149,9 +169,7 @@ class _MobileNavigationState extends State<MobileNavigation> {
         },
         navigateToDatabase: navigateToDatabase,
         navigateToNews: navigateToNews,
-        navigateToAdminDashboard: widget.authService.isAdmin
-            ? navigateToAdminDashboard
-            : null,
+        navigateToAdminDashboard: _isAdmin ? navigateToAdminDashboard : null,
       ),
       body: widget.isLoadingRepository
           ? widget.buildDatabaseLoadingState(widget.l10n)
@@ -168,5 +186,3 @@ class _MobileNavigationState extends State<MobileNavigation> {
     );
   }
 }
-
-// Hier würden die anderen Helper-Klassen und -Methoden hin, die nur von MobileNavigation verwendet werden, aber für diesen Vorschlag bleiben sie in ihren Originaldateien.

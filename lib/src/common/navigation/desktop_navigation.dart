@@ -6,12 +6,6 @@ import 'package:projekt_unbarmherzigkeit/src/features/database/database_screen.d
 import 'package:projekt_unbarmherzigkeit/src/features/news/news_screen.dart';
 import 'package:projekt_unbarmherzigkeit/src/services/auth_service.dart';
 import '../../../l10n/app_localizations.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/profiles/profile_screen.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/profiles/login_screen.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/home/home_screen.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/timeline/timeline_screen.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/map/map_screen.dart';
-//import 'package:projekt_unbarmherzigkeit/src/features/favorites/favorites_screen.dart';
 
 class DesktopNavigation extends StatefulWidget {
   final int selectedIndex;
@@ -55,8 +49,27 @@ class DesktopNavigation extends StatefulWidget {
 
 class _DesktopNavigationState extends State<DesktopNavigation> {
   bool _isNavigationRailExtended = true;
+  bool _isAdmin = false;
 
-  // Diese Methoden wurden von main_navigation.dart verschoben und angepasst
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminStatus();
+    // Listen to auth changes and update admin status
+    widget.authService.authStateChanges.listen((_) {
+      _checkAdminStatus();
+    });
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final isAdmin = await widget.authService.isAdmin;
+    if (mounted) {
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+    }
+  }
+
   void navigateToDatabase() {
     if (widget.authService.isLoggedIn) {
       if (widget.repository != null) {
@@ -67,7 +80,7 @@ class _DesktopNavigationState extends State<DesktopNavigation> {
               repository: widget.repository,
               navigateTo: widget.navigateTo,
               navigateToNews: navigateToNews,
-              navigateToAdminDashboard: widget.authService.isAdmin
+              navigateToAdminDashboard: _isAdmin
                   ? navigateToAdminDashboard
                   : null,
             ),
@@ -94,7 +107,7 @@ class _DesktopNavigationState extends State<DesktopNavigation> {
       _showErrorSnackBar(widget.l10n.errorAdminLoginRequired);
       return;
     }
-    if (!widget.authService.isAdmin) {
+    if (!_isAdmin) {
       _showErrorSnackBar(widget.l10n.errorAdminPermissionRequired);
       return;
     }
@@ -169,13 +182,9 @@ class _DesktopNavigationState extends State<DesktopNavigation> {
         child: Row(
           children: [
             Icon(
-              widget.authService.isAdmin
-                  ? Icons.admin_panel_settings
-                  : Icons.person,
+              _isAdmin ? Icons.admin_panel_settings : Icons.person,
               size: 20,
-              color: widget.authService.isAdmin
-                  ? Colors.orange
-                  : const Color(0xFF283A49),
+              color: _isAdmin ? Colors.orange : const Color(0xFF283A49),
             ),
             const SizedBox(width: 8),
             Text(
@@ -249,7 +258,6 @@ class _DesktopNavigationState extends State<DesktopNavigation> {
       body: Row(
         children: [
           Container(
-            // Feste Breite für die Navigationsleiste
             width: _isNavigationRailExtended ? 250 : 80,
             decoration: BoxDecoration(
               color: const Color(0xFF283A49),
@@ -340,8 +348,7 @@ class _DesktopNavigationState extends State<DesktopNavigation> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (widget.authService.isAdmin)
-                                _buildAdminButton(),
+                              if (_isAdmin) _buildAdminButton(),
                               const Divider(color: Colors.white24),
                               _buildQuickAccessButtons(),
                               const SizedBox(height: 16),
