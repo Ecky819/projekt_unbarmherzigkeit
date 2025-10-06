@@ -18,8 +18,7 @@ setGlobalOptions({
 });
 
 // Environment Variable für Super Admin Initialisierung
-// eslint-disable-next-line max-len
-// Wird gesetzt mit: firebase functions:config:set admin.init_secret="DEIN_SECRET"
+// Wird gesetzt mit: firebase functions:config:set admin.init_secret="SECRET"
 const SUPER_ADMIN_INIT_SECRET = defineString("SUPER_ADMIN_INIT_SECRET", {
   description: "Secret Key für Super-Admin Initialisierung",
   default: "CHANGE_ME_AFTER_FIRST_USE",
@@ -174,11 +173,6 @@ exports.removeUserAdmin = onCall({ cors: true }, async (request) => {
 /**
  * Initialisiert den ersten Super-Admin (einmalig verwendbar)
  * WICHTIG: Diese Funktion sollte nach der ersten Nutzung deaktiviert werden!
- *
- * Verwendung:
- * curl -X POST https://europe-west1-PROJEKT-ID.cloudfunctions.net/initializeSuperAdmin \
- *   -H "Content-Type: application/json" \
- *   -d '{"email": "admin@example.com", "secret": "DEIN_SECRET"}'
  */
 exports.initializeSuperAdmin = onRequest({ cors: true }, async (req, res) => {
   // Prüfen ob bereits ein Super-Admin existiert
@@ -190,11 +184,9 @@ exports.initializeSuperAdmin = onRequest({ cors: true }, async (req, res) => {
       .get();
 
     if (!existingSuperAdmins.empty) {
-      // eslint-disable-next-line max-len
-      logger.warn("Versuch, Super-Admin zu initialisieren, obwohl bereits einer existiert");
+      logger.warn("Super-Admin Init: Bereits initialisiert");
       res.status(403).json({
-        // eslint-disable-next-line max-len
-        error: "Super-Admin bereits initialisiert. Diese Funktion ist nicht mehr verfügbar.",
+        error: "Super-Admin bereits initialisiert.",
       });
       return;
     }
@@ -208,8 +200,7 @@ exports.initializeSuperAdmin = onRequest({ cors: true }, async (req, res) => {
 
   // Secret Key Validierung mit Environment Variable
   if (secret !== SUPER_ADMIN_INIT_SECRET.value()) {
-    // eslint-disable-next-line max-len
-    logger.warn(`Ungültiger Secret Key verwendet bei Super-Admin Init für ${email}`);
+    logger.warn(`Ungültiger Secret Key für ${email}`);
     res.status(403).json({ error: "Ungültiger Secret Key" });
     return;
   }
@@ -239,14 +230,12 @@ exports.initializeSuperAdmin = onRequest({ cors: true }, async (req, res) => {
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    logger.info(`Super-Admin initialisiert: ${email} (UID: ${userRecord.uid})`);
+    logger.info(`Super-Admin initialisiert: ${email}`);
 
     res.json({
       success: true,
       message: `Super-Admin initialisiert für ${email}`,
       uid: userRecord.uid,
-      // eslint-disable-next-line max-len
-      notice: "WICHTIG: Diese Funktion kann nicht mehr verwendet werden. Bitte Secret Key ändern und Funktion ggf. deaktivieren.",
     });
   } catch (error) {
     logger.error("Fehler bei Super-Admin Initialisierung:", error);
