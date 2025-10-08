@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/services.dart';
@@ -81,7 +82,7 @@ class AuthService {
 
       return _cachedCustomClaims!;
     } catch (e) {
-      print('Fehler beim Abrufen der Custom Claims: $e');
+      debugPrint('Fehler beim Abrufen der Custom Claims: $e');
       return {};
     }
   }
@@ -112,7 +113,7 @@ class AuthService {
 
       return isAdminClaim;
     } catch (e) {
-      print('Fehler bei Admin-Check: $e');
+      debugPrint('Fehler bei Admin-Check: $e');
       // Fallback auf Legacy-System
       return _isLegacyAdmin();
     }
@@ -126,7 +127,7 @@ class AuthService {
       final claims = await getCustomClaims();
       return claims['admin'] == true && claims['adminLevel'] == 'super';
     } catch (e) {
-      print('Fehler bei Super-Admin-Check: $e');
+      debugPrint('Fehler bei Super-Admin-Check: $e');
       return false;
     }
   }
@@ -142,7 +143,7 @@ class AuthService {
               claims['adminLevel'] == 'admin' ||
               claims['adminLevel'] == 'super');
     } catch (e) {
-      print('Fehler bei Moderator-Check: $e');
+      debugPrint('Fehler bei Moderator-Check: $e');
       return false;
     }
   }
@@ -155,7 +156,7 @@ class AuthService {
       final claims = await getCustomClaims();
       return claims['role']?.toString() ?? 'user';
     } catch (e) {
-      print('Fehler beim Abrufen der Rolle: $e');
+      debugPrint('Fehler beim Abrufen der Rolle: $e');
       return 'user';
     }
   }
@@ -427,7 +428,7 @@ class AuthService {
 
       return refreshedUser?.emailVerified ?? false;
     } catch (e) {
-      print('Fehler beim Prüfen des Verifizierungsstatus: $e');
+      debugPrint('Fehler beim Prüfen des Verifizierungsstatus: $e');
       return false;
     }
   }
@@ -451,7 +452,7 @@ class AuthService {
         try {
           await result.user!.sendEmailVerification();
         } catch (e) {
-          print(
+          debugPrint(
             'Fehler beim automatischen Senden der Verifizierungs-E-Mail: $e',
           );
         }
@@ -585,18 +586,18 @@ class AuthService {
           await _googleSignIn.signOut();
         }
       } catch (e) {
-        print('Google Sign-Out Fehler ignoriert: $e');
+        debugPrint('Google Sign-Out Fehler ignoriert: $e');
       }
 
       // Firebase Sign-Out (ignoriere Fehler)
       try {
         await _auth.signOut();
       } catch (e) {
-        print('Firebase Sign-Out Fehler ignoriert: $e');
+        debugPrint('Firebase Sign-Out Fehler ignoriert: $e');
       }
     } catch (e) {
       // Alle Fehler ignorieren beim Force Logout
-      print('Force Logout abgeschlossen trotz Fehlern: $e');
+       debugPrint('Force Logout abgeschlossen trotz Fehlern: $e');
     }
   }
 

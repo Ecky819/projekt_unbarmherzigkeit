@@ -257,7 +257,7 @@ class CustomDrawer extends StatelessWidget {
                                 end: Alignment.bottomRight,
                                 colors: [
                                   AppColors.primary,
-                                  Colors.orange.withOpacity(0.3),
+                                  Colors.orange.withValues(alpha: 0.3),
                                 ],
                               )
                             : null,

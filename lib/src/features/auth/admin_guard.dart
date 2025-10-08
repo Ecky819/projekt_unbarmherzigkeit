@@ -162,7 +162,7 @@ class AdminGuard extends StatelessWidget {
 
       return true;
     } catch (e) {
-      print('Fehler beim Admin-Access-Check: $e');
+      debugPrint('Fehler beim Admin-Access-Check: $e');
       return false;
     }
   }
