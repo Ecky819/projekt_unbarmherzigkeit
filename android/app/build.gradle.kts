@@ -14,17 +14,17 @@ android {
     compileSdk = 34 // Explizit setzen für Firebase
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
-        applicationId = "com.example.projektUnbarmherzigkeit"
-        minSdk = flutter.minSdkVersion  // Mindestens 21 für Firebase
+        applicationId = "com.example.projekt_unbarmherzigkeit"
+        minSdk = flutter.minSdkVersion  // Mindestens 34 für Firebase
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

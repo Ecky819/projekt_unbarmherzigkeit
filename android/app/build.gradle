@@ -23,9 +23,9 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace = "com.example.projektUnbarmherzigkeit"
+    namespace = "com.example.projekt_unbarmherzigkeit"
     compileSdk = 36  // ✅ Auf 36 erhöht für alle Plugins
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "29.0.13846066"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -41,7 +41,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.projektUnbarmherzigkeit"
+        applicationId = "com.example.projekt_unbarmherzigkeit"
         minSdk = 24  // Firebase Auth braucht mindestens 24
         targetSdk = 36  // ✅ Auf 36 erhöht
         versionCode = flutterVersionCode.toInteger()

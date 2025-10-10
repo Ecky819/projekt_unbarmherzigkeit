@@ -37,7 +37,7 @@
 }
 
 # Deine Model-Klassen behalten
--keep class com.example.projektUnbarmherzigkeit.models.** { *; }
+-keep class com.example.projekt_unbarmherzigkeit.models.** { *; }
 
 # Kotlin
 -keep class kotlin.** { *; }
