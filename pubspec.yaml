@@ -1,10 +1,11 @@
 name: projekt_unbarmherzigkeit
-description: "Eine App über das Sckisal griechischer Zwangsarbeiter im Zweiten Weltkrieg."
+description: "Eine App über das Schicksal griechischer Zwangsarbeiter im Zweiten Weltkrieg."
 publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: ">=3.9.2 <=4.0.0"
+  flutter: ">=3.35.5"
 
 dependencies:
   flutter:
@@ -12,54 +13,43 @@ dependencies:
 
   flutter_localizations:
     sdk: flutter
-  get_it: ^8.0.2
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
   intl: any
 
   flutter_native_splash: ^2.0.1+1
-
   url_launcher: ^6.2.5
-
   json_annotation: ^4.9.0
 
   # Firebase Core – Basis für ALLE Firebase Dienste
   firebase_core: ^4.1.0
-
-  # Authentifizierung
-  firebase_auth:
-    ^6.0.2
-
-    # Cloud Firestore
+  firebase_auth: ^6.0.2
   cloud_firestore: ^6.0.1
-
-  # Cloud Storage
   firebase_storage: ^13.0.1
-
-  # Cloud Functions - NEU für Custom Claims
   cloud_functions: ^6.0.1
-
-  # Optional: Push-Notifications
   firebase_messaging: ^16.0.1
-
-  # Optional: Crashlytics
   firebase_crashlytics: ^5.0.1
-
-  # Optional: Analytics
   firebase_analytics: ^12.0.1
 
+  # Maps & Location
   cupertino_icons: ^1.0.8
   google_maps_flutter: ^2.12.3
   geocoding: ^4.0.0
-
   google_sign_in: ^6.1.6
-  provider: ^6.1.5+1
+
+  # State Management - AKTUALISIERT
+  flutter_riverpod: ^2.6.1 # NEU: Riverpod statt Provider
+  riverpod_annotation: ^2.6.1 # NEU: Für Code Generation
+
+  # Dependency Injection - NEU
+  get_it: ^8.0.3 # Service Locator
+  injectable: ^2.5.0 # Code Generation für DI
+
+  # Storage
   shared_preferences: ^2.5.3
 
-  universal_html: ^2.2.4 # Für Web-spezifischen Code
-  flutter_map: ^6.0.0 # Alternative zu Google Maps für Web
+  # Platform
+  universal_html: ^2.2.4
+  flutter_map: ^6.0.0
   latlong2: ^0.9.0
-
   flutter_platform_widgets: ^6.0.0
   responsive_builder: ^0.7.0
   share_plus: ^7.2.2
@@ -72,11 +62,13 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
 
-  riverpod_generator: ^2.6.2
+  # Code Generation - NEU
+  riverpod_generator: ^2.6.1 # Riverpod Code Generation
+  injectable_generator: ^2.6.2 # DI Code Generation
 
 dependency_overrides:
-  google_maps_flutter: ^2.5.0 # Nur für Mobile
-  google_maps_flutter_web: ^0.5.4 # Für Web-Kompatibilität
+  google_maps_flutter: ^2.5.0
+  google_maps_flutter_web: ^0.5.4
 
 flutter_icons:
   android: true

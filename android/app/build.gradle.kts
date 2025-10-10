@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.projekt_unbarmherzigkeit"
+        applicationId = "com.example.projektUnbarmherzigkeit"
         minSdk = flutter.minSdkVersion  // Mindestens 21 für Firebase
         targetSdk = 34
         versionCode = 1

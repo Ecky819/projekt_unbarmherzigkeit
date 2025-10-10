@@ -1,0 +1,76 @@
+# Build-Konfiguration für Code Generation
+#
+# Diese Datei konfiguriert build_runner für automatische Code-Generierung:
+# - Riverpod Code Generation
+# - JSON Serialization
+# - Injectable DI Code Generation
+
+targets:
+  $default:
+    builders:
+      # Riverpod Code Generation
+      riverpod_generator:
+        generate_for:
+          - lib/**/*.dart
+        options:
+          # Generiert .g.dart Files für Riverpod Providers
+          build_extensions:
+            .dart:
+              - .g.dart
+
+      # JSON Serialization
+      json_serializable:
+        generate_for:
+          - lib/src/data/**/*.dart
+          - lib/src/services/**/*.dart
+        options:
+          # Konfiguration für JSON Serialization
+          any_map: true
+          checked: true
+          create_to_json: true
+          disallow_unrecognized_keys: false
+          explicit_to_json: true
+
+      # Injectable DI Code Generation (optional)
+      injectable_generator:
+        enabled: false # Aktuell deaktiviert, da wir manuelles Setup verwenden
+        generate_for:
+          - lib/src/di/**/*.dart
+        options:
+          auto_register: true
+
+# Globale Build-Optionen
+global_options:
+  # Alle Builder
+  "*":
+    # Generierte Dateien nicht in Version Control
+    exclude:
+      - "**/*.g.dart"
+      - "**/*.freezed.dart"
+
+    # Build-Verhalten
+    runs_before: []
+    applies_builders: []
+
+# Builder-spezifische Optionen
+builders:
+  # Source Gen Builder
+  source_gen|combining_builder:
+    options:
+      # Ignoriere deprecated Warnungen in generierten Files
+      ignore_for_file:
+        - type=lint
+        - deprecated_member_use
+        - deprecated_member_use_from_same_package
+        - lines_longer_than_80_chars
+
+# Performance-Optimierungen
+performance:
+  # Cache-Verhalten
+  cache_strategy: "all"
+
+  # Parallele Builds
+  max_workers: 4
+
+  # Incremental Builds
+  incremental: true

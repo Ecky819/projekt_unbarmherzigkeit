@@ -1,0 +1,96 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
+android {
+    namespace = "com.example.projektUnbarmherzigkeit"
+    compileSdk = 36  // ✅ Auf 36 erhöht für alle Plugins
+    ndkVersion = "27.0.12077973"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        applicationId = "com.example.projektUnbarmherzigkeit"
+        minSdk = 24  // Firebase Auth braucht mindestens 24
+        targetSdk = 36  // ✅ Auf 36 erhöht
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
+        multiDexEnabled = true  // Für Firebase wichtig
+    }
+
+    buildTypes {
+        release {
+            // Signing-Konfiguration für Release-Builds
+            signingConfig = signingConfigs.debug
+            
+            // Optimierungen
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        
+        debug {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0"
+    
+    // Firebase BoM (Bill of Materials) - stellt Kompatibilität sicher
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    
+    // Firebase Abhängigkeiten (Versionen werden durch BoM verwaltet)
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-storage'
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    
+    // Google Play Services für Maps
+    implementation 'com.google.android.gms:play-services-maps:19.0.0'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    
+    // Multidex Support für viele Abhängigkeiten
+    implementation 'androidx.multidex:multidex:2.0.1'
+}
+
+// Google Services Plugin muss am Ende stehen!
+apply plugin: 'com.google.gms.google-services'

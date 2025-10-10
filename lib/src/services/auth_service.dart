@@ -597,7 +597,7 @@ class AuthService {
       }
     } catch (e) {
       // Alle Fehler ignorieren beim Force Logout
-       debugPrint('Force Logout abgeschlossen trotz Fehlern: $e');
+      debugPrint('Force Logout abgeschlossen trotz Fehlern: $e');
     }
   }
 
