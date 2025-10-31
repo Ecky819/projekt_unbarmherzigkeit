@@ -1,6 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 
 /// Service für die Verwaltung von Admin-Rollen und Berechtigungen
 class AdminManagementService {
@@ -222,7 +223,7 @@ class AdminManagementService {
       });
     } catch (e) {
       // Log error but don't throw - audit logging shouldn't break the main flow
-      print('Error logging admin action: $e');
+      debugPrint('Error logging admin action: $e');
     }
   }
 }
