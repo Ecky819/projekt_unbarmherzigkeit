@@ -491,6 +491,15 @@ class CustomDrawer extends StatelessWidget {
                               navigateTo(l10n.navigationprofile);
                             },
                           ),
+                          _drawerButton(
+                            context,
+                            icon: Icons.info_outline,
+                            text: 'Impressum',
+                            onTap: () {
+                              Navigator.pop(context);
+                              navigateTo('ImpressumR');
+                            },
+                          ),
                           // Admin Section - nur wenn Admin und Dashboard verfügbar
                           if (isAdmin && navigateToAdminDashboard != null) ...[
                             const SizedBox(height: 16),

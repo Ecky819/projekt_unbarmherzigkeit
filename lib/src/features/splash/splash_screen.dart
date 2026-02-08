@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../common/loading_dots.dart';
@@ -24,14 +25,16 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Set status bar style
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF2C3E50),
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-    );
+    // Set status bar style (not supported on web)
+    if (!kIsWeb) {
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Color(0xFF2C3E50),
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+      );
+    }
 
     // Initialize animation controllers
     _fadeController = AnimationController(
@@ -74,8 +77,9 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 4));
-    // Navigate to MainNavigation
+    // On web, skip the long splash delay (index.html already shows a loader)
+    const splashDuration = Duration(seconds: kIsWeb ? 1 : 4);
+    await Future.delayed(splashDuration);
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/main');
     }

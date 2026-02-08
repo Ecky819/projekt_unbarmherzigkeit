@@ -36,25 +36,21 @@ Future<void> setupServiceLocator() async {
   // PlatformService - Singleton
   getIt.registerLazySingleton<PlatformService>(() => PlatformService());
 
-  // AuthService - Singleton mit Firebase Auth Dependency
+  // AuthService - Singleton (uses internal singleton pattern)
   getIt.registerLazySingleton<AuthService>(
-    () => AuthService(firebaseAuth: getIt<FirebaseAuth>()),
+    () => AuthService(),
   );
 
   // AdminManagementService - Singleton
   getIt.registerLazySingleton<AdminManagementService>(
-    () => AdminManagementService(
-      firebaseAuth: getIt<FirebaseAuth>(),
-      firebaseFunctions: getIt<FirebaseFunctions>(),
-      firestore: getIt<FirebaseFirestore>(),
-    ),
+    () => AdminManagementService(),
   );
 
   // ========== Repositories ==========
 
   // DatabaseRepository - Factory (neue Instanz bei jedem Aufruf)
   getIt.registerFactory<DatabaseRepository>(
-    () => FirebaseRepository(firestore: getIt<FirebaseFirestore>()),
+    () => FirebaseRepository(),
   );
 
   // Oder als Singleton, wenn nur eine Instanz benötigt wird:
