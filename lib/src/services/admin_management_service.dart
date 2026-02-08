@@ -202,7 +202,7 @@ class AdminManagementService {
   // ========== AUDIT LOGGING ==========
 
   /// Log admin actions for audit purposes
-  Future<void> _logAdminAction({
+  Future<void> logAdminAction({
     required String action,
     required String targetUserId,
     String? targetUserEmail,

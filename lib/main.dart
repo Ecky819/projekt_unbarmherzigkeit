@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
 import 'configs/firebase_options.dart';
 import 'src/features/splash/splash_screen.dart';
@@ -13,12 +15,18 @@ import 'src/data/firebase_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //Verbindung zu Firebase herstellen
+
+  // Web: Saubere URLs ohne Hash (#) — z.B. /main statt /#/main
+  if (kIsWeb) {
+    usePathUrlStrategy();
+  }
+
+  // Verbindung zu Firebase herstellen
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  //Verbindung zum Language Service erstellen und initialisieren
+  // Verbindung zum Language Service erstellen und initialisieren
   final languageService = LanguageService();
   await languageService.initialize();
-  //Verbindung zur Datenbank erstellen
+  // Verbindung zur Datenbank erstellen
   final DatabaseRepository repository = FirebaseRepository();
 
   runApp(MyApp(languageService: languageService, repository: repository));
