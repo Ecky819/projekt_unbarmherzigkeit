@@ -25,7 +25,7 @@ class HomeScreen extends StatelessWidget {
         children: [
           Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 215),
+              constraints: const BoxConstraints(maxWidth: 450),
               child: Column(
                 children: [
                   NewsCard(
@@ -53,7 +53,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Container(
-                    width: 167,
+                    width: 217,
                     margin: const EdgeInsets.only(right: 16),
                     child: QuicklinkCard(
                       title: l10n.hometimelineTitle,
@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 167,
+                    width: 217,
                     child: QuicklinkCard(
                       title: l10n.homemapTitle,
                       text: l10n.homemapDescription,
