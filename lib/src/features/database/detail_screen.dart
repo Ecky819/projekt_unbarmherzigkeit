@@ -478,7 +478,10 @@ class DetailScreen extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildImageWithCaption(),
@@ -598,6 +601,8 @@ class DetailScreen extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
           ),
         ),
       ),

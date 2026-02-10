@@ -81,10 +81,11 @@ service cloud.firestore {
     }
     
     // ========== CONCENTRATION CAMPS ==========
-    
-    // Concentration Camps - Lesen für alle authentifizierten User, Schreiben je nach Berechtigung
+
+    // Concentration Camps - Lesen für ALLE (auch ohne Login, z.B. Kartenansicht)
+    // Schreiben je nach Berechtigung
     match /camps/{campId} {
-      allow read: if canRead();
+      allow read: if true;
       allow create: if canPerformAction('create_camp');
       allow update: if canPerformAction('update_camp');
       allow delete: if canPerformAction('delete_camp');

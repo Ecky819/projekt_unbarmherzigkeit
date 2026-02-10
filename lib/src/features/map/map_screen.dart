@@ -137,21 +137,21 @@ class _MapScreenState extends State<MapScreen> {
       ];
 
       SearchResult? foundResult;
+      String debugInfo = 'Repository: ${repository.runtimeType}\n';
 
       // Durchsuche mit verschiedenen Namensvarianten
       for (final searchName in searchVariants) {
-        //print('Trying search variant: $searchName');
         final searchResult = await repository.search(nameQuery: searchName);
+        debugInfo += 'Suche "$searchName": success=${searchResult.isSuccess}, '
+            'count=${searchResult.data?.length ?? 0}\n';
 
         if (searchResult.isSuccess &&
             searchResult.data != null &&
             searchResult.data!.isNotEmpty) {
-          //print('Found ${searchResult.data!.length} results for "$searchName"');
           // Prüfe ob ein Camp gefunden wurde
           for (final result in searchResult.data!) {
             if (result.type == 'camp') {
               foundResult = result;
-              //print('Found camp: ${result.title}');
               break;
             }
           }
@@ -161,18 +161,24 @@ class _MapScreenState extends State<MapScreen> {
 
       // Wenn nichts gefunden, versuche Teilstring-Suche
       if (foundResult == null) {
-        //print('No exact match found, trying partial search...');
-        // Suche auch nach Teilstrings (für den Fall von Rechtschreibunterschieden)
         final allCampsResult = await repository.getConcentrationCamps();
+        debugInfo += 'Alle Camps: success=${allCampsResult.isSuccess}, '
+            'count=${allCampsResult.data?.length ?? 0}\n';
+        if (!allCampsResult.isSuccess) {
+          final err = allCampsResult.error;
+          debugInfo += 'Fehler: $err\n';
+          if (err is DatabaseException) {
+            debugInfo += 'Original: ${err.originalError}\n';
+            debugInfo += 'Code: ${err.code}\n';
+          }
+        }
 
         if (allCampsResult.isSuccess && allCampsResult.data != null) {
-          //print('Searching through ${allCampsResult.data!.length} camps');
           for (final camp in allCampsResult.data!) {
             // Case-insensitive Suche mit contains
             if (camp.name.toLowerCase().contains(campName.toLowerCase()) ||
                 campName.toLowerCase().contains(camp.name.toLowerCase())) {
               foundResult = SearchResult.fromCamp(camp);
-              //print('Found camp by partial match: ${camp.name}');
               break;
             }
           }
@@ -212,10 +218,11 @@ class _MapScreenState extends State<MapScreen> {
                   context: context,
                   builder: (context) => AlertDialog(
                     title: const Text('Keine Daten gefunden'),
-                    content: Text(
-                      'Das Lager "$campName" konnte nicht in der Datenbank gefunden werden.\n\n'
-                      'Verwendetes Repository: ${repository.runtimeType}\n'
-                      'Hinweis: Stellen Sie sicher, dass die Datenbank initialisiert wurde.',
+                    content: SingleChildScrollView(
+                      child: Text(
+                        'Das Lager "$campName" konnte nicht in der Datenbank gefunden werden.\n\n'
+                        '$debugInfo',
+                      ),
                     ),
                     actions: [
                       TextButton(

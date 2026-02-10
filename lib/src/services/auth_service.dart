@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -486,32 +487,16 @@ class AuthService {
   }
 
   /// Google Sign-In
+  ///
+  /// Web: Nutzt Firebase Auth signInWithPopup (kein OAuth Client-ID Meta-Tag nötig)
+  /// Mobile: Nutzt google_sign_in Package mit nativem Flow
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // Trigger Google Sign-In Flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser == null) {
-        throw Exception('Google Sign-In wurde abgebrochen');
+      if (kIsWeb) {
+        return await _signInWithGoogleWeb();
+      } else {
+        return await _signInWithGoogleMobile();
       }
-
-      // Obtain Google Auth credentials
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      // Create Firebase credential
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in to Firebase
-      final result = await _auth.signInWithCredential(credential);
-
-      // Cache leeren um neue Claims zu laden
-      clearClaimsCache();
-
-      return result;
     } on PlatformException catch (e) {
       if (e.code == 'sign_in_canceled') {
         throw 'Anmeldung wurde abgebrochen';
@@ -522,6 +507,44 @@ class AuthService {
     } catch (e) {
       throw 'Unerwarteter Fehler bei Google Sign-In: $e';
     }
+  }
+
+  /// Google Sign-In für Web via Firebase Auth Popup
+  Future<UserCredential?> _signInWithGoogleWeb() async {
+    final googleProvider = GoogleAuthProvider();
+    googleProvider.addScope('email');
+    googleProvider.addScope('profile');
+
+    final result = await _auth.signInWithPopup(googleProvider);
+
+    // Cache leeren um neue Claims zu laden
+    clearClaimsCache();
+
+    return result;
+  }
+
+  /// Google Sign-In für Mobile via google_sign_in Package
+  Future<UserCredential?> _signInWithGoogleMobile() async {
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+    if (googleUser == null) {
+      throw Exception('Google Sign-In wurde abgebrochen');
+    }
+
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final result = await _auth.signInWithCredential(credential);
+
+    // Cache leeren um neue Claims zu laden
+    clearClaimsCache();
+
+    return result;
   }
 
   /// Logout

@@ -748,9 +748,12 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
             widget.navigateToAdminDashboard ?? (_navigateToAdminDashboard),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
             children: [
               // Toggle-Button für Suchfelder
               if (!_showSearchFields && _currentQuery.isNotEmpty)
@@ -1056,6 +1059,8 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                       ),
               ),
             ],
+          ),
+        ),
           ),
         ),
       ),

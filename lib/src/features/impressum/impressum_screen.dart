@@ -40,10 +40,7 @@ class ImpressumScreen extends StatelessWidget {
                   label: 'App Name',
                   value: '#Projekt Unbarmherzigkeit',
                 ),
-                _buildInfoRow(
-                  label: 'Version',
-                  value: '1.0.0',
-                ),
+                _buildInfoRow(label: 'Version', value: '1.0.0'),
                 _buildInfoRow(
                   label: 'Zweck',
                   value:
@@ -164,10 +161,7 @@ Telefon: +49 (0) 123 456789
             _buildSection(
               title: 'Technische Umsetzung',
               children: [
-                _buildInfoRow(
-                  label: 'Framework',
-                  value: 'Flutter 3.35.1+',
-                ),
+                _buildInfoRow(label: 'Framework', value: 'Flutter 3.35.1+'),
                 _buildInfoRow(label: 'Backend', value: 'Firebase'),
                 _buildInfoRow(
                   label: 'Entwicklung',
@@ -181,7 +175,7 @@ Telefon: +49 (0) 123 456789
             // Last Update
             Center(
               child: Text(
-                'Stand: November 2024',
+                'Stand: Januar 2026',
                 style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
               ),
             ),

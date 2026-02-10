@@ -130,12 +130,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Bitte geben Sie Ihre E-Mail-Adresse ein.'),
-          backgroundColor: Color(0xFFC0200E),
-        ),
-      );
+      if (mounted) {
+        _showForgotPasswordDialog();
+      }
       return;
     }
 
@@ -149,31 +146,123 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    await _sendPasswordResetEmail(email);
+  }
+
+  void _showForgotPasswordDialog() {
+    final dialogEmailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Passwort zurücksetzen',
+          style: TextStyle(
+            fontFamily: 'SF Pro',
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF283A49),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Geben Sie Ihre E-Mail-Adresse ein. Sie erhalten einen Link zum Zurücksetzen Ihres Passworts.',
+              style: TextStyle(fontFamily: 'SF Pro', fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: dialogEmailController,
+              keyboardType: TextInputType.emailAddress,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'E-Mail-Adresse',
+                hintText: 'max.mustermann@example.com',
+                prefixIcon: const Icon(Icons.email_outlined),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF283A49),
+            ),
+            onPressed: () {
+              final email = dialogEmailController.text.trim();
+              Navigator.pop(context);
+              if (email.isNotEmpty && email.contains('@')) {
+                _sendPasswordResetEmail(email);
+              } else {
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+                    ),
+                    backgroundColor: Color(0xFFC0200E),
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'Senden',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendPasswordResetEmail(String email) async {
     try {
       await _authService.resetPassword(email);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'E-Mail zum Zurücksetzen des Passworts wurde gesendet. Bitte überprüfen Sie Ihren Posteingang.',
+              'E-Mail zum Zurücksetzen des Passworts wurde an $email gesendet. '
+              'Bitte überprüfen Sie auch Ihren Spam-Ordner.',
             ),
-            backgroundColor: Color(0xFF759607),
-            duration: Duration(seconds: 5),
+            backgroundColor: const Color(0xFF759607),
+            duration: const Duration(seconds: 6),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        String errorMessage = 'Fehler beim Zurücksetzen des Passworts';
+        final errorStr = e.toString();
+        String errorMessage;
 
-        if (e.toString().contains('user-not-found')) {
-          errorMessage =
-              'Es wurde kein Konto mit dieser E-Mail-Adresse gefunden.';
-        } else if (e.toString().contains('invalid-email')) {
+        if (errorStr.contains('user-not-found')) {
+          // Aus Sicherheitsgründen trotzdem Erfolgsmeldung zeigen
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Falls ein Konto mit $email existiert, wurde eine E-Mail gesendet. '
+                'Bitte überprüfen Sie auch Ihren Spam-Ordner.',
+              ),
+              backgroundColor: const Color(0xFF759607),
+              duration: const Duration(seconds: 6),
+            ),
+          );
+          return;
+        } else if (errorStr.contains('invalid-email')) {
           errorMessage = 'Ungültige E-Mail-Adresse.';
-        } else if (e.toString().contains('too-many-requests')) {
+        } else if (errorStr.contains('too-many-requests')) {
           errorMessage =
               'Zu viele Anfragen. Bitte warten Sie einen Moment und versuchen Sie es erneut.';
+        } else {
+          errorMessage =
+              'Fehler beim Zurücksetzen des Passworts. Bitte versuchen Sie es später erneut.';
+          debugPrint('Password reset error: $errorStr');
         }
 
         ScaffoldMessenger.of(context).showSnackBar(

@@ -47,29 +47,32 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  width: 167,
-                  margin: const EdgeInsets.only(right: 16),
-                  child: QuicklinkCard(
-                    title: l10n.hometimelineTitle,
-                    text: l10n.hometimelineDescription,
-                    imagePath: 'assets/icons/more_info.png',
-                    onTap: () => navigateTo(l10n.navigationtimeline),
+            child: IntrinsicHeight(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Container(
+                    width: 167,
+                    margin: const EdgeInsets.only(right: 16),
+                    child: QuicklinkCard(
+                      title: l10n.hometimelineTitle,
+                      text: l10n.hometimelineDescription,
+                      imagePath: 'assets/icons/more_info.png',
+                      onTap: () => navigateTo(l10n.navigationtimeline),
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 167,
-                  child: QuicklinkCard(
-                    title: l10n.homemapTitle,
-                    text: l10n.homemapDescription,
-                    imagePath: 'assets/icons/more_info.png',
-                    onTap: () => navigateTo(l10n.navigationmap),
+                  SizedBox(
+                    width: 167,
+                    child: QuicklinkCard(
+                      title: l10n.homemapTitle,
+                      text: l10n.homemapDescription,
+                      imagePath: 'assets/icons/more_info.png',
+                      onTap: () => navigateTo(l10n.navigationmap),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

@@ -8,7 +8,7 @@
   <meta name="description" content="Projekt Unbarmherzigkeit - Dokumentation der NS-Zeit">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google-signin-client_id"
-    content="330428788627-qbp8oar8rp1jik9na3q0a1frm8eebjco.apps.googleusercontent.com.apps.googleusercontent.com">
+    content="330428788627-qbp8oar8rp1jik9na3q0a1frm8eebjco.apps.googleusercontent.com">
 
   <!-- SEO Meta Tags -->
   <meta name="keywords" content="NS-Zeit, Holocaust, Dokumentation, Gedenken">
@@ -32,11 +32,6 @@
 
   <title>Projekt Unbarmherzigkeit</title>
   <link rel="manifest" href="manifest.json">
-
-  <!-- Firebase SDK v9 (modular) -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <!-- Google Maps API -->
   <script
@@ -109,21 +104,6 @@
   </style>
 
   <script>
-    // Firebase Konfiguration für Ihr Projekt
-    const firebaseConfig = {
-      apiKey: "AIzaSyCYZ7dSyDBJ60ZS9pNlofJzh_No5VfPmmM", // Aus Firebase Console
-      authDomain: "unbarmherzigkeit-auth.firebaseapp.com",
-      projectId: "unbarmherzigkeit-auth",
-      storageBucket: "unbarmherzigkeit-auth.appspot.com",
-      messagingSenderId: "330428788627",
-      appId: "1:330428788627:web:93a715d892b8909bf24266"
-    };
-
-    // Firebase initialisieren
-    if (firebase.apps.length === 0) {
-      firebase.initializeApp(firebaseConfig);
-    }
-
     // Loading Spinner entfernen wenn Flutter geladen ist
     window.addEventListener('flutter-first-frame', function () {
       const loading = document.getElementById('loading');
