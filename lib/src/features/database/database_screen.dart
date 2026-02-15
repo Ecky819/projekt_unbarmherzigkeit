@@ -319,7 +319,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -331,7 +331,7 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
               fontFamily: 'SFPro',
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           TextField(
             controller: controller,
             keyboardType: keyboardType,
@@ -636,64 +636,62 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
 
   // Empty State Widget
   Widget _buildEmptyState(AppLocalizations l10n) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              _currentQuery.isEmpty
-                  ? l10n.databasenoresults
-                  : l10n.databaseresults(0),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'SFPro',
-              ),
-              textAlign: TextAlign.center,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 4),
+          Text(
+            _currentQuery.isEmpty
+                ? l10n.databasenoresults
+                : l10n.databaseresults(0),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'SFPro',
             ),
-            if (_currentQuery.isEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHelpText(
-                      Icons.person,
-                      l10n.databasename,
-                      l10n.databasenameHint,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildHelpText(
-                      Icons.location_on,
-                      l10n.databaseplace,
-                      l10n.databaseplaceHint,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildHelpText(
-                      Icons.calendar_today,
-                      l10n.databaseyear,
-                      l10n.databaseyearHint,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildHelpText(
-                      Icons.event,
-                      l10n.databaseevent,
-                      l10n.databaseeventHint,
-                    ),
-                  ],
-                ),
+            textAlign: TextAlign.center,
+          ),
+          if (_currentQuery.isEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
               ),
-            ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHelpText(
+                    Icons.person,
+                    l10n.databasename,
+                    l10n.databasenameHint,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildHelpText(
+                    Icons.location_on,
+                    l10n.databaseplace,
+                    l10n.databaseplaceHint,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildHelpText(
+                    Icons.calendar_today,
+                    l10n.databaseyear,
+                    l10n.databaseyearHint,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildHelpText(
+                    Icons.event,
+                    l10n.databaseevent,
+                    l10n.databaseeventHint,
+                  ),
+                ],
+              ),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -792,139 +790,146 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                 ),
 
               // Suchfelder
-              if (_showSearchFields) ...[
-                _buildSearchField(
-                  label: l10n.databasename,
-                  hint: l10n.databasenameHint,
-                  controller: _nameController,
-                ),
-                _buildSearchField(
-                  label: l10n.databaseplace,
-                  hint: l10n.databaseplaceHint,
-                  controller: _ortController,
-                ),
-                _buildSearchField(
-                  label: l10n.databaseyear,
-                  hint: l10n.databaseyearHint,
-                  controller: _jahrController,
-                  keyboardType: TextInputType.number,
-                ),
-                _buildSearchField(
-                  label: l10n.databaseevent,
-                  hint: l10n.databaseeventHint,
-                  controller: _ereignisController,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _performSearch,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromRGBO(
-                            40,
-                            58,
-                            73,
-                            1.0,
-                          ),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+              if (_showSearchFields)
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        _buildSearchField(
+                          label: l10n.databasename,
+                          hint: l10n.databasenameHint,
+                          controller: _nameController,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        _buildSearchField(
+                          label: l10n.databaseplace,
+                          hint: l10n.databaseplaceHint,
+                          controller: _ortController,
+                        ),
+                        _buildSearchField(
+                          label: l10n.databaseyear,
+                          hint: l10n.databaseyearHint,
+                          controller: _jahrController,
+                          keyboardType: TextInputType.number,
+                        ),
+                        _buildSearchField(
+                          label: l10n.databaseevent,
+                          hint: l10n.databaseeventHint,
+                          controller: _ereignisController,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Action Buttons
+                        Row(
                           children: [
-                            const Icon(Icons.search, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              l10n.databasesearch,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontFamily: 'SFPro',
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _performSearch,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromRGBO(
+                                    40,
+                                    58,
+                                    73,
+                                    1.0,
+                                  ),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.search, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      l10n.databasesearch,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontFamily: 'SFPro',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _clearSearch,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color.fromRGBO(
+                                    40,
+                                    58,
+                                    73,
+                                    1.0,
+                                  ),
+                                  side: const BorderSide(
+                                    color: Color.fromRGBO(40, 58, 73, 1.0),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.clear, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      l10n.databasereset,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontFamily: 'SFPro',
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _clearSearch,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color.fromRGBO(
-                            40,
-                            58,
-                            73,
-                            1.0,
-                          ),
-                          side: const BorderSide(
-                            color: Color.fromRGBO(40, 58, 73, 1.0),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.clear, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              l10n.databasereset,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontFamily: 'SFPro',
+
+                        const SizedBox(height: 12),
+
+                        // Ausblenden-Button
+                        if (_currentQuery.isNotEmpty)
+                          Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: InkWell(
+                              onTap: _toggleSearchFields,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      l10n.commonhideSearch,
+                                      style: const TextStyle(
+                                        fontFamily: 'SFPro',
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.keyboard_arrow_up,
+                                      color: Colors.black54,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-              ],
-
-              // Ausblenden-Button
-              if (_showSearchFields && _currentQuery.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: InkWell(
-                    onTap: _toggleSearchFields,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            l10n.commonhideSearch,
-                            style: const TextStyle(
-                              fontFamily: 'SFPro',
-                              fontSize: 14,
-                              color: Colors.black87,
-                            ),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.keyboard_arrow_up,
-                            color: Colors.black54,
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
                 ),
@@ -1001,15 +1006,18 @@ class _DatabaseScreenState extends State<DatabaseScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      l10n.databaseresults(
-                                        searchResults.length,
-                                      ),
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        fontFamily: 'SFPro',
-                                        color: Color.fromRGBO(40, 58, 73, 1.0),
+                                    Flexible(
+                                      child: Text(
+                                        l10n.databaseresults(
+                                          searchResults.length,
+                                        ),
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: 'SFPro',
+                                          color: Color.fromRGBO(40, 58, 73, 1.0),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     Row(

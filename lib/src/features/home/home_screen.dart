@@ -52,23 +52,26 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Container(
-                    width: 217,
-                    margin: const EdgeInsets.only(right: 16),
-                    child: QuicklinkCard(
-                      title: l10n.hometimelineTitle,
-                      text: l10n.hometimelineDescription,
-                      imagePath: 'assets/icons/more_info.png',
-                      onTap: () => navigateTo(l10n.navigationtimeline),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: QuicklinkCard(
+                        title: l10n.hometimelineTitle,
+                        text: l10n.hometimelineDescription,
+                        imagePath: 'assets/icons/more_info.png',
+                        onTap: () => navigateTo(l10n.navigationtimeline),
+                      ),
                     ),
                   ),
-                  SizedBox(
-                    width: 217,
-                    child: QuicklinkCard(
-                      title: l10n.homemapTitle,
-                      text: l10n.homemapDescription,
-                      imagePath: 'assets/icons/more_info.png',
-                      onTap: () => navigateTo(l10n.navigationmap),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: QuicklinkCard(
+                        title: l10n.homemapTitle,
+                        text: l10n.homemapDescription,
+                        imagePath: 'assets/icons/more_info.png',
+                        onTap: () => navigateTo(l10n.navigationmap),
+                      ),
                     ),
                   ),
                 ],

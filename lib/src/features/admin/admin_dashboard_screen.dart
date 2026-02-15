@@ -709,15 +709,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               children: [
                 Icon(Icons.info_outline, color: Colors.blue.shade700, size: 16),
                 const SizedBox(width: 8),
-                Text(
-                  'Suche nach: "$_searchQuery"',
-                  style: TextStyle(
-                    color: Colors.blue.shade700,
-                    fontFamily: 'SF Pro',
-                    fontSize: 14,
+                Flexible(
+                  child: Text(
+                    'Suche nach: "$_searchQuery"',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontFamily: 'SF Pro',
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 TextButton(
                   onPressed: _clearSearch,
                   child: const Text('Zurücksetzen'),

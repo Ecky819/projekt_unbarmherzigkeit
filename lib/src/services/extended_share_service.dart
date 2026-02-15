@@ -541,6 +541,7 @@ class _ExtendedShareOptionsSheet extends StatelessWidget {
                 await Share.share(
                   jsonString,
                   subject: ExtendedShareService.getShareSubjectPublic(item),
+                  sharePositionOrigin: const Rect.fromLTWH(0, 0, 1, 1),
                 );
               },
             ),

@@ -19,7 +19,7 @@ class ShareService {
       await Share.share(
         shareText,
         subject: _getShareSubject(item),
-        sharePositionOrigin: sharePositionOrigin,
+        sharePositionOrigin: sharePositionOrigin ?? const Rect.fromLTWH(0, 0, 1, 1),
       );
     } catch (e) {
       debugPrint('Fehler beim Teilen: $e');
@@ -204,9 +204,9 @@ class ShareService {
   }
 
   /// Teilt nur als Text (für spezielle Anwendungsfälle)
-  static Future<void> shareAsText(String text, {String? subject}) async {
+  static Future<void> shareAsText(String text, {String? subject, Rect? sharePositionOrigin}) async {
     try {
-      await Share.share(text, subject: subject);
+      await Share.share(text, subject: subject, sharePositionOrigin: sharePositionOrigin ?? const Rect.fromLTWH(0, 0, 1, 1));
     } catch (e) {
       throw ShareException('Text-Teilen fehlgeschlagen: $e');
     }
